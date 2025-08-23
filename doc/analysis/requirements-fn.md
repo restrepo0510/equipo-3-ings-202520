@@ -1,6 +1,6 @@
 Requisitos Funcionales (RF)
 
-RF-01: Inicio de sesión y registro de usuarios
+**RF-01: Inicio de sesión y registro de usuarios**
 
 Descripción: Permite que los usuarios se registren o inicien sesión, con su información almacenada de forma segura en una base de datos.
 
@@ -14,7 +14,7 @@ Feature: Inicio de sesión y registro de usuarios
 
 Prioridad: P0
 
-RF-02: Visualización de mercados/restaurantes cercanos
+**RF-02: Visualización de mercados/restaurantes cercanos**
 
 Descripción: Muestra en una landing las ubicaciones de los restaurantes o mercados cercanos al usuario según su ubicación actual.
 
@@ -28,7 +28,7 @@ Feature: Visualización de mercados y restaurantes cercanos
 
 Prioridad: P0
 
-RF-03: Catálogo de productos disponibles
+**RF-03: Catálogo de productos disponibles**
 
 Descripción: Presenta un catálogo de alimentos disponibles que están próximos a vencer y que pueden ser reclamados o adquiridos.
 
@@ -42,7 +42,7 @@ Feature: Catálogo de productos disponibles
 
 Prioridad: P0
 
-RF-04: Visualización de restaurantes disponibles y no disponibles
+**RF-04: Visualización de restaurantes disponibles y no disponibles**
 
 Descripción: Muestra los restaurantes activos o inactivos en la zona del usuario, priorizando los que estén asociados con la aplicación.
 
@@ -56,7 +56,7 @@ Feature: Restaurantes activos e inactivos
 
 Prioridad: P1
 
-RF-05: Barra de búsqueda de restaurantes
+**RF-05: Barra de búsqueda de restaurantes**
 
 Descripción: Permite al usuario buscar restaurantes específicos según nombre o categoría mediante una barra de navegación.
 
@@ -70,7 +70,7 @@ Feature: Búsqueda de restaurantes
 
 Prioridad: P0
 
-RF-06: Geolocalización del usuario
+**RF-06: Geolocalización del usuario**
 
 Descripción: Detecta y muestra la ubicación actual del usuario para relacionarla con los restaurantes más cercanos disponibles.
 
@@ -84,7 +84,7 @@ Feature: Geolocalización del usuario
 
 Prioridad: P0
 
-RF-07: Reserva temporal de productos
+**RF-07: Reserva temporal de productos**
 
 Descripción: Permite al usuario reservar un producto por un tiempo limitado, como 30 minutos, mientras decide o se desplaza.
 
@@ -98,7 +98,7 @@ Feature: Reserva temporal de productos
 
 Prioridad: P1
 
-RF-08: Recuperación de contraseña
+**RF-08: Recuperación de contraseña**
 
 Descripción: Permite que los usuarios recuperen el acceso a su cuenta en caso de olvidar la contraseña, a través de un enlace de restablecimiento enviado a su correo electrónico registrado.
 
@@ -112,7 +112,7 @@ Criterios de aceptación :
 
 Prioridad: P1
 
-RF-09: Filtro por tiempo de vencimiento
+**RF-09: Filtro por tiempo de vencimiento**
 
 Descripción: Ofrece un filtro para ordenar los productos según el tiempo que les queda antes de vencer, como 1 día, 3 días o 1 semana.
 
@@ -125,4 +125,103 @@ Feature: Filtro de productos por tiempo de vencimiento
     Then el sistema muestra los productos ordenados según la selección
 
 Prioridad: P1
+
+**RF-10: Notificaciones inteligentes para usuarios**
+
+Descripción: Envía alertas automáticas al usuario cuando un producto de su interés está disponible y cerca de su ubicación.
+
+Criterios de aceptación :
+
+ Feature: Notificaciones para usuarios
+  Scenario: Alertas sobre productos de interés
+    Given el usuario ha mostrado interés en ciertos productos
+    When un producto de su interés está disponible y cercano
+    Then el sistema envía una notificación automática
+
+Prioridad: P0
+
+**RF-11: Alertas automáticas para negocios**
+
+Descripción: Notifica a los negocios cuando un producto próximo a vencer aún no ha sido vendido, para que tomen acciones rápidas.
+
+Criterios de aceptación :
+
+  Feature: Alertas para negocios
+    Scenario: Notificación sobre productos no vendidos
+      Given un producto próximo a vencer no ha sido vendido
+      When se detecta esta situación
+      Then el sistema notifica al negocio para que tome acción
+
+Prioridad: P1
+
+**RF-12: Exportación de datos**
+
+Descripción: El sistema debe permitir exportar los datos de las ventas y transacciones a un formato de base de datos estándar (CSV, SQL u otro formato común).
+
+Criterios de aceptación:
+
+  Feature: Exportación de datos
+    Scenario: Exportar registros de ventas
+      Given el administrador solicita la exportación
+      When el sistema procesa la petición
+      Then se genera un archivo en un formato compatible con bases de datos
+
+Prioridad: P1
+
+**RF-13: Edición de precios dinámicos**
+
+Descripción: Ofrece a las tiendas la posibilidad de ajustar el precio de los productos según la cercanía del vencimiento.
+
+Criterios de aceptación :
+
+  Feature: Precios dinámicos
+    Scenario: Ajuste de precio según fecha de vencimiento
+      Given un producto está próximo a vencer
+      When el negocio edita el precio
+      Then el sistema actualiza y muestra el nuevo precio
+
+Prioridad: P1
+
+**RF-14: Historial de pedidos**
+
+Descripción: El sistema permite a los usuarios consultar el historial de pedidos realizados en la aplicación.
+
+Criterios de aceptación:
+
+  Feature: Historial de pedidos
+    Scenario: Consultar historial
+    Given un usuario ha realizado pedidos previos
+    When accede a la sección "Historial de pedidos"
+    Then el sistema muestra una lista con sus compras pasadas
+
+Prioridad: P1
+
+**RF-15: Recomendaciones de productos**
+
+Descripción: El sistema muestra recomendaciones de productos basadas en las compras anteriores del usuario.
+
+Criterios de aceptación:
+
+  Feature: Recomendaciones de productos
+    Scenario: Mostrar sugerencias
+      Given un usuario tiene historial de compras
+      When accede a la página principal de productos
+      Then el sistema muestra recomendaciones personalizadas
+
+Prioridad: P2
+
+**RF-16: Pasarela de pagos**
+
+Descripción: Integra un sistema que recoja y transmita la información de las transacciones realizadas por el usuario.
+
+Criterios de aceptación :
+
+  Feature: Pasarela de pagos
+    Scenario: Realizar una transacción
+      Given el usuario selecciona productos para comprar
+      When procede al pago
+      Then el sistema procesa y transmite la información de la transacción
+
+Prioridad: P0
+
 
