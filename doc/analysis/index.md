@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 <h2 style="color:#D2691E;">🗂️ Navegación de la carpeta Analysis</h2>
 
 | 🗃️ Archivo | 📌 Descripción |
