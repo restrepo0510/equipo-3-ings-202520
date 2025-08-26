@@ -7,13 +7,13 @@
 La plataforma deberá mostrar en tiempo real la disponibilidad de alimentos rescatados de restaurantes, plazas de mercado y supermercados, reduciendo riesgos de pérdida por falta de información actualizada.
 
 **Criterios de aceptación :**
-```
+```gherkin
 Feature: Actualización en tiempo real de disponibilidad
   Scenario: Consulta de alimentos disponibles
     Given un usuario consulta la lista de alimentos
     When un restaurante actualiza su inventario
     Then el sistema refleja inmediatamente la disponibilidad actualizada
-````
+```
 
 **Prioridad:** P0
 
@@ -26,7 +26,7 @@ El sistema deberá garantizar que las transacciones relacionadas con alimentos, 
 
 **Criterios de aceptación :**
 
-```
+```gherkin
 Feature: Confiabilidad de datos
   Scenario: Registro de una donación
     Given una empresa dona alimentos
@@ -45,7 +45,7 @@ La aplicación deberá recuperarse automáticamente ante fallos inesperados (ca�
 
 **Criterios de aceptación :**
 
-```
+```gherkin
 Feature: Tolerancia a fallos
   Scenario: Caída de servidor
     Given el sistema sufre una interrupción
@@ -64,7 +64,7 @@ En comunidades vulnerables con conectividad limitada, el sistema permitirá acce
 
 **Criterios de aceptación :**
 
-```
+```gherkin
 Feature: Disponibilidad offline
   Scenario: Acceso en zonas sin conexión
     Given un usuario pierde conexión a internet
@@ -83,7 +83,7 @@ La plataforma deberá cumplir con estándares de accesibilidad digital (WCAG 2.1
 
 **Criterios de aceptación :**
 
-```
+```gherkin
 Feature: Accesibilidad
   Scenario: Navegación con lector de pantalla
     Given un usuario con discapacidad visual accede a la app
@@ -102,7 +102,7 @@ Todas las credenciales y datos sensibles deberán almacenarse con estándares de
 
 **Criterios de aceptación :**
 
-```
+```gherkin
 Feature: Seguridad de credenciales
   Scenario: Almacenamiento seguro
     Given un usuario registra su información personal
@@ -121,7 +121,7 @@ La plataforma deberá integrarse con sistemas externos (bases de datos de restau
 
 **Criterios de aceptación :**
 
-```
+```gherkin
 Feature: Interoperabilidad
   Scenario: Conexión con sistema externo
     Given la plataforma necesita información de inventario de un restaurante
@@ -140,7 +140,7 @@ El código deberá cumplir con estándares de buenas prácticas y alcanzar al me
 
 **Criterios de aceptación :**
 
-```
+```gherkin
 Feature: Mantenibilidad y pruebas
   Scenario: Validación de cobertura
     Given un desarrollador ejecuta las pruebas del sistema
@@ -159,7 +159,7 @@ La plataforma promoverá la reducción del desperdicio mediante mensajes y recom
 
 **Criterios de aceptación :**
 
-```
+```gherkin
 Feature: Sostenibilidad
   Scenario: Recomendaciones de consumo
     Given un usuario agrega productos a su reserva
@@ -178,7 +178,7 @@ La plataforma garantizará la privacidad de los usuarios, evitando la venta de d
 
 **Criterios de aceptación :**
 
-```
+```gherkin
 Feature: Uso ético de los datos
   Scenario: Manejo de información personal
     Given un usuario registra datos en la plataforma
@@ -187,6 +187,4 @@ Feature: Uso ético de los datos
 ```
 
 **Prioridad:** P0
-
-```
 

@@ -41,10 +41,5 @@ Este proyecto está dirigido a:
 
 | 📁 Carpeta | 📌 Descripción |
 |------------|----------------|
-| [📂 **doc**](../doc/) | Contiene toda la documentación del proyecto |
-| [📂 **analysis/**](../doc/analysis/) | Contiene análisis y reportes sobre desperdicio y recuperación de alimentos |
-
-
-
----
-
+| [📂 doc](../doc/index.md) | Contiene toda la documentación del proyecto |
+| [📂 analysis/](../doc/analysis/index.md) | Contiene análisis y reportes sobre desperdicio y recuperación de alimentos |
