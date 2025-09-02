@@ -17,7 +17,7 @@ Feature: Inicio de sesión y registro de usuarios
 ```
 
 Prioridad: P0
-
+Puntos: 2
 
 ---
 ## RF-02: Visualización de mercados/restaurantes cercanos
@@ -35,7 +35,7 @@ Feature: Visualización de mercados y restaurantes cercanos
 ```
 
 Prioridad: P0
-
+Puntos: 3
 
 ---
 ## RF-03: Catálogo de productos disponibles
@@ -53,7 +53,7 @@ Feature: Catálogo de productos disponibles
 ```
 
 Prioridad: P0
-
+Puntos: 2
 
 ---
 ## RF-04: Visualización de restaurantes disponibles y no disponibles
@@ -71,7 +71,7 @@ Feature: Restaurantes activos e inactivos
 ```
 
 Prioridad: P1
-
+Puntos: 3
 
 ---
 ## RF-05: Barra de búsqueda de restaurantes
@@ -89,7 +89,7 @@ Feature: Búsqueda de restaurantes
 ```
 
 Prioridad: P0
-
+Puntos: 2
 
 ---
 ## RF-06: Geolocalización del usuario
@@ -107,7 +107,7 @@ Feature: Geolocalización del usuario
 ```
 
 Prioridad: P0
-
+Puntos: 5
 
 ---
 ## RF-07: Reserva temporal de productos
@@ -125,7 +125,7 @@ Feature: Reserva temporal de productos
 ```
 
 Prioridad: P1
-
+Puntos: 3
 
 ---
 ## RF-08: Escáner de código QR o de barras
@@ -143,7 +143,7 @@ Feature: Registro de productos mediante escaneo
 ```
 
 Prioridad: P1
-
+Puntos: 3
 
 ---
 ## RF-09: Filtro por tiempo de vencimiento
@@ -161,7 +161,7 @@ Feature: Filtro de productos por tiempo de vencimiento
 ```
 
 Prioridad: P1
-
+Puntos: 2
 
 ---
 ## RF-10: Notificaciones inteligentes para usuarios
@@ -179,7 +179,7 @@ Feature: Notificaciones para usuarios
 ```
 
 Prioridad: P0
-
+Puntos: 3
 
 ---
 ## RF-11: Alertas automáticas para negocios
@@ -197,7 +197,7 @@ Feature: Alertas para negocios
 ```
 
 Prioridad: P1
-
+Puntos: 3
 
 ---
 ## RF-12: Carga masiva de productos
@@ -215,7 +215,7 @@ Feature: Carga masiva de productos
 ```
 
 Prioridad: P1
-
+Puntos: 3
 
 ---
 ## RF-13: Edición de precios dinámicos
@@ -233,7 +233,7 @@ Feature: Precios dinámicos
 ```
 
 Prioridad: P1
-
+Puntos: 3
 
 ---
 ## RF-14: Estadísticas de impacto ambiental
@@ -251,7 +251,7 @@ Feature: Estadísticas ambientales
 ```
 
 Prioridad: P2
-
+Puntos: 3
 
 ---
 ## RF-15: Navegación con Google Maps
@@ -269,7 +269,7 @@ Feature: Navegación con Google Maps
 ```
 
 Prioridad: P1
-
+Puntos: 5
 
 ---
 ## RF-16: Pasarela de pagos
@@ -287,7 +287,7 @@ Feature: Pasarela de pagos
 ```
 
 Prioridad: P0
-
+Puntos: 5
 
 ---
 ## RF-17: Comprobantes de pago
@@ -305,7 +305,7 @@ Feature: Comprobantes de pago
 ```
 
 Prioridad: P0
-
+Puntos: 3
 
 ---
 ## RF-18: Límite de compra por usuario
@@ -323,7 +323,7 @@ Feature: Restricción de compras
 ```
 
 Prioridad: P1
-
+Puntos: 2
 
 ---
 ## RF-19: Horarios especiales de venta
@@ -341,7 +341,7 @@ Feature: Horarios especiales de venta
 ```
 
 Prioridad: P2
-
+Puntos: 3
 
 ---
 ## RF-20: Comunicación con el usuario
@@ -359,3 +359,4 @@ Feature: Comunicación usuario-negocio
 ```
 
 Prioridad: P2
+Puntos: 3 
