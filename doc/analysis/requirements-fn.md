@@ -17,6 +17,7 @@ Feature: Inicio de sesión y registro de usuarios
 ```
 
 Prioridad: P0
+
 Puntos: 2
 
 ---
@@ -35,6 +36,7 @@ Feature: Visualización de mercados y restaurantes cercanos
 ```
 
 Prioridad: P0
+
 Puntos: 3
 
 ---
@@ -53,6 +55,7 @@ Feature: Catálogo de productos disponibles
 ```
 
 Prioridad: P0
+
 Puntos: 2
 
 ---
@@ -71,6 +74,7 @@ Feature: Restaurantes activos e inactivos
 ```
 
 Prioridad: P1
+
 Puntos: 3
 
 ---
@@ -89,6 +93,7 @@ Feature: Búsqueda de restaurantes
 ```
 
 Prioridad: P0
+
 Puntos: 2
 
 ---
@@ -107,6 +112,7 @@ Feature: Geolocalización del usuario
 ```
 
 Prioridad: P0
+
 Puntos: 5
 
 ---
@@ -125,6 +131,7 @@ Feature: Reserva temporal de productos
 ```
 
 Prioridad: P1
+
 Puntos: 3
 
 ---
@@ -143,6 +150,7 @@ Feature: Registro de productos mediante escaneo
 ```
 
 Prioridad: P1
+
 Puntos: 3
 
 ---
@@ -161,6 +169,7 @@ Feature: Filtro de productos por tiempo de vencimiento
 ```
 
 Prioridad: P1
+
 Puntos: 2
 
 ---
@@ -179,6 +188,7 @@ Feature: Notificaciones para usuarios
 ```
 
 Prioridad: P0
+
 Puntos: 3
 
 ---
@@ -197,6 +207,7 @@ Feature: Alertas para negocios
 ```
 
 Prioridad: P1
+
 Puntos: 3
 
 ---
@@ -215,6 +226,7 @@ Feature: Carga masiva de productos
 ```
 
 Prioridad: P1
+
 Puntos: 3
 
 ---
@@ -233,6 +245,7 @@ Feature: Precios dinámicos
 ```
 
 Prioridad: P1
+
 Puntos: 3
 
 ---
@@ -251,6 +264,7 @@ Feature: Estadísticas ambientales
 ```
 
 Prioridad: P2
+
 Puntos: 3
 
 ---
@@ -269,6 +283,7 @@ Feature: Navegación con Google Maps
 ```
 
 Prioridad: P1
+
 Puntos: 5
 
 ---
@@ -287,6 +302,7 @@ Feature: Pasarela de pagos
 ```
 
 Prioridad: P0
+
 Puntos: 5
 
 ---
@@ -305,6 +321,7 @@ Feature: Comprobantes de pago
 ```
 
 Prioridad: P0
+
 Puntos: 3
 
 ---
@@ -323,6 +340,7 @@ Feature: Restricción de compras
 ```
 
 Prioridad: P1
+
 Puntos: 2
 
 ---
@@ -341,6 +359,7 @@ Feature: Horarios especiales de venta
 ```
 
 Prioridad: P2
+
 Puntos: 3
 
 ---
@@ -359,4 +378,5 @@ Feature: Comunicación usuario-negocio
 ```
 
 Prioridad: P2
+
 Puntos: 3 

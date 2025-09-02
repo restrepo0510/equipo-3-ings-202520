@@ -16,6 +16,7 @@ Feature: Actualización en tiempo real de disponibilidad
 ```
 
 **Prioridad:** P0
+
 Puntos: 3
 ---
 
@@ -35,6 +36,7 @@ Feature: Confiabilidad de datos
 ```
 
 **Prioridad:** P0
+
 Puntos: 3
 ---
 
@@ -54,6 +56,7 @@ Feature: Tolerancia a fallos
 ```
 
 **Prioridad:** P1
+
 Puntos: 3
 ---
 
@@ -73,6 +76,7 @@ Feature: Disponibilidad offline
 ```
 
 **Prioridad:** P1
+
 Puntos: 3
 ---
 
@@ -92,6 +96,7 @@ Feature: Accesibilidad
 ```
 
 **Prioridad:** P0
+
 Puntos: 5
 ---
 
@@ -111,6 +116,7 @@ Feature: Seguridad de credenciales
 ```
 
 **Prioridad:** P0
+
 Puntos: 5
 ---
 
@@ -130,6 +136,7 @@ Feature: Interoperabilidad
 ```
 
 **Prioridad:** P1
+
 Puntos: 5
 ---
 
@@ -149,6 +156,7 @@ Feature: Mantenibilidad y pruebas
 ```
 
 **Prioridad:** P2
+
 Puntos: 5
 ---
 
@@ -168,6 +176,7 @@ Feature: Sostenibilidad
 ```
 
 **Prioridad:** P2
+
 Puntos: 3
 ---
 
@@ -187,4 +196,5 @@ Feature: Uso ético de los datos
 ```
 
 **Prioridad:** P0
+
 Puntos: 3
