@@ -17,6 +17,7 @@ Feature: Actualización en tiempo real de disponibilidad
 
 **Prioridad:** P0
 
+Puntos: 3
 ---
 
 ## RNF-02: Confiabilidad en el manejo de datos sensibles
@@ -36,6 +37,7 @@ Feature: Confiabilidad de datos
 
 **Prioridad:** P0
 
+Puntos: 3
 ---
 
 ## RNF-03: Tolerancia a fallos
@@ -55,6 +57,7 @@ Feature: Tolerancia a fallos
 
 **Prioridad:** P1
 
+Puntos: 3
 ---
 
 ## RNF-04: Disponibilidad offline básica
@@ -74,6 +77,7 @@ Feature: Disponibilidad offline
 
 **Prioridad:** P1
 
+Puntos: 3
 ---
 
 ## RNF-05: Accesibilidad para personas con discapacidad
@@ -93,6 +97,7 @@ Feature: Accesibilidad
 
 **Prioridad:** P0
 
+Puntos: 5
 ---
 
 ## RNF-06: Seguridad en almacenamiento de credenciales
@@ -112,6 +117,7 @@ Feature: Seguridad de credenciales
 
 **Prioridad:** P0
 
+Puntos: 5
 ---
 
 ## RNF-07: Interoperabilidad con sistemas externos
@@ -131,6 +137,7 @@ Feature: Interoperabilidad
 
 **Prioridad:** P1
 
+Puntos: 5
 ---
 
 ## RNF-08: Mantenibilidad y pruebas
@@ -150,6 +157,7 @@ Feature: Mantenibilidad y pruebas
 
 **Prioridad:** P2
 
+Puntos: 5
 ---
 
 ## RNF-09: Sostenibilidad y consumo responsable
@@ -169,6 +177,7 @@ Feature: Sostenibilidad
 
 **Prioridad:** P2
 
+Puntos: 3
 ---
 
 ## RNF-10: Uso ético de los datos del usuario
@@ -188,3 +197,4 @@ Feature: Uso ético de los datos
 
 **Prioridad:** P0
 
+Puntos: 3
