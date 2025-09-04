@@ -17,5 +17,4 @@
 - <span style="color:#CD5C5C">**RNF-01 — Actualización en tiempo real de disponibilidad**</span>  
 - <span style="color:#CD5C5C">**RNF-02 — Confiabilidad en manejo de datos sensibles**</span>  
 - <span style="color:#CD5C5C">**RNF-03 — Tolerancia a fallos**</span>  
-
 ---
