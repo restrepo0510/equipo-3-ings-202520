@@ -43,3 +43,4 @@ Este proyecto está dirigido a:
 |------------|----------------|
 | [📂 doc](../doc/index.md) | Contiene toda la documentación del proyecto |
 | [📂 analysis/](../doc/analysis/index.md) | Contiene análisis y reportes sobre desperdicio y recuperación de alimentos |
+| [📂 design/](../doc/design/index.md) | Contiene análisis sobre el desarollo frontend del proyecto
