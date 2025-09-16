@@ -61,6 +61,11 @@
 
 ---
 
+### 👤 Editar Perfil de Usuario
+<img src="Edit_User_Profile.png" alt="Edit User Profile" width="300"/>
+
+---
+
 ### 🏢 Perfil de Empresa
 <img src="Company_Profile.png" alt="Company Profile" width="300"/>
 
