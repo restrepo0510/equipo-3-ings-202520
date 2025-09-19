@@ -7,74 +7,82 @@
 ## 🖼️ Pantallas
 
 ### 🚀 Splash Screen
-<img src="Splash_Screen.png" alt="Splash Screen" width="300"/>
+<img src="img/Splash_Screen.png" alt="Splash Screen" width="300"/>
 
 ---
 
 ### 🔑 Login
-<img src="Login.png" alt="Login" width="300"/>
+<img src="img/Login.png" alt="Login" width="300"/>
 
 ---
 
 ### 📝 Registro (Signup)
-<img src="Signup.png" alt="Signup" width="300"/>
+<img src="img/Signup.png" alt="Signup" width="300"/>
 
 ---
 
 ### 🏠 Home
-<img src="Home.png" alt="Home" width="300"/>
+<img src="img/Home.png" alt="Home" width="300"/>
 
 ---
 
 ### 🗺️ Mapa
-<img src="Map.png" alt="Mapa" width="300"/>
+<img src="img/Map.png" alt="Mapa" width="300"/>
 
 ---
 
 ### 🛍️ Lista de Productos
-<img src="Product_List.png" alt="Product List" width="300"/>
+<img src="img/Product_List.png" alt="Product List" width="300"/>
 
 ---
 
 ### 📦 Orden
-<img src="Order.png" alt="Orden" width="300"/>
+<img src="img/Order.png" alt="Orden" width="300"/>
 
 ---
 
 ### 💳 Pago
-<img src="Payment.png" alt="Payment" width="300"/>
+<img src="img/Payment.png" alt="Payment" width="300"/>
 
 ---
 
 ### ⭐ Favoritos
-<img src="Favorites.png" alt="Favorites" width="300"/>
+<img src="img/Favorites.png" alt="Favorites" width="300"/>
 
 ---
 
 ### 💬 Reseñas
-<img src="Reviews.png" alt="Reviews" width="300"/>
+<img src="img/Reviews.png" alt="Reviews" width="300"/>
+
+---
+### 💬 Escribir una Reseña
+<img src="img/Add_review.png" alt="Reviews" width="300"/>
+
+---
+### 💬 Leer Reseñas
+<img src="img/read_reviews.png" alt="Reviews" width="300"/>
 
 ---
 
 ### 👤 Perfil de Usuario
-<img src="User_Profile.png" alt="User Profile" width="300"/>
+<img src="img/User_Profile.png" alt="User Profile" width="300"/>
 
 ---
 
 ### 👤 Editar Perfil de Usuario
-<img src="Edit_User_Profile.png" alt="Edit User Profile" width="300"/>
+<img src="img/Edit_User_Profile.png" alt="Edit User Profile" width="300"/>
 
 ---
 
 ### 🏢 Perfil de Empresa
-<img src="Company_Profile.png" alt="Company Profile" width="300"/>
+<img src="img/Company_Profile.png" alt="Company Profile" width="300"/>
 
 ---
 
 ### ✏️ Editar Producto
-<img src="Edit_Product.png" alt="Edit Product" width="300"/>
+<img src="img/Edit_Product.png" alt="Edit Product" width="300"/>
 
 ---
 
 ### ➕ Agregar Producto
-<img src="Add_Product.png" alt="Add Product" width="300"/>
+<img src="img/Add_Product.png" alt="Add Product" width="300"/>
