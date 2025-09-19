@@ -7,19 +7,19 @@
 <H2>DIAGRAMA DE SECUENCIA<H2>
 <H3>USUARIO HACER PEDIDO Y PAGAR<H3>
 
-![USUARIO HACER PEDIDO Y PAGAR](<img/Untitled diagram _ Mermaid Chart-2025-09-18-211658.png>)
+![USUARIO HACER PEDIDO Y PAGAR](<img/hacer_pedido_pagar.png>)
 <H3>USUARIO VER FAV Y OPINIONES<H3>
 
-![USUARIO VER FAV Y OPINIONES](<img/Untitled diagram _ Mermaid Chart-2025-09-18-211939.png>)
+![USUARIO VER FAV Y OPINIONES](<img/ver_fav_opiniones.png>)
 <H3>RESTAURANTES GESTIONAR PRODUCTOS<H3>
 
-![RESTAURANTES GESTIONAR PRODUCTOS](<img/Untitled diagram _ Mermaid Chart-2025-09-18-212140.png>)
+![RESTAURANTES GESTIONAR PRODUCTOS](<img/gestion_productos.png>)
 <H3>VER PERFIL/ EDITAR PERFIL<H3>
 
-![VER PERFIL/ EDITAR PERFIL](<img/Untitled diagram _ Mermaid Chart-2025-09-18-212350.png>)
+![VER PERFIL/ EDITAR PERFIL](<img/ver_editar_perfil.png>)
 <H2>DIAGRAMA MODELO RELACIONAL<H2>
 
-![MODELO RELACIONAL](<img/Imagen de WhatsApp 2025-09-18 a las 21.49.47_f8d3e156.jpg>)
+![MODELO RELACIONAL](<img/diagrama_relacional.jpg>)
 <H2>DIAGRAMA DE COMPONENTES<h2>
 
-![COMPONENTES](<img/Imagen de WhatsApp 2025-09-18 a las 22.02.47_43d18aae.jpg>)
+![COMPONENTES](<img/diagrama_componentes.jpg>)
