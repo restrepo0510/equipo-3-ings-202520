@@ -1,0 +1,8 @@
+![AD HOC](image.png)
+![CASOS DE USOS](image-1.png)
+![USUARIO HACER PEDIDO Y PAGAR](<img/Untitled diagram _ Mermaid Chart-2025-09-18-211658.png>)
+![USUARIO VER FAV Y OPINIONES](<img/Untitled diagram _ Mermaid Chart-2025-09-18-211939.png>)
+![RESTAURANTES GESTIONAR PRODUCTOS](<img/Untitled diagram _ Mermaid Chart-2025-09-18-212140.png>)
+![VER PERFIL/ EDITAR PERFIL](<img/Untitled diagram _ Mermaid Chart-2025-09-18-212350.png>)
+![MODELO RELACIONAL](<Imagen de WhatsApp 2025-09-18 a las 21.49.47_f8d3e156.jpg>)
+![COMPONENTES](<Imagen de WhatsApp 2025-09-18 a las 22.02.47_43d18aae.jpg>)
