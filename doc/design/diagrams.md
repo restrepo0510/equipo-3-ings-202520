@@ -1,9 +1,9 @@
 <h2>DIAGRAMA AD HOC<H2>
 
-![AD DOC](img/image.png)
+![AD HOC](img/ad_hoc.png)
 <H2>CASOS DE USO<H2>
 
-![CASOS DE USO](img/image-1.png)
+![CASOS DE USO](img/casos_de_uso.png)
 <H2>DIAGRAMA DE SECUENCIA<H2>
 <H3>USUARIO HACER PEDIDO Y PAGAR<H3>
 
