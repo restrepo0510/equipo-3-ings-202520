@@ -11,7 +11,7 @@
 - Estructura modular que facilita testing y migración a microservicios.  
 - Integración con Swagger/OpenAPI.
 
-**Cons**
+**Contras**
 - Menos eficiente en tareas CPU-bound (se delegan a workers).  
 - Requiere prácticas sólidas de timeouts, rate limiting y manejo de errores.
 
@@ -24,7 +24,7 @@
 - Desarrollo rápido (auth, admin, ORM listo).  
 - Muy bueno para lógica de negocio compleja y transacciones.
 
-**Cons**
+**Contras**
 - Menos alineado con TypeScript del frontend (no hay sharing directo de tipos).  
 - No es la opción más natural para I/O masivo en tiempo real (aunque es posible con Channels).
 
@@ -37,7 +37,7 @@
 - Gran madurez, seguridad y rendimiento consistente.  
 - Excelente para integraciones empresariales y transaccionalidad.
 
-**Cons**
+**Contras**
 - Curva de aprendizaje y tiempo de desarrollo mayor.  
 - Mayor overhead para prototipado rápido del MVP.
 
