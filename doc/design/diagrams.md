@@ -1,8 +1,25 @@
-![AD HOC](image.png)
-![CASOS DE USOS](image-1.png)
+<h2>DIAGRAMA AD HOC<H2>
+
+![AD DOC](img/image.png)
+<H2>CASOS DE USO<H2>
+
+![CASOS DE USO](img/image-1.png)
+<H2>DIAGRAMA DE SECUENCIA<H2>
+<H3>USUARIO HACER PEDIDO Y PAGAR<H3>
+
 ![USUARIO HACER PEDIDO Y PAGAR](<img/Untitled diagram _ Mermaid Chart-2025-09-18-211658.png>)
+<H3>USUARIO VER FAV Y OPINIONES<H3>
+
 ![USUARIO VER FAV Y OPINIONES](<img/Untitled diagram _ Mermaid Chart-2025-09-18-211939.png>)
+<H3>RESTAURANTES GESTIONAR PRODUCTOS<H3>
+
 ![RESTAURANTES GESTIONAR PRODUCTOS](<img/Untitled diagram _ Mermaid Chart-2025-09-18-212140.png>)
+<H3>VER PERFIL/ EDITAR PERFIL<H3>
+
 ![VER PERFIL/ EDITAR PERFIL](<img/Untitled diagram _ Mermaid Chart-2025-09-18-212350.png>)
-![MODELO RELACIONAL](<Imagen de WhatsApp 2025-09-18 a las 21.49.47_f8d3e156.jpg>)
-![COMPONENTES](<Imagen de WhatsApp 2025-09-18 a las 22.02.47_43d18aae.jpg>)
+<H2>DIAGRAMA MODELO RELACIONAL<H2>
+
+![MODELO RELACIONAL](<img/Imagen de WhatsApp 2025-09-18 a las 21.49.47_f8d3e156.jpg>)
+<H2>DIAGRAMA DE COMPONENTES<h2>
+
+![COMPONENTES](<img/Imagen de WhatsApp 2025-09-18 a las 22.02.47_43d18aae.jpg>)
