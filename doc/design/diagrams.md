@@ -1,25 +1,37 @@
-<h2>DIAGRAMA AD HOC<H2>
+# 📌 DIAGRAMAS DEL PROYECTO
 
+---
+
+## 📊 DIAGRAMA AD HOC  
 ![AD HOC](img/ad_hoc.png)
-<H2>CASOS DE USO<H2>
 
+---
+
+## ⚙️ CASOS DE USO  
 ![CASOS DE USO](img/casos_de_uso.png)
-<H2>DIAGRAMA DE SECUENCIA<H2>
-<H3>USUARIO HACER PEDIDO Y PAGAR<H3>
 
-![USUARIO HACER PEDIDO Y PAGAR](<img/hacer_pedido_pagar.png>)
-<H3>USUARIO VER FAV Y OPINIONES<H3>
+---
 
-![USUARIO VER FAV Y OPINIONES](<img/ver_fav_opiniones.png>)
-<H3>RESTAURANTES GESTIONAR PRODUCTOS<H3>
+## 🔄 DIAGRAMA DE SECUENCIA  
 
-![RESTAURANTES GESTIONAR PRODUCTOS](<img/gestion_productos.png>)
-<H3>VER PERFIL/ EDITAR PERFIL<H3>
+### 👤 Usuario: Hacer pedido y pagar  
+![USUARIO HACER PEDIDO Y PAGAR](img/hacer_pedido_pagar.png)
 
-![VER PERFIL/ EDITAR PERFIL](<img/ver_editar_perfil.png>)
-<H2>DIAGRAMA MODELO RELACIONAL<H2>
+### 👤 Usuario: Ver favoritos y opiniones  
+![USUARIO VER FAV Y OPINIONES](img/ver_fav_opiniones.png)
 
-![MODELO RELACIONAL](<img/diagrama_relacional.jpg>)
-<H2>DIAGRAMA DE COMPONENTES<h2>
+### 🍽️ Restaurantes: Gestionar productos  
+![RESTAURANTES GESTIONAR PRODUCTOS](img/gestion_productos.png)
 
-![COMPONENTES](<img/diagrama_componentes.jpg>)
+### 👤 Usuario: Ver perfil / Editar perfil  
+![VER PERFIL/ EDITAR PERFIL](img/ver_editar_perfil.png)
+
+---
+
+## 🗄️ DIAGRAMA MODELO RELACIONAL  
+![MODELO RELACIONAL](img/diagrama_relacional.png)
+
+---
+
+## 🧩 DIAGRAMA DE COMPONENTES  
+![COMPONENTES](img/diagrama_componentes.jpg)
