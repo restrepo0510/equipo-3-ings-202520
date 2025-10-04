@@ -61,7 +61,7 @@ export default function LoginScreen() {
               <View style={styles.underline} />
 
               <TouchableOpacity style={styles.submitBtn} activeOpacity={0.8}>
-                <Text style={styles.submitText}>SUBMIT</Text>
+                <Text style={styles.submitText}>Enviar</Text>
               </TouchableOpacity>
 
               {/* Hoja decorativa inferior derecha */}
@@ -72,7 +72,7 @@ export default function LoginScreen() {
             </View>
 
             <TouchableOpacity style={styles.unregistered}>
-              <Text style={styles.unregisteredText}>unregistered?</Text>
+              <Text style={styles.unregisteredText}>No registrado?</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>
