@@ -380,3 +380,127 @@ Feature: Comunicación usuario-negocio
 Prioridad: P2
 
 Puntos: 3 
+
+---
+
+## RF-21: Perfil de usuario
+
+Descripción: Permite que los usuarios visualicen y editen la información de su perfil, incluyendo nombre, correo electrónico y foto de perfil.
+
+Criterios de aceptación:
+
+```gherkin
+Feature: Perfil de usuario
+  Scenario: Visualización y edición de perfil
+    Given el usuario tiene una cuenta activa
+    When el usuario accede a su perfil
+    Then puede visualizar y actualizar sus datos personales de manera segura
+```
+
+Prioridad: P1
+
+Puntos: 3
+
+---
+
+## RF-22: Apartado de productos favoritos
+
+Descripción: Permite a los usuarios marcar productos como favoritos para acceder a ellos rápidamente en una sección dedicada.
+
+Criterios de aceptación:
+
+```gherkin
+Feature: Productos favoritos
+  Scenario: Agregar un producto a favoritos
+    Given el usuario está visualizando un producto
+    When el usuario selecciona la opción de “Agregar a favoritos”
+    Then el producto se guarda en la sección de favoritos del usuario
+```
+
+Prioridad: P1
+
+Puntos: 2
+
+---
+
+## RF-23: Apartado de opiniones
+
+Descripción: Permite visualizar las opiniones de otros usuarios sobre un producto.
+
+Criterios de aceptación:
+
+```gherkin
+Feature: Opiniones de productos
+  Scenario: Visualizar opiniones de un producto
+    Given el usuario accede al detalle de un producto
+    When existen opiniones registradas
+    Then el usuario puede ver una lista de opiniones con calificación y comentarios
+```
+
+Prioridad: P2
+
+Puntos: 2
+
+---
+
+## RF-24: Escribir una opinión
+
+Descripción: Permite a los usuarios escribir y publicar una opinión sobre un producto.
+
+Criterios de aceptación:
+
+```gherkin
+Feature: Escribir opinión sobre producto
+  Scenario: Publicar una nueva opinión
+    Given el usuario tiene una cuenta activa
+    When el usuario accede al detalle de un producto y escribe su comentario
+    Then el sistema guarda y muestra la nueva opinión junto con la calificación
+```
+
+Prioridad: P1
+
+Puntos: 3
+
+---
+
+## RF-25: Agregar un nuevo producto (solo empresas)
+
+Descripción: Permite que las empresas registradas agreguen nuevos productos con información como nombre, descripción, imágenes y precio.
+
+Criterios de aceptación:
+
+```gherkin
+Feature: Agregar un nuevo producto
+  Scenario: Empresa registra un producto
+    Given el usuario tiene un rol de empresa
+    When accede al apartado de “Agregar producto” e ingresa la información requerida
+    Then el producto queda registrado y disponible en la plataforma
+```
+
+Prioridad: P0
+
+Puntos: 5
+
+---
+
+## RF-26: Editar un producto (solo empresas)
+
+Descripción: Permite que las empresas editen los detalles de sus productos previamente registrados.
+
+Criterios de aceptación:
+
+```gherkin
+Feature: Editar producto existente
+  Scenario: Empresa modifica información de un producto
+    Given el usuario tiene un rol de empresa y el producto le pertenece
+    When edita campos como nombre, descripción o precio
+    Then el sistema actualiza la información y la refleja en la plataforma
+```
+
+Prioridad: P0
+
+Puntos: 4
+
+---
+
+
