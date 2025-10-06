@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   SafeAreaView,
   View,
@@ -10,9 +10,41 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  Alert,
 } from "react-native";
+import { API_URL } from "@/config/api"; // 👈 importa la URL del backend
 
 export default function LoginScreen() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const handleLogin = async () => {
+    if (!email || !password) {
+      Alert.alert("Error", "Por favor ingresa correo y contraseña.");
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_URL}/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: email, password }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        Alert.alert("Éxito", data.message);
+        // Aquí podrías navegar a otra pestaña o guardar sesión
+      } else {
+        Alert.alert("Error", data.message || "No se pudo iniciar sesión.");
+      }
+    } catch (error) {
+      Alert.alert("Error de conexión", "No se pudo conectar al servidor.");
+      console.error(error);
+    }
+  };
+
   return (
     <SafeAreaView style={styles.safe}>
       <KeyboardAvoidingView
@@ -24,15 +56,14 @@ export default function LoginScreen() {
           keyboardShouldPersistTaps="handled"
         >
           <Image
-            source={require("../assets/logo.png")}
+            source={require("@/assets/img/logo.png")}
             style={styles.logo}
             resizeMode="contain"
           />
 
           <View style={styles.cardContainer}>
-            {/* Hoja decorativa superior izquierda */}
             <Image
-              source={require("../assets/leaf.png")}
+              source={require("@/assets/img/leaf.png")}
               style={[styles.leaf, styles.leafTop]}
             />
 
@@ -47,26 +78,30 @@ export default function LoginScreen() {
                 style={styles.input}
                 keyboardType="email-address"
                 autoCapitalize="none"
+                value={email}
+                onChangeText={setEmail}
               />
 
-              <Text style={[styles.label, { marginTop: 16 }]}>
-                Contraseña
-              </Text>
+              <Text style={[styles.label, { marginTop: 16 }]}>Contraseña</Text>
               <TextInput
-                placeholder=""
+                placeholder="••••••"
                 placeholderTextColor="#999"
                 style={styles.input}
                 secureTextEntry
+                value={password}
+                onChangeText={setPassword}
               />
-              <View style={styles.underline} />
 
-              <TouchableOpacity style={styles.submitBtn} activeOpacity={0.8}>
+              <TouchableOpacity
+                style={styles.submitBtn}
+                activeOpacity={0.8}
+                onPress={handleLogin}
+              >
                 <Text style={styles.submitText}>Enviar</Text>
               </TouchableOpacity>
 
-              {/* Hoja decorativa inferior derecha */}
               <Image
-                source={require("../assets/leaf.png")}
+                source={require("@/assets/img/leaf.png")}
                 style={[styles.leaf, styles.leafBottom]}
               />
             </View>

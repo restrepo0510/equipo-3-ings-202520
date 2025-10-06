@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -6,31 +6,69 @@ import {
   TouchableOpacity,
   StyleSheet,
   Image,
+  Alert,
 } from "react-native";
+import { API_URL } from "@/config/api";
 
 export default function SignUpScreen() {
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const handleRegister = async () => {
+    if (!email || !password) {
+      Alert.alert("Error", "Por favor completa los campos obligatorios.");
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_URL}/auth/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password, name, phone }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        Alert.alert("Éxito", data.message);
+      } else {
+        Alert.alert("Error", data.message || "No se pudo registrar.");
+      }
+    } catch (error) {
+      Alert.alert("Error de conexión", "No se pudo conectar al servidor.");
+      console.error(error);
+    }
+  };
+
   return (
     <View style={styles.container}>
-      {/* Logo + Title */}
       <View style={styles.header}>
         <Image
-          source={require("/src/assets/Logo.png")}
+          source={require("@/assets/img/logo.png")}
           style={styles.logo}
           resizeMode="contain"
         />
         <Text style={styles.signupTitle}>Registro</Text>
       </View>
 
-      {/* Green Box */}
       <View style={styles.box}>
         <Text style={styles.label}>Nombre</Text>
-        <TextInput style={styles.input} placeholderTextColor="#bbb" />
+        <TextInput
+          style={styles.input}
+          placeholderTextColor="#bbb"
+          value={name}
+          onChangeText={setName}
+        />
 
         <Text style={styles.label}>Teléfono</Text>
         <TextInput
           style={styles.input}
           placeholderTextColor="#bbb"
           keyboardType="phone-pad"
+          value={phone}
+          onChangeText={setPhone}
         />
 
         <Text style={styles.label}>Correo</Text>
@@ -39,6 +77,8 @@ export default function SignUpScreen() {
           placeholder="you@example.com"
           placeholderTextColor="#bbb"
           keyboardType="email-address"
+          value={email}
+          onChangeText={setEmail}
         />
 
         <Text style={styles.label}>Contraseña</Text>
@@ -46,11 +86,13 @@ export default function SignUpScreen() {
           style={styles.input}
           placeholderTextColor="#bbb"
           secureTextEntry
+          value={password}
+          onChangeText={setPassword}
         />
 
         <View style={styles.line} />
 
-        <TouchableOpacity style={styles.submitBtn}>
+        <TouchableOpacity style={styles.submitBtn} onPress={handleRegister}>
           <Text style={styles.submitText}>Enviar</Text>
         </TouchableOpacity>
       </View>
