@@ -1,243 +1,257 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from 'react';
 import {
   SafeAreaView,
   View,
   Text,
-  TextInput,
   TouchableOpacity,
-  StyleSheet,
   Image,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
   Alert,
-} from "react-native";
-import { API_URL } from "@/config/api"; // 👈 importa la URL del backend
+  ActivityIndicator,
+} from 'react-native';
+import { API_URL } from '@/config/api';
+import {
+  COLORS,
+  BASE_STYLES,
+  LOGIN_STYLES,
+  DECORATIVE_STYLES,
+  type LoginFormData,
+  type ApiError,
+  type LoginResponse
+} from '../../styles/authStyles';
+import { FormField } from '../../components/ui/FormField';
 
-export default function LoginScreen() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+// Keep these constants at the top - makes it easy to change them later
+const MIN_PASSWORD_LENGTH = 6;
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-  const handleLogin = async () => {
-    if (!email || !password) {
-      Alert.alert("Error", "Por favor ingresa correo y contraseña.");
+/**
+ * Validates the login form
+ * Pretty simple - just checks email format and password length
+ */
+const validateForm = (formData: LoginFormData): Partial<LoginFormData> => {
+  const errors: Partial<LoginFormData> = {};
+
+  // Trim whitespace from email before validating
+  const trimmedEmail = formData.email.trim();
+  if (!trimmedEmail) {
+    errors.email = 'Email is required';
+  } else if (!EMAIL_REGEX.test(trimmedEmail)) {
+    errors.email = 'Please enter a valid email address';
+  }
+
+  // Password validation - just needs to exist and be long enough
+  if (!formData.password) {
+    errors.password = 'Password is required';
+  } else if (formData.password.length < MIN_PASSWORD_LENGTH) {
+    errors.password = `Password must be at least ${MIN_PASSWORD_LENGTH} characters`;
+  }
+
+  return errors;
+};
+
+const LoginScreen: React.FC = () => {
+  // Store the email and password
+  const [formData, setFormData] = useState<LoginFormData>({
+    email: '',
+    password: '',
+  });
+  
+  // Track if we're currently submitting
+  const [isLoading, setIsLoading] = useState(false);
+  
+  // Store any validation errors
+  const [errors, setErrors] = useState<Partial<LoginFormData>>({});
+
+  /**
+   * Updates a field and clears its error
+   * Using useCallback to prevent unnecessary re-renders
+   */
+  const handleFieldChange = useCallback((field: keyof LoginFormData, value: string) => {
+    // Update the field
+    setFormData(prev => ({ ...prev, [field]: value }));
+    
+    // Clear the error for this field (if any)
+    // No point showing an error while they're typing
+    if (errors[field]) {
+      setErrors(prev => ({ ...prev, [field]: undefined }));
+    }
+  }, [errors]);
+
+  /**
+   * Handles the login submission
+   * Validates, calls the API, and handles success/failure
+   */
+  const handleLogin = useCallback(async () => {
+    // First, validate the form
+    const validationErrors = validateForm(formData);
+
+    // If there are errors, show them and stop here
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      Alert.alert('Validation Error', 'Please fix the errors before submitting.');
       return;
     }
 
+    // Start loading state
+    setIsLoading(true);
+
     try {
+      // Make the API call
       const response = await fetch(`${API_URL}/auth/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username: email, password }),
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify(formData),
       });
 
-      const data = await response.json();
+      const data: LoginResponse = await response.json();
 
-      if (response.ok) {
-        Alert.alert("Éxito", data.message);
-        // Aquí podrías navegar a otra pestaña o guardar sesión
-      } else {
-        Alert.alert("Error", data.message || "No se pudo iniciar sesión.");
+      // Check if login was successful
+      if (!response.ok) {
+        throw new Error(data.message || 'Login failed');
       }
+
+      // Success! Show a message
+      Alert.alert('Success', data.message || 'Login successful');
+      
+      // TODO: Navigate to home screen once we have navigation
+      // navigation.navigate('Home');
+
     } catch (error) {
-      Alert.alert("Error de conexión", "No se pudo conectar al servidor.");
-      console.error(error);
+      // Something went wrong - log it and show an error
+      const apiError = error as ApiError;
+      console.error('Login error:', apiError);
+      Alert.alert('Login Failed', apiError.message || 'Unable to connect to server');
+    } finally {
+      // Always stop loading, whether we succeeded or failed
+      setIsLoading(false);
     }
-  };
+  }, [formData]);
+
+  /**
+   * Navigates to the registration screen
+   * Prevents navigation if we're currently loading
+   */
+  const handleNavigateToRegister = useCallback(() => {
+    // Don't allow navigation while loading
+    if (isLoading) return;
+    
+    // TODO: Replace with actual navigation
+    Alert.alert('Info', 'Navigate to registration screen');
+  }, [isLoading]);
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <SafeAreaView style={LOGIN_STYLES.safeArea}>
+      {/* KeyboardAvoidingView pushes content up when keyboard appears */}
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={styles.container}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={BASE_STYLES.keyboardAvoidingView}
       >
         <ScrollView
-          contentContainerStyle={styles.scroll}
+          contentContainerStyle={LOGIN_STYLES.scrollViewContent}
           keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
         >
+          {/* App logo at the top */}
           <Image
-            source={require("@/assets/img/logo.png")}
-            style={styles.logo}
+            source={require('@/assets/img/logo.png')}
+            style={BASE_STYLES.logo}
             resizeMode="contain"
+            accessibilityLabel="App Logo"
           />
 
-          <View style={styles.cardContainer}>
+          <View style={BASE_STYLES.cardContainer}>
+            {/* Decorative leaf at the top */}
             <Image
-              source={require("@/assets/img/leaf.png")}
-              style={[styles.leaf, styles.leafTop]}
+              source={require('@/assets/img/leaf.png')}
+              style={[BASE_STYLES.leaf, DECORATIVE_STYLES.leafTop]}
+              accessibilityLabel="Decorative leaf"
             />
 
-            <View style={styles.formCard}>
-              <Text style={styles.title}>Iniciar Sesión</Text>
-              <View style={styles.underline} />
+            {/* Main login card */}
+            <View style={LOGIN_STYLES.formCard}>
+              <Text style={BASE_STYLES.title}>Iniciar Sesión</Text>
+              <View style={BASE_STYLES.underline} />
 
-              <Text style={styles.label}>Correo</Text>
-              <TextInput
+              {/* Email input field */}
+              <FormField
+                label="Correo Electrónico"
+                value={formData.email}
+                error={errors.email}
                 placeholder="you@example.com"
-                placeholderTextColor="#999"
-                style={styles.input}
+                onChangeText={(value) => handleFieldChange('email', value)}
+                disabled={isLoading}
                 keyboardType="email-address"
-                autoCapitalize="none"
-                value={email}
-                onChangeText={setEmail}
+                autoComplete="email"
+                textContentType="emailAddress"
+                accessibilityLabel="Email input"
+                accessibilityHint="Enter your email address"
               />
 
-              <Text style={[styles.label, { marginTop: 16 }]}>Contraseña</Text>
-              <TextInput
+              {/* Password input field */}
+              <FormField
+                label="Contraseña"
+                value={formData.password}
+                error={errors.password}
                 placeholder="••••••"
-                placeholderTextColor="#999"
-                style={styles.input}
+                onChangeText={(value) => handleFieldChange('password', value)}
+                disabled={isLoading}
                 secureTextEntry
-                value={password}
-                onChangeText={setPassword}
+                autoComplete="password"
+                textContentType="password"
+                accessibilityLabel="Password input"
+                accessibilityHint="Enter your password"
               />
 
+              {/* Login button - shows spinner when loading */}
               <TouchableOpacity
-                style={styles.submitBtn}
-                activeOpacity={0.8}
+                style={[
+                  BASE_STYLES.button,
+                  {marginTop: 20},
+                  isLoading && BASE_STYLES.buttonDisabled,
+                ]}
                 onPress={handleLogin}
+                disabled={isLoading}
+                accessibilityLabel="Login button"
+                accessibilityHint="Press to submit login form"
               >
-                <Text style={styles.submitText}>Enviar</Text>
+                {isLoading ? (
+                  <ActivityIndicator color={COLORS.white} size="small" />
+                ) : (
+                  <Text style={BASE_STYLES.buttonText}>Entrar</Text>
+                )}
               </TouchableOpacity>
 
+              {/* Decorative leaf at the bottom */}
               <Image
-                source={require("@/assets/img/leaf.png")}
-                style={[styles.leaf, styles.leafBottom]}
+                source={require('@/assets/img/leaf.png')}
+                style={[BASE_STYLES.leaf, DECORATIVE_STYLES.leafBottom]}
+                accessibilityLabel="Decorative leaf"
               />
             </View>
 
-            <TouchableOpacity style={styles.unregistered}>
-              <Text style={styles.unregisteredText}>No registrado?</Text>
+            {/* Secondary button to go to registration */}
+            <TouchableOpacity
+              style={BASE_STYLES.secondaryButton}
+              onPress={handleNavigateToRegister}
+              disabled={isLoading}
+              accessibilityLabel="Not registered button"
+              accessibilityHint="Press to navigate to registration screen"
+            >
+              <Text style={BASE_STYLES.secondaryButtonText}>
+                ¿No estás registrado?
+              </Text>
             </TouchableOpacity>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
-}
+};
 
-const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: "#f2f2f2",
-  },
-  container: {
-    flex: 1,
-  },
-  scroll: {
-    flexGrow: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 40,
-    paddingHorizontal: 20,
-  },
-  logo: {
-    width: 160,
-    height: 160,
-    marginBottom: 20,
-  },
-  cardContainer: {
-    width: "46%",
-    maxWidth: 400,
-    alignItems: "center",
-    marginTop: 0,
-  },
-  formCard: {
-    width: "100%",
-    backgroundColor: "#556B2F",
-    opacity: 0.8,
-    borderRadius: 40,
-    paddingVertical: 28,
-    paddingHorizontal: 24,
-    alignItems: "stretch",
-    position: "relative",
-    overflow: "visible",
-    zIndex: 2,
-  },
-  title: {
-    color: "#fff",
-    fontSize: 25,
-    fontWeight: "700",
-    textAlign: "center",
-    marginBottom: 4,
-    letterSpacing: 2,
-  },
-  underline: {
-    height: 2,
-    backgroundColor: "#0C1706",
-    width: 150,
-    alignSelf: "center",
-    marginTop: 20,
-    marginBottom: 20,
-    borderRadius: 2,
-  },
-  label: {
-    color: "#fff",
-    fontSize: 14,
-    marginBottom: 8,
-    fontWeight: "500",
-  },
-  input: {
-    height: 42,
-    backgroundColor: "#ffffff",
-    borderRadius: 21,
-    paddingHorizontal: 18,
-    color: "#222",
-    fontSize: 14,
-    marginBottom: 8,
-  },
-  submitBtn: {
-    marginTop: 10,
-    alignSelf: "center",
-    paddingHorizontal: 42,
-    paddingVertical: 12,
-    borderRadius: 24,
-    backgroundColor: "#004226",
-    shadowColor: "#000",
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 3 },
-    elevation: 5,
-  },
-  submitText: {
-    color: "#fff",
-    fontWeight: "700",
-    fontSize: 16,
-    letterSpacing: 1.5,
-  },
-  unregistered: {
-    marginTop: 16,
-    borderRadius: 20,
-    backgroundColor: "#FDFFD1",
-    paddingHorizontal: 24,
-    paddingVertical: 8,
-    alignSelf: "center",
-    borderWidth: 1,
-    borderColor: "#3E400E",
-  },
-  unregisteredText: {
-    color: "#6b6b3f",
-    fontWeight: "600",
-    fontSize: 13,
-    fontStyle: "italic",
-  },
-  leaf: {
-    width: 90,
-    height: 90,
-    position: "absolute",
-    opacity: 0.9,
-    zIndex: 1,
-  },
-  leafTop: {
-    top: -20,
-    left: -30,
-    transform: [{ rotate: "-15deg" }],
-  },
-  leafBottom: {
-    bottom: -25,
-    right: -30,
-    transform: [{ rotate: "15deg" }],
-    width: 100,
-    height: 100,
-  },
-});
+export default LoginScreen;

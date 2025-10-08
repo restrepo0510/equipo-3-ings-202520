@@ -4,9 +4,14 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { User } from './user.entity';
 
+/**
+ * Authentication module encapsulating auth-related components
+ * Provides user authentication and management functionality
+ */
 @Module({
   imports: [TypeOrmModule.forFeature([User])],
   controllers: [AuthController],
   providers: [AuthService],
+  exports: [AuthService],
 })
 export class AuthModule {}
