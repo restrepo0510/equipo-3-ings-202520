@@ -1,20 +1,40 @@
-// app/(tabs)/_layout.tsx
 import { Tabs } from 'expo-router';
-import React from 'react';
+import { MaterialIcons } from '@expo/vector-icons';
 
 export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarStyle: {
-          display: 'flex',
-        },
-      }}>
+        tabBarActiveTintColor: '#27AE60',
+        tabBarStyle: { backgroundColor: '#fff' },
+      }}
+    >
       <Tabs.Screen
-        name="index"
+        name="LoginScreen"
         options={{
-          title: 'Home',
+          title: 'Login',
+          tabBarIcon: ({ color, size }) => (
+            <MaterialIcons name="login" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="SignUpScreen"
+        options={{
+          title: 'Registro',
+          tabBarIcon: ({ color, size }) => (
+            <MaterialIcons name="person-add" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="TestRestaurantsScreen"
+        options={{
+          title: 'Restaurantes',
+          tabBarIcon: ({ color, size }) => (
+            <MaterialIcons name="restaurant" size={size} color={color} />
+          ),
         }}
       />
     </Tabs>

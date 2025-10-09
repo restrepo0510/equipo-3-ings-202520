@@ -1,6 +1,5 @@
-import React from "react";
-import LoginScreen from "./app/(tabs)/LoginScreen";
+import { Slot } from 'expo-router';
 
 export default function App() {
-  return <LoginScreen />;
+  return <Slot />;
 }
