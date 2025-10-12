@@ -1,6 +1,18 @@
 // src/restaurants/entities/restaurant.entity.ts
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 
+/**
+ * Restaurant Entity
+ * Represents a restaurant in the database
+ * 
+ * Note: Column names use snake_case to match PostgreSQL naming conventions
+ */
 @Entity('restaurants')
 export class Restaurant {
   @PrimaryGeneratedColumn('uuid')
@@ -27,21 +39,44 @@ export class Restaurant {
   @Column({ type: 'varchar', length: 20, nullable: true })
   phone: string;
 
-  @Column({ type: 'boolean', default: true })
+  // Explicitly specify column name in snake_case
+  @Column({
+    type: 'boolean',
+    default: true,
+    name: 'is_active', // ← IMPORTANTE: Nombre de columna en snake_case
+  })
   isActive: boolean;
 
-  @Column({ type: 'text', nullable: true })
+  // Explicitly specify column name in snake_case
+  @Column({
+    type: 'text',
+    nullable: true,
+    default: 'https://cdn-icons-png.flaticon.com/512/2921/2921822.png',
+    name: 'image_url', // ← IMPORTANTE: Nombre de columna en snake_case
+  })
   imageUrl: string;
 
-  @Column({ type: 'varchar', length: 100, nullable: true })
-  openingTime: string; // Ejemplo: "08:00"
+  // Explicitly specify column name in snake_case
+  @Column({
+    type: 'varchar',
+    length: 100,
+    nullable: true,
+    name: 'opening_time', // ← IMPORTANTE: Nombre de columna en snake_case
+  })
+  openingTime: string;
 
-  @Column({ type: 'varchar', length: 100, nullable: true })
-  closingTime: string; // Ejemplo: "20:00"
+  // Explicitly specify column name in snake_case
+  @Column({
+    type: 'varchar',
+    length: 100,
+    nullable: true,
+    name: 'closing_time', // ← IMPORTANTE: Nombre de columna en snake_case
+  })
+  closingTime: string;
 
-  @CreateDateColumn()
+  @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 }

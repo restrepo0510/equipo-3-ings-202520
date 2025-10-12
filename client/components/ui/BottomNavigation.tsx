@@ -30,18 +30,20 @@ interface BottomNavigationProps {
   activeColor?: string;
   /** Custom inactive icon color (optional) */
   inactiveColor?: string;
+  /** Custom active background color for the circle (optional) */
+  activeBackgroundColor?: string;
 }
 
 /**
  * BottomNavigation Component
  * 
  * Reusable bottom navigation bar with floating design and shadow.
- * Displays icons that can be configured and handles navigation actions.
+ * Displays icons with a circular background for the active item.
  * 
  * @example
  * ```tsx
  * const navItems: NavItem[] = [
- *   { id: 'home', icon: 'location', onPress: () => navigate('Home') },
+ *   { id: 'home', icon: 'location', onPress: () => navigate('Home'), isActive: true },
  *   { id: 'favorites', icon: 'heart-outline', onPress: () => navigate('Favorites') },
  * ];
  * 
@@ -51,8 +53,9 @@ interface BottomNavigationProps {
 export const BottomNavigation: React.FC<BottomNavigationProps> = ({
   items,
   backgroundColor = '#1B3A2F',
-  activeColor = '#27AE60',
+  activeColor = '#FFFFFF',
   inactiveColor = '#FFFFFF',
+  activeBackgroundColor = '#778959',
 }) => {
   return (
     <View style={[styles.bottomNav, { backgroundColor }]}>
@@ -63,12 +66,22 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({
           onPress={item.onPress}
           accessibilityRole="button"
           accessibilityLabel={`Navigate to ${item.id}`}
+          accessibilityState={{ selected: item.isActive }}
         >
-          <Ionicons
-            name={item.icon}
-            size={28}
-            color={item.isActive ? activeColor : inactiveColor}
-          />
+          <View
+            style={[
+              styles.iconContainer,
+              item.isActive && {
+                backgroundColor: activeBackgroundColor,
+              },
+            ]}
+          >
+            <Ionicons
+              name={item.icon}
+              size={28}
+              color={item.isActive ? activeColor : inactiveColor}
+            />
+          </View>
         </TouchableOpacity>
       ))}
     </View>
@@ -82,8 +95,10 @@ const styles = StyleSheet.create({
     left: 20,
     right: 20,
     flexDirection: 'row',
-    borderRadius: 30,
-    paddingVertical: 12,
+    borderRadius: 50,
+    borderColor: '#FFFFFF',
+    borderWidth: 3,
+    paddingVertical: 5,
     paddingHorizontal: 20,
     justifyContent: 'space-around',
     shadowColor: '#000',
@@ -93,6 +108,13 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   navItem: {
-    padding: 8,
+    padding: 4,
+  },
+  iconContainer: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });

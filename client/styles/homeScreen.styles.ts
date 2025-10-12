@@ -10,30 +10,21 @@ export const COLORS = {
   primary: '#27AE60',
   primaryDark: '#1B3A2F',
   secondary: '#7F8C8D',
-  white: '#FFFFFF',
-  separator: '#0C1706',
   background: '#F8F9FA',
+  white: '#FFFFFF',
   text: {
     primary: '#2C3E50',
     secondary: '#7F8C8D',
     placeholder: '#95A5A6',
   },
-  border: '#E7EBDF',
-  search: '#E7EBDF',
+  border: '#E8E8E8',
+  search: '#E8EDF2',
   badge: {
     top: '#1B5E20',
   },
   shadow: '#000',
+  error: '#E74C3C',
 } as const;
-
-export const SPACING = {
-  xs: 4,
-  sm: 8,
-  md: 16,
-  lg: 24,
-  xl: 32,
-  xxl: 40,
-};
 
 /**
  * Shadow presets for consistent elevation
@@ -83,10 +74,17 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
   },
   logo: {
-    width: 140,
-    height: 140,
+    width: 120,
+    height: 120,
   },
-
+  underline: {
+    height: 2,
+    backgroundColor: '#0C1706',
+    width: 350,
+    alignSelf: 'center',
+    borderRadius: 2,
+  },
+  
   // Search bar
   searchContainer: {
     flexDirection: 'row',
@@ -107,21 +105,11 @@ export const styles = StyleSheet.create({
     color: COLORS.text.primary,
   },
 
-  // Separator line
-  underline: {
-    height: 2,
-    backgroundColor: COLORS.separator,
-    width: 350,
-    alignSelf: 'center',
-    borderRadius: 2,
-  },
-
   // Greeting section
   greetingContainer: {
     paddingHorizontal: 24,
     paddingTop: 24,
     paddingBottom: 16,
-    alignItems: 'center',
   },
   greetingText: {
     fontSize: 24,
@@ -135,7 +123,7 @@ export const styles = StyleSheet.create({
     fontWeight: '400',
   },
 
-  // Grid section - Combinando ambas versiones
+  // Grid section
   gridContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -161,7 +149,7 @@ export const styles = StyleSheet.create({
     ...SHADOWS.medium,
   },
   
-  // Circular logo at top center (del primer código)
+  // Circular logo at top center
   gridLogoContainer: {
     position: 'absolute',
     top: -25,
@@ -179,22 +167,10 @@ export const styles = StyleSheet.create({
     ...SHADOWS.medium,
   },
   
-  // Badge (category) - Manteniendo ambas posiciones
+  // Badge (category)
   badge: {
     position: 'absolute',
-    top: 40, // Posición del primer código
-    right: 12,
-    backgroundColor: COLORS.white,
-    borderRadius: 20,
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    zIndex: 10,
-    ...SHADOWS.small,
-  },
-  // Badge alternativo para la posición del segundo código
-  badgeTop: {
-    position: 'absolute',
-    top: 12, // Posición del segundo código
+    top: 40,
     right: 12,
     backgroundColor: COLORS.white,
     borderRadius: 20,
@@ -209,21 +185,15 @@ export const styles = StyleSheet.create({
     color: COLORS.text.primary,
   },
   
-  // Image with margins (del primer código)
+  // Image with margins
   gridImageContainer: {
     paddingHorizontal: 12,
     marginBottom: 8,
   },
   gridImage: {
     width: '100%',
-    height: 140, // Del primer código
+    height: 140,
     borderRadius: 16,
-    backgroundColor: COLORS.border,
-  },
-  // Imagen alternativa para el segundo código
-  gridImageFull: {
-    width: '100%',
-    height: 150, // Del segundo código
     backgroundColor: COLORS.border,
   },
   
@@ -231,14 +201,7 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 12,
   },
   gridTitle: {
-    fontSize: 15, // Del primer código
-    fontWeight: 'bold',
-    color: COLORS.text.primary,
-    textAlign: 'center',
-  },
-  // Título alternativo para el segundo código
-  gridTitleLarge: {
-    fontSize: 16, // Del segundo código
+    fontSize: 15,
     fontWeight: 'bold',
     color: COLORS.text.primary,
     textAlign: 'center',
@@ -255,53 +218,94 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: COLORS.badge.top,
     alignSelf: 'flex-start',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    marginBottom: 12,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 30,
+    marginBottom: -15,
+    marginLeft: 20,
+    zIndex: 10,
+    ...SHADOWS.medium,
   },
   topBadgeText: {
     color: COLORS.white,
     fontWeight: 'bold',
-    fontSize: 16,
-    marginLeft: 6,
+    fontSize: 20,
+    marginLeft: 8,
   },
   topCard: {
     backgroundColor: COLORS.white,
     borderRadius: 20,
-    overflow: 'hidden',
+    overflow: 'visible',
+    paddingTop: 25,
+    paddingBottom: 16,
+    paddingHorizontal: 12,
     ...SHADOWS.large,
+  },
+  
+  // Decorative leaves - Positioned like in the image
+  topLeafLeft: {
+    position: 'absolute',
+    bottom: 20,
+    left: -30,
+    width: 80,
+    height: 80,
+    zIndex: 1,
+    opacity: 0.9,
+  },
+  topLeafRight: {
+    position: 'absolute',
+    top: -10,
+    right: -20,
+    width: 90,
+    height: 90,
+    zIndex: 1,
+    opacity: 0.9,
+  },
+  
+  // Container for both images side by side
+  topImagesRow: {
+    flexDirection: 'row',
+    paddingHorizontal: 12,
+    marginBottom: 12,
+    gap: 12,
+  },
+  
+  // Main restaurant image (left side)
+  topImageContainer: {
+    flex: 1,
   },
   topImage: {
     width: '100%',
     height: 180,
+    borderRadius: 16,
     backgroundColor: COLORS.border,
   },
-  restaurantLogo: {
-    position: 'absolute',
-    top: 140,
-    right: 20,
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+  
+  // Restaurant logo container (right side, square)
+  topLogoContainer: {
+    width: 180,
+    height: 180,
+    borderRadius: 16,
     backgroundColor: COLORS.white,
     justifyContent: 'center',
     alignItems: 'center',
     ...SHADOWS.medium,
   },
-  restaurantLogoText: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: COLORS.primary,
+  topLogoImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 16,
   },
+  
   topInfo: {
-    padding: 16,
-    paddingTop: 12,
+    paddingHorizontal: 8,
+    paddingTop: 8,
   },
   topTitle: {
     fontSize: 20,
     fontWeight: 'bold',
     color: COLORS.text.primary,
+    textAlign: 'right',
   },
 
   // List section
@@ -350,23 +354,5 @@ export const styles = StyleSheet.create({
     borderRadius: 5,
     backgroundColor: COLORS.primary,
     marginLeft: 8,
-  },
-
-  // Bottom Navigation (del primer código)
-  bottomNav: {
-    position: 'absolute',
-    bottom: 20,
-    left: 20,
-    right: 20,
-    flexDirection: 'row',
-    backgroundColor: COLORS.primaryDark,
-    borderRadius: 30,
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    justifyContent: 'space-around',
-    ...SHADOWS.bottomNav,
-  },
-  navItem: {
-    padding: 8,
   },
 });
