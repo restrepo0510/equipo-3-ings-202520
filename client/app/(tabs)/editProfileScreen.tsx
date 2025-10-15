@@ -3,7 +3,8 @@ import React, { useState } from "react";
 import { View, Text, TextInput, Image, StyleSheet, TouchableOpacity, ScrollView } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { BottomNavigation, NavItem } from "../../components/ui/bottomnavigation";
+import { BottomNavigation, NavItem } from "../../components/ui/BottomNavigation";
+import { createNavItems } from '../../utils/navigationHelpers';
 
 export default function EditProfileScreen() {
   const router = useRouter();
@@ -16,35 +17,9 @@ export default function EditProfileScreen() {
   /**
    * Navigation items configuration for Edit Profile Screen
    */
-  const navItems: NavItem[] = [
-    {
-      id: 'home',
-      icon: 'home-outline',
-      onPress: () => {
-        console.log('Home pressed');
-        // router.push('/(tabs)/home');
-      },
-      isActive: false,
-    },
-    {
-      id: 'favorites',
-      icon: 'heart-outline',
-      onPress: () => console.log('Favorites pressed'),
-      isActive: false,
-    },
-    {
-      id: 'chat',
-      icon: 'chatbubble-outline',
-      onPress: () => console.log('Chat pressed'),
-      isActive: false,
-    },
-    {
-      id: 'profile',
-      icon: 'person',
-      onPress: () => router.push('../(tabs)/profile'),
-      isActive: true, // Profile is active
-    },
-  ];
+  const navItems = createNavItems('profile', router);
+  
+  
 
   const handleImagePicker = () => {
     console.log('Open image picker');

@@ -1,3 +1,4 @@
+// src/auth/auth.controller.ts
 import { 
   Controller, 
   Post, 
@@ -5,28 +6,26 @@ import {
   Get, 
   HttpCode, 
   HttpStatus,
-  BadRequestException 
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { RegisterUserDto, LoginUserDto } from './dto/auth.dto';
-import { IAuthResponse } from './interfaces/auth.interfaces';
+import { RegisterUserDto, LoginUserDto, AuthResponseDto, UserResponseDto } from './dto/auth.dto';
 
 /**
- * Authentication controller handling user registration and login
- * Provides endpoints for user authentication and management
+ * Authentication Controller
+ * Handles user registration, login, and user management
  */
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   /**
-   * Registers a new user in the system
+   * Register a new user
    * @param registerUserDto - User registration data
-   * @returns Authentication response with user data
+   * @returns Authentication response with JWT token
    */
   @Post('register')
   @HttpCode(HttpStatus.CREATED)
-  async register(@Body() registerUserDto: RegisterUserDto): Promise<IAuthResponse> {
+  async register(@Body() registerUserDto: RegisterUserDto): Promise<AuthResponseDto> {
     try {
       return await this.authService.register(registerUserDto);
     } catch (error) {
@@ -35,13 +34,13 @@ export class AuthController {
   }
 
   /**
-   * Authenticates a user and returns user data
+   * Login user
    * @param loginUserDto - User login credentials
-   * @returns Authentication response with user data
+   * @returns Authentication response with JWT token
    */
   @Post('login')
   @HttpCode(HttpStatus.OK)
-  async login(@Body() loginUserDto: LoginUserDto): Promise<IAuthResponse> {
+  async login(@Body() loginUserDto: LoginUserDto): Promise<AuthResponseDto> {
     try {
       return await this.authService.login(loginUserDto);
     } catch (error) {
@@ -50,12 +49,12 @@ export class AuthController {
   }
 
   /**
-   * Retrieves all users from the system
-   * @returns Array of user data without sensitive information
+   * Get all users (for admin/testing purposes)
+   * @returns Array of user data
    */
   @Get('users')
   @HttpCode(HttpStatus.OK)
-  async getAllUsers(): Promise<any[]> {
+  async getAllUsers(): Promise<UserResponseDto[]> {
     try {
       return await this.authService.getAllUsers();
     } catch (error) {

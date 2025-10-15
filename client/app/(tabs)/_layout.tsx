@@ -1,42 +1,103 @@
-import { Tabs } from 'expo-router';
-import { MaterialIcons } from '@expo/vector-icons';
+// app/(tabs)/_layout.tsx
 
+import { Stack } from 'expo-router';
+import { ActivityIndicator, View } from 'react-native';
+import { useAuth } from '../../context/AuthContext';
+
+/**
+ * Tab Layout with Stack Navigation
+ * Protected routes that require authentication
+ */
 export default function TabLayout() {
+  const { isAuthenticated, isLoading } = useAuth();
+
+  // Loading State
+  if (isLoading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color="#27AE60" />
+      </View>
+    );
+  }
+
   return (
-    <Tabs
+    <Stack
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: '#27AE60',
-        tabBarStyle: { backgroundColor: '#fff' },
+        contentStyle: { backgroundColor: '#FFFFFF' },
       }}
     >
-      <Tabs.Screen
-        name="LoginScreen"
+      {/* Auth Screens - Always accessible */}
+      <Stack.Screen 
+        name="LoginScreen" 
         options={{
-          title: 'Login',
-          tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="login" size={size} color={color} />
-          ),
+          animation: 'fade',
         }}
       />
-      <Tabs.Screen
-        name="SignUpScreen"
+      <Stack.Screen 
+        name="SignUpScreen" 
         options={{
-          title: 'Registro',
-          tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="person-add" size={size} color={color} />
-          ),
+          animation: 'slide_from_right',
         }}
       />
-      <Tabs.Screen
-        name="TestRestaurantsScreen"
-        options={{
-          title: 'Restaurantes',
-          tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="restaurant" size={size} color={color} />
-          ),
-        }}
-      />
-    </Tabs>
+
+      {/* Protected Screens - Only when authenticated */}
+      {isAuthenticated && (
+        <Stack.Screen 
+          name="HomeScreen" 
+          options={{
+            animation: 'fade',
+          }}
+        />
+      )}
+      {isAuthenticated && (
+        <Stack.Screen 
+          name="MapScreen" 
+          options={{
+            animation: 'slide_from_right',
+          }}
+        />
+      )}
+      {isAuthenticated && (
+        <Stack.Screen 
+          name="FavoritesScreen" 
+          options={{
+            animation: 'slide_from_right',
+          }}
+        />
+      )}
+      {isAuthenticated && (
+        <Stack.Screen 
+          name="ProfileScreen" 
+          options={{
+            animation: 'slide_from_right',
+          }}
+        />
+      )}
+      {isAuthenticated && (
+        <Stack.Screen 
+          name="EditProfileScreen" 
+          options={{
+            animation: 'slide_from_bottom',
+          }}
+        />
+      )}
+      {isAuthenticated && (
+        <Stack.Screen 
+          name="ProductsScreen" 
+          options={{
+            animation: 'slide_from_right',
+          }}
+        />
+      )}
+      {isAuthenticated && (
+        <Stack.Screen 
+          name="OrdersScreen" 
+          options={{
+            animation: 'slide_from_right',
+          }}
+        />
+      )}
+    </Stack>
   );
 }
