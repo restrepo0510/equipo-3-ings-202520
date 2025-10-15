@@ -1,0 +1,40 @@
+Listado de rutas de carpetas
+El n�mero de serie del volumen es 00000077 4669:9B36
+C:\USERS\ALEX\DOCUMENTS\EQUIPO-3-INGS-202520
++---client
+|   +---.expo
+|   |   \---types
+|   +---.vscode
+|   +---app
+|   |   \---(tabs)
+|   +---assets
+|   |   \---img
+|   +---components
+|   |   \---ui
+|   |       \---map
+|   +---config
+|   +---constants
+|   +---hooks
+|   +---scripts
+|   +---services
+|   \---styles
++---doc
+|   +---analysis
+|   \---design
+|       \---img
+\---server
+    +---dist
+    |   +---auth
+    |   |   +---dto
+    |   |   \---interfaces
+    |   +---restaurants
+    |   |   \---dto
+    |   \---users
+     +---src
+    |   +---auth
+    |   |   +---dto
+    |   |   \---interfaces
+    |   +---restaurants
+    |   |   \---dto
+    |   \---users
+    \---test

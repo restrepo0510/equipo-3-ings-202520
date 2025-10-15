@@ -1,3 +1,5 @@
+// app/(tabs)/SignUpScreen.tsx
+
 import React, { useState, useCallback } from 'react';
 import {
   View,
@@ -7,52 +9,53 @@ import {
   Alert,
   ActivityIndicator,
   ScrollView,
-  SafeAreaView,
 } from 'react-native';
-import { API_URL } from '@/config/api';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
+import { useAuth } from '../../context/AuthContext';
+import { UserRole } from '../../types/auth.types';
 import { 
   COLORS, 
   BASE_STYLES, 
   SIGNUP_STYLES,
-  type RegistrationFormData,
-  type ApiError,
-  type RegistrationResponse 
 } from '../../styles/authStyles';
 import { FormField } from '../../components/ui/FormField';
 
-// Simple regex patterns for validation - nothing fancy here
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE_REGEX = /^[\+]?[0-9\s\-\(\)]{10,}$/;
 
+interface RegistrationFormData {
+  name: string;
+  phone: string;
+  email: string;
+  password: string;
+  role: UserRole;
+}
+
 /**
- * Validates the registration form
- * Returns an object with error messages for any invalid fields
+ * Validates registration form
  */
 const validateForm = (formData: RegistrationFormData): Partial<RegistrationFormData> => {
   const errors: Partial<RegistrationFormData> = {};
 
-  // Check if name exists and is long enough
   if (!formData.name.trim()) {
     errors.name = 'Name is required';
   } else if (formData.name.trim().length < 2) {
     errors.name = 'Name must be at least 2 characters';
   }
 
-  // Validate phone number format
   if (!formData.phone.trim()) {
     errors.phone = 'Phone number is required';
   } else if (!PHONE_REGEX.test(formData.phone.replace(/\s/g, ''))) {
     errors.phone = 'Please enter a valid phone number';
   }
 
-  // Basic email validation
   if (!formData.email.trim()) {
     errors.email = 'Email is required';
   } else if (!EMAIL_REGEX.test(formData.email)) {
     errors.email = 'Please enter a valid email address';
   }
 
-  // Password just needs to be 6+ characters
   if (!formData.password) {
     errors.password = 'Password is required';
   } else if (formData.password.length < 6) {
@@ -62,87 +65,77 @@ const validateForm = (formData: RegistrationFormData): Partial<RegistrationFormD
   return errors;
 };
 
+/**
+ * SignUpScreen Component
+ * 
+ * Handles user registration with role selection
+ * Supports both customer and business account types
+ */
 const SignUpScreen: React.FC = () => {
-  // Store form data - pretty straightforward
+  const router = useRouter();
+  const { register, isLoading: authLoading } = useAuth();
+
   const [formData, setFormData] = useState<RegistrationFormData>({
     name: '',
     phone: '',
     email: '',
     password: '',
+    role: UserRole.CUSTOMER, // Default role
   });
   
-  // Track loading state for the API call
-  const [isLoading, setIsLoading] = useState(false);
-  
-  // Store validation errors for each field
   const [errors, setErrors] = useState<Partial<RegistrationFormData>>({});
 
   /**
-   * Updates a single field and clears its error
-   * We use useCallback here to avoid recreating this function on every render
+   * Updates form field and clears its error
    */
   const handleFieldChange = useCallback((field: keyof RegistrationFormData, value: string) => {
-    // Update the field value
     setFormData(prev => ({ ...prev, [field]: value }));
     
-    // Clear the error for this field if it exists
-    // (no need to show an error while the user is actively fixing it)
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: undefined }));
     }
   }, [errors]);
 
   /**
-   * Handles the registration submission
-   * Validates the form, sends data to the API, and handles the response
+   * Handles role selection
+   */
+  const handleRoleChange = useCallback((role: UserRole) => {
+    setFormData(prev => ({ ...prev, role }));
+  }, []);
+
+  /**
+   * Handles registration submission
    */
   const handleRegister = useCallback(async () => {
-    // First, validate everything
+    // Validate form
     const validationErrors = validateForm(formData);
     
-    // If there are any errors, show them and bail out
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
       Alert.alert('Validation Error', 'Please fix the errors before submitting.');
       return;
     }
 
-    // Show loading state
-    setIsLoading(true);
-
     try {
-      // Make the API request
-      const response = await fetch(`${API_URL}/auth/register`, {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: JSON.stringify(formData),
+      // Call register from AuthContext
+      await register({
+        name: formData.name.trim(),
+        email: formData.email.trim(),
+        phone: formData.phone.trim(),
+        password: formData.password,
+        role: formData.role,
       });
 
-      const data: RegistrationResponse = await response.json();
-
-      // Check if the request was successful
-      if (!response.ok) {
-        throw new Error(data.message || 'Registration failed');
-      }
-
-      // Success! Show a happy message
-      Alert.alert('Success', data.message || 'Registration successful!');
-      
-      // TODO: Navigate to login screen once we have navigation set up
-      
-    } catch (error) {
-      // Something went wrong - show an error message
-      const apiError = error as ApiError;
-      console.error('Registration error:', apiError);
-      Alert.alert('Registration Failed', apiError.message || 'Unable to connect to server');
-    } finally {
-      // Always stop the loading spinner, whether we succeeded or failed
-      setIsLoading(false);
+      // Success! Navigation updates automatically
+      console.log('✅ Registration successful, navigation will update automatically');
+    } catch (error: any) {
+      console.error('Registration error:', error);
+      Alert.alert(
+        'Registration Failed',
+        error.message || 'Unable to connect to server'
+      );
     }
-  }, [formData]);
+  }, [formData, register]);
 
   return (
     <SafeAreaView style={SIGNUP_STYLES.safeArea}>
@@ -151,7 +144,7 @@ const SignUpScreen: React.FC = () => {
         showsVerticalScrollIndicator={false}
       >
         <View style={SIGNUP_STYLES.container}>
-          {/* Header with logo and title */}
+          {/* Header */}
           <View style={BASE_STYLES.header}>
             <Image
               source={require('@/assets/img/logo.png')}
@@ -162,8 +155,50 @@ const SignUpScreen: React.FC = () => {
             <Text style={BASE_STYLES.subtitle}>Registro</Text>
           </View>
 
-          {/* Main form */}
+          {/* Form */}
           <View style={SIGNUP_STYLES.formContainer}>
+            {/* Role selection */}
+            <View style={styles.roleContainer}>
+              <Text style={styles.roleLabel}>Tipo de cuenta:</Text>
+              <View style={styles.roleButtons}>
+                <TouchableOpacity
+                  style={[
+                    styles.roleButton,
+                    formData.role === UserRole.CUSTOMER && styles.roleButtonActive,
+                  ]}
+                  onPress={() => handleRoleChange(UserRole.CUSTOMER)}
+                  disabled={authLoading}
+                >
+                  <Text
+                    style={[
+                      styles.roleButtonText,
+                      formData.role === UserRole.CUSTOMER && styles.roleButtonTextActive,
+                    ]}
+                  >
+                    👤 Usuario
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[
+                    styles.roleButton,
+                    formData.role === UserRole.BUSINESS && styles.roleButtonActive,
+                  ]}
+                  onPress={() => handleRoleChange(UserRole.BUSINESS)}
+                  disabled={authLoading}
+                >
+                  <Text
+                    style={[
+                      styles.roleButtonText,
+                      formData.role === UserRole.BUSINESS && styles.roleButtonTextActive,
+                    ]}
+                  >
+                    🏢 Empresa
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+
             {/* Name field */}
             <FormField
               label="Nombre"
@@ -171,9 +206,7 @@ const SignUpScreen: React.FC = () => {
               error={errors.name}
               placeholder="Ingresa tu nombre completo"
               onChangeText={(value) => handleFieldChange('name', value)}
-              disabled={isLoading}
-              accessibilityLabel="Name input"
-              accessibilityHint="Enter your full name"
+              disabled={authLoading}
             />
 
             {/* Phone field */}
@@ -183,10 +216,8 @@ const SignUpScreen: React.FC = () => {
               error={errors.phone}
               placeholder="Ingresa tu número de teléfono"
               onChangeText={(value) => handleFieldChange('phone', value)}
-              disabled={isLoading}
+              disabled={authLoading}
               keyboardType="phone-pad"
-              accessibilityLabel="Phone input"
-              accessibilityHint="Enter your phone number"
             />
 
             {/* Email field */}
@@ -196,12 +227,9 @@ const SignUpScreen: React.FC = () => {
               error={errors.email}
               placeholder="you@example.com"
               onChangeText={(value) => handleFieldChange('email', value)}
-              disabled={isLoading}
+              disabled={authLoading}
               keyboardType="email-address"
               autoComplete="email"
-              textContentType="emailAddress"
-              accessibilityLabel="Email input"
-              accessibilityHint="Enter your email address"
             />
 
             {/* Password field */}
@@ -211,32 +239,26 @@ const SignUpScreen: React.FC = () => {
               error={errors.password}
               placeholder="Ingresa tu contraseña"
               onChangeText={(value) => handleFieldChange('password', value)}
-              disabled={isLoading}
+              disabled={authLoading}
               secureTextEntry
               autoComplete="password"
-              textContentType="newPassword"
-              accessibilityLabel="Password input"
-              accessibilityHint="Enter your password"
             />
 
-            {/* Visual separator */}
             <View style={BASE_STYLES.underline} />
 
-            {/* Submit button - shows spinner when loading */}
+            {/* Submit button */}
             <TouchableOpacity
               style={[
                 BASE_STYLES.button,
-                isLoading && BASE_STYLES.buttonDisabled,
+                authLoading && BASE_STYLES.buttonDisabled,
               ]}
               onPress={handleRegister}
-              disabled={isLoading}
-              accessibilityLabel="Register button"
-              accessibilityHint="Press to submit registration form"
+              disabled={authLoading}
             >
-              {isLoading ? (
+              {authLoading ? (
                 <ActivityIndicator color={COLORS.white} size="small" />
               ) : (
-                <Text style={BASE_STYLES.buttonText}>Enviar</Text>
+                <Text style={BASE_STYLES.buttonText}>Registrarse</Text>
               )}
             </TouchableOpacity>
           </View>
@@ -244,6 +266,44 @@ const SignUpScreen: React.FC = () => {
       </ScrollView>
     </SafeAreaView>
   );
+};
+
+const styles = {
+  roleContainer: {
+    marginBottom: 16,
+  },
+  roleLabel: {
+    fontSize: 14,
+    fontWeight: '600' as const,
+    color: '#2C3E50',
+    marginBottom: 8,
+  },
+  roleButtons: {
+    flexDirection: 'row' as const,
+    gap: 12,
+  },
+  roleButton: {
+    flex: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#E8E8E8',
+    backgroundColor: '#FFF',
+    alignItems: 'center' as const,
+  },
+  roleButtonActive: {
+    borderColor: '#27AE60',
+    backgroundColor: '#E8F5E9',
+  },
+  roleButtonText: {
+    fontSize: 14,
+    fontWeight: '600' as const,
+    color: '#7F8C8D',
+  },
+  roleButtonTextActive: {
+    color: '#27AE60',
+  },
 };
 
 export default SignUpScreen;

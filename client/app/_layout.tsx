@@ -1,11 +1,19 @@
 // app/_layout.tsx
-import { Stack } from 'expo-router';
-import React from 'react';
 
+import { Stack } from 'expo-router';
+import { AuthProvider } from '../context/AuthContext';
+
+/**
+ * Root Layout
+ * 
+ * Wraps the entire app with AuthProvider
+ * This makes authentication state available everywhere
+ */
 export default function RootLayout() {
   return (
-    <Stack>
-      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-    </Stack>
+    <AuthProvider>
+      <Stack screenOptions={{ headerShown: false }}>
+      </Stack>
+    </AuthProvider>
   );
 }
