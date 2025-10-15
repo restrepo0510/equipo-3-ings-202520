@@ -81,7 +81,7 @@ export default function ProfileScreen() {
             {/* Edit Button */}
             <TouchableOpacity
               style={styles.editButton}
-              onPress={() => router.push("/(tabs)/editProfileScreen")}
+              onPress={() => router.push("/(tabs)/EditProfileScreen")}
             >
               <Ionicons name="pencil" size={18} color="#000" />
             </TouchableOpacity>

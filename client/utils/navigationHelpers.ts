@@ -15,13 +15,13 @@ export const createNavItems = (
     {
       id: 'home',
       icon: 'home-outline',
-      onPress: () => router.push('/(tabs)/home'),
+      onPress: () => router.push('/(tabs)/HomeScreen'),
       isActive: currentScreen === 'home',
     },
     {
       id: 'favorites',
       icon: 'heart-outline',
-      onPress: () => router.push('/(tabs)/favorites'),
+      onPress: () => router.push('/(tabs)/FavoritesScreen'),
       isActive: currentScreen === 'favorites',
     },
     {
@@ -33,7 +33,7 @@ export const createNavItems = (
     {
       id: 'profile',
       icon: 'person',
-      onPress: () => router.push('/(tabs)/profile'),
+      onPress: () => router.push('/(tabs)/ProfileScreen'),
       isActive: currentScreen === 'profile',
     },
   ];

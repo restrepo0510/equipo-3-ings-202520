@@ -122,6 +122,8 @@ const LoginScreen: React.FC = () => {
   }, [authLoading, router]);
 
   return (
+
+    
     <SafeAreaView style={LOGIN_STYLES.safeArea}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
