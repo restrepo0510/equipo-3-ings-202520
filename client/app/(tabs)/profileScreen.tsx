@@ -1,590 +1,121 @@
-// app/(tabs)/profile.tsx
-
 import React from "react";
-
-import { View, Text, Image, StyleSheet, TouchableOpacity, ScrollView } from "react-native";
-
+import {
+  View,
+  Text,
+  Image,
+  TouchableOpacity,
+  ScrollView,
+  Alert,
+} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-
 import { useRouter } from "expo-router";
+import { BottomNavigation } from "@/components/ui/BottomNavigation";
+import { useAuth } from "@/context/AuthContext";
+import { createNavItems } from "../../utils/navigationHelpers";
+import { profileStyles as styles } from "../../styles/profileScreens.styles";
 
-import { BottomNavigation, NavItem } from "@/components/ui/BottomNavigation";
-
-import { useAuth } from '@/context/AuthContext';
-import { createNavItems } from '../../utils/navigationHelpers';
-
-
-
-export default function ProfileScreen() {
-
+/**
+ * ProfileScreen
+ * 
+ * Displays the authenticated user's profile information and 
+ * allows navigation to the Edit Profile screen or logout.
+ */
+export default function ProfileScreen(): React.ReactElement {
   const router = useRouter();
+  const { user, logout } = useAuth();
 
-  const { logout } = useAuth();
-
-
-
-  const handleLogout = async () => {
-
-    try {
-
-      await logout();
-
-      console.log('ðŸ‘‹ Logged out successfully');
-
-    } catch (error) {
-
-      console.error('Error logging out:', error);
-
-    }
-
-  };
-
-
+  const navItems = createNavItems("profile", router);
 
   /**
-
-   * Navigation items configuration for Profile Screen
-
+   * Logs out the current user and navigates back to the login screen
    */
-  const navItems = createNavItems('profile', router);
+  const handleLogout = async (): Promise<void> => {
+    try {
+      await logout();
+      Alert.alert("Goodbye!", "You have been logged out.");
+      router.replace("/LoginScreen");
+    } catch (error) {
+      console.error("❌ Logout error:", error);
+      Alert.alert("Error", "Could not log out. Please try again.");
+    }
+  };
 
-
-
+  /**
+   * Navigates to the Edit Profile screen
+   */
+  const handleEditProfile = (): void => {
+    router.push("/(tabs)/EditProfileScreen");
+  };
 
   return (
-
     <View style={styles.container}>
-
-      <ScrollView 
-
+      <ScrollView
         showsVerticalScrollIndicator={false}
-
         contentContainerStyle={styles.scrollContent}
-
       >
-
         {/* Header */}
-
         <View style={styles.header}>
-
           <TouchableOpacity onPress={() => router.back()}>
-
             <Ionicons name="arrow-back" size={24} color="#000" />
-
           </TouchableOpacity>
-
           <Text style={styles.headerTitle}>
-
             Mi <Text style={styles.yummi}>YUMMI</Text>
-
           </Text>
-
           <View style={{ width: 24 }} />
-
         </View>
 
-
-
-        {/* Divider line */}
-
+        {/* Divider */}
         <View style={styles.divider} />
 
-
-
-        {/* Profile Image with decorative stars */}
-
+        {/* Profile Picture */}
         <View style={styles.profileSection}>
-
           <View style={styles.profileImageContainer}>
-
-            {/* Background circle */}
-
             <View style={styles.profileBackground} />
-
-            
-
-            {/* Profile Image */}
-
-            <Image 
-
-              source={require("../../assets/img/profile.png")} 
-
-              style={styles.profileImage} 
-
+            <Image
+              source={require("../../assets/img/profile.png")}
+              style={styles.profileImage}
             />
-
-            
-
             {/* Decorative stars */}
-
             <Ionicons name="add" size={20} color="#E8E8E8" style={styles.star1} />
-
             <Ionicons name="add" size={16} color="#E8E8E8" style={styles.star2} />
-
             <Ionicons name="add" size={12} color="#E8E8E8" style={styles.star3} />
-
-            
-
             {/* Edit Button */}
-
-            <TouchableOpacity
-
-              style={styles.editButton}
-
-              onPress={() => router.push("/(tabs)/EditProfileScreen")}
-
-            >
-
+            <TouchableOpacity style={styles.editButton} onPress={handleEditProfile}>
               <Ionicons name="pencil" size={18} color="#000" />
-
             </TouchableOpacity>
-
           </View>
 
-
-
-          <Text style={styles.name}>FirstName</Text>
-
+          <Text style={styles.name}>{user?.name ?? "User"}</Text>
+          <Text style={styles.email}>{user?.email}</Text>
+          {user?.phone && <Text style={styles.phone}>{user.phone}</Text>}
         </View>
 
-
-
-        {/* Last Purchase Card */}
-
+        {/* Example purchase info */}
         <View style={styles.purchaseCard}>
-
-          {/* Food Image with green border */}
-
           <View style={styles.foodImageContainer}>
-
-            <Image 
-
-              source={require("../../assets/img/food.png")} 
-
-              style={styles.foodImage} 
-
+            <Image
+              source={require("../../assets/img/food.png")}
+              style={styles.foodImage}
             />
-
-            <Text style={styles.lastPurchaseLabel}>Ãšltima compra</Text>
-
+            <Text style={styles.lastPurchaseLabel}>Última compra</Text>
           </View>
-
-
-
-          {/* Comment Section */}
 
           <View style={styles.commentSection}>
-
             <Text style={styles.commentTitle}>Comentario:</Text>
-
             <Text style={styles.commentText}>
-
-              Lorem ipsum dolor sit amet consectetur adipiscing elit vivamus vitae, 
-
-              neque suspendisse tellus massa ...
-
+              “Lorem ipsum dolor sit amet, consectetur adipiscing elit...”
             </Text>
-
           </View>
-
         </View>
 
-
-
-        {/* Logout Button */}
-
-        <TouchableOpacity
-
-          style={styles.logoutButton}
-
-          onPress={handleLogout}
-
-        >
-
-          <Text style={styles.logoutButtonText}>Cerrar SesiÃ³n</Text>
-
+        {/* Logout */}
+        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+          <Text style={styles.logoutButtonText}>Cerrar Sesión</Text>
         </TouchableOpacity>
-
       </ScrollView>
 
-
-
       {/* Bottom Navigation */}
-
       <BottomNavigation items={navItems} />
-
     </View>
-
   );
-
 }
-
-
-
-const styles = StyleSheet.create({
-
-  container: { 
-
-    flex: 1, 
-
-    backgroundColor: "#FFFFFF",
-
-  },
-
-  scrollContent: {
-
-    paddingTop: 50,
-
-    paddingBottom: 120, // Space for bottom nav
-
-    alignItems: "center",
-
-  },
-
-  
-
-  // Header
-
-  header: { 
-
-    flexDirection: "row", 
-
-    alignItems: "center", 
-
-    justifyContent: "space-between",
-
-    width: "100%",
-
-    paddingHorizontal: 20,
-
-    marginBottom: 10,
-
-  },
-
-  headerTitle: { 
-
-    fontSize: 22, 
-
-    fontWeight: "bold",
-
-    color: "#000",
-
-  },
-
-  yummi: { 
-
-    fontStyle: "italic",
-
-    fontWeight: "300",
-
-    letterSpacing: 2,
-
-  },
-
-  divider: {
-
-    width: "90%",
-
-    height: 2,
-
-    backgroundColor: "#000",
-
-    marginBottom: 30,
-
-  },
-
-
-
-  // Profile Section
-
-  profileSection: {
-
-    alignItems: "center",
-
-    marginBottom: 30,
-
-  },
-
-  profileImageContainer: {
-
-    position: "relative",
-
-    alignItems: "center",
-
-    justifyContent: "center",
-
-    marginBottom: 15,
-
-  },
-
-  profileBackground: {
-
-    position: "absolute",
-
-    width: 160,
-
-    height: 160,
-
-    borderRadius: 80,
-
-    backgroundColor: "#2C3E2F",
-
-  },
-
-  profileImage: { 
-
-    width: 120, 
-
-    height: 120, 
-
-    borderRadius: 60,
-
-    zIndex: 2,
-
-  },
-
-  
-
-  // Decorative stars
-
-  star1: {
-
-    position: "absolute",
-
-    top: 20,
-
-    right: 15,
-
-    zIndex: 3,
-
-  },
-
-  star2: {
-
-    position: "absolute",
-
-    top: 50,
-
-    right: 5,
-
-    zIndex: 3,
-
-  },
-
-  star3: {
-
-    position: "absolute",
-
-    bottom: 40,
-
-    left: 10,
-
-    zIndex: 3,
-
-  },
-
-  
-
-  // Edit Button
-
-  editButton: {
-
-    position: "absolute",
-
-    right: 5,
-
-    bottom: 5,
-
-    backgroundColor: "#FFFFFF",
-
-    borderRadius: 25,
-
-    width: 45,
-
-    height: 45,
-
-    justifyContent: "center",
-
-    alignItems: "center",
-
-    shadowColor: "#000",
-
-    shadowOffset: { width: 0, height: 2 },
-
-    shadowOpacity: 0.2,
-
-    shadowRadius: 4,
-
-    elevation: 4,
-
-    zIndex: 3,
-
-  },
-
-  
-
-  name: { 
-
-    fontWeight: "bold", 
-
-    fontSize: 24, 
-
-    color: "#000",
-
-  },
-
-
-
-  // Purchase Card
-
-  purchaseCard: {
-
-    flexDirection: "row",
-
-    backgroundColor: "#FFFFFF",
-
-    borderRadius: 20,
-
-    padding: 16,
-
-    width: "90%",
-
-    shadowColor: "#000",
-
-    shadowOffset: { width: 0, height: 2 },
-
-    shadowOpacity: 0.1,
-
-    shadowRadius: 8,
-
-    elevation: 4,
-
-  },
-
-  foodImageContainer: {
-
-    position: "relative",
-
-  },
-
-  foodImage: { 
-
-    width: 140, 
-
-    height: 180, 
-
-    borderRadius: 16,
-
-    borderWidth: 4,
-
-    borderColor: "#27AE60",
-
-  },
-
-  lastPurchaseLabel: {
-
-    position: "absolute",
-
-    bottom: 10,
-
-    left: 0,
-
-    right: 0,
-
-    backgroundColor: "#1B5E20",
-
-    color: "#FFFFFF",
-
-    padding: 8,
-
-    borderBottomLeftRadius: 12,
-
-    borderBottomRightRadius: 12,
-
-    textAlign: "center",
-
-    fontWeight: "600",
-
-    fontSize: 13,
-
-  },
-
-  
-
-  // Comment Section
-
-  commentSection: { 
-
-    flex: 1, 
-
-    marginLeft: 16,
-
-    justifyContent: "flex-start",
-
-    paddingTop: 40,
-
-  },
-
-  commentTitle: { 
-
-    color: "#000", 
-
-    fontWeight: "bold",
-
-    fontSize: 16,
-
-    marginBottom: 8,
-
-  },
-
-  commentText: { 
-
-    fontSize: 13, 
-
-    color: "#555",
-
-    lineHeight: 20,
-
-  },
-
-
-
-  // Logout Button
-
-  logoutButton: {
-
-    backgroundColor: '#E74C3C',
-
-    marginHorizontal: 20,
-
-    marginTop: 20,
-
-    paddingVertical: 14,
-
-    borderRadius: 12,
-
-    shadowColor: '#000',
-
-    shadowOffset: { width: 0, height: 2 },
-
-    shadowOpacity: 0.1,
-
-    shadowRadius: 4,
-
-    elevation: 3,
-
-  },
-
-  logoutButtonText: {
-
-    color: '#FFFFFF',
-
-    fontSize: 16,
-
-    fontWeight: 'bold',
-
-    textAlign: 'center',
-
-  },
-
-});

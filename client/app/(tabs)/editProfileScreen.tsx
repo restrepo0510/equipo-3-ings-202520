@@ -1,34 +1,102 @@
-// app/(tabs)/edit_profile.tsx
-import React, { useState } from "react";
-import { View, Text, TextInput, Image, StyleSheet, TouchableOpacity, ScrollView } from "react-native";
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  Image,
+  TouchableOpacity,
+  ScrollView,
+  Alert,
+} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { BottomNavigation, NavItem } from "../../components/ui/BottomNavigation";
-import { createNavItems } from '../../utils/navigationHelpers';
+import { BottomNavigation } from "../../components/ui/BottomNavigation";
+import { createNavItems } from "../../utils/navigationHelpers";
+import { useAuth } from "@/context/AuthContext";
+import { editProfileStyles as styles } from "../../styles/EditProfileScreen.styles";
+import type { User } from "@/types/auth.types";
 
-export default function EditProfileScreen() {
+/**
+ * EditProfileScreen
+ * 
+ * Screen that allows the authenticated user to edit their profile information.
+ * Supports updating local user data stored in the AuthContext.
+ */
+export default function EditProfileScreen(): React.ReactElement {
   const router = useRouter();
-  
-  const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const { user, updateUser } = useAuth();
+
+  const [formData, setFormData] = useState({
+    name: user?.name ?? "",
+    phone: user?.phone ?? "",
+    email: user?.email ?? "",
+    password: "",
+  });
+
+  const navItems = createNavItems("profile", router);
+
+  // ---------------------------------------------------------------------------
+  // Handlers
+  // ---------------------------------------------------------------------------
 
   /**
-   * Navigation items configuration for Edit Profile Screen
+   * Opens image picker (to be implemented with Expo Image Picker)
    */
-  const navItems = createNavItems('profile', router);
-  
-  
-
-  const handleImagePicker = () => {
-    console.log('Open image picker');
-    // Implementar selector de imagen
+  const handleImagePicker = (): void => {
+    console.log("🖼️ Open image picker");
+    // TODO: Implement image picker
   };
 
+  /**
+   * Updates a single field in the form
+   */
+  const handleInputChange = (field: keyof typeof formData, value: string): void => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  /**
+   * Validates form input before saving
+   */
+  const validateForm = (): boolean => {
+    if (!formData.name.trim() || !formData.email.trim()) {
+      Alert.alert("Missing fields", "Name and email are required.");
+      return false;
+    }
+    return true;
+  };
+
+  /**
+   * Saves updated user data using the AuthContext
+   */
+  const handleSaveProfile = async (): Promise<void> => {
+    if (!validateForm() || !user) return;
+
+    try {
+      const updatedUser: User = {
+        ...user,
+        name: formData.name.trim(),
+        phone: formData.phone.trim(),
+        email: formData.email.trim(),
+        ...(formData.password ? { password: formData.password } : {}),
+      };
+
+      await updateUser(updatedUser);
+
+      Alert.alert("Success", "Profile updated successfully.");
+      console.log("✅ Updated user:", updatedUser);
+      router.back();
+    } catch (error) {
+      console.error("❌ Error updating profile:", error);
+      Alert.alert("Error", "Could not update profile. Please try again.");
+    }
+  };
+
+  // ---------------------------------------------------------------------------
+  // Render
+  // ---------------------------------------------------------------------------
   return (
     <View style={styles.container}>
-      <ScrollView 
+      <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
@@ -43,28 +111,25 @@ export default function EditProfileScreen() {
           <View style={{ width: 24 }} />
         </View>
 
-        {/* Divider line */}
+        {/* Divider */}
         <View style={styles.divider} />
 
-        {/* Edit Profile Title */}
+        {/* Title */}
         <Text style={styles.editTitle}>Edit Profile</Text>
 
-        {/* Profile Image with decorative stars */}
+        {/* Profile Picture */}
         <View style={styles.profileSection}>
           <View style={styles.profileImageContainer}>
-            {/* Background circle */}
             <View style={styles.profileBackground} />
-            
-            {/* Profile Image */}
-            <Image 
-              source={require("../../assets/img/profile.png")} 
-              style={styles.profileImage} 
+            <Image
+              source={require("../../assets/img/profile.png")}
+              style={styles.profileImage}
             />
-            
+
             {/* Decorative stars */}
             <Ionicons name="add" size={20} color="#E8E8E8" style={styles.star1} />
             <Ionicons name="add" size={16} color="#E8E8E8" style={styles.star2} />
-            
+
             {/* Folder Button */}
             <TouchableOpacity
               style={styles.folderButton}
@@ -75,59 +140,33 @@ export default function EditProfileScreen() {
           </View>
         </View>
 
-        {/* Form Inputs */}
+        {/* Form */}
         <View style={styles.form}>
-          {/* Name Input */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Name</Text>
-            <TextInput 
-              style={styles.input}
-              value={name}
-              onChangeText={setName}
-              placeholder=""
-              placeholderTextColor="#95A5A6"
-            />
-          </View>
+          {[
+            { label: "Name", field: "name", keyboard: "default" },
+            { label: "Phone number", field: "phone", keyboard: "phone-pad" },
+            { label: "e-mail", field: "email", keyboard: "email-address" },
+            { label: "Password", field: "password", keyboard: "default", secure: true },
+          ].map(({ label, field, keyboard, secure }) => (
+            <View key={field} style={styles.inputGroup}>
+              <Text style={styles.label}>{label}</Text>
+              <TextInput
+                style={styles.input}
+                value={formData[field as keyof typeof formData]}
+                onChangeText={(value) => handleInputChange(field as keyof typeof formData, value)}
+                placeholder=""
+                placeholderTextColor="#95A5A6"
+                keyboardType={keyboard as any}
+                secureTextEntry={secure}
+                autoCapitalize="none"
+              />
+            </View>
+          ))}
 
-          {/* Phone Number Input */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Phone number</Text>
-            <TextInput 
-              style={styles.input}
-              value={phone}
-              onChangeText={setPhone}
-              placeholder=""
-              placeholderTextColor="#95A5A6"
-              keyboardType="phone-pad"
-            />
-          </View>
-
-          {/* Email Input */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>e-mail</Text>
-            <TextInput 
-              style={styles.input}
-              value={email}
-              onChangeText={setEmail}
-              placeholder=""
-              placeholderTextColor="#95A5A6"
-              keyboardType="email-address"
-              autoCapitalize="none"
-            />
-          </View>
-
-          {/* Password Input */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Password</Text>
-            <TextInput 
-              style={styles.input}
-              value={password}
-              onChangeText={setPassword}
-              placeholder=""
-              placeholderTextColor="#95A5A6"
-              secureTextEntry
-            />
-          </View>
+          {/* Save Button */}
+          <TouchableOpacity style={styles.saveButton} onPress={handleSaveProfile}>
+            <Text style={styles.saveButtonText}>Save Changes</Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
 
@@ -136,133 +175,3 @@ export default function EditProfileScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { 
-    flex: 1, 
-    backgroundColor: "#FFFFFF",
-  },
-  scrollContent: {
-    paddingTop: 50,
-    paddingBottom: 120, // Space for bottom nav
-    alignItems: "center",
-  },
-  
-  // Header
-  header: { 
-    flexDirection: "row", 
-    alignItems: "center", 
-    justifyContent: "space-between",
-    width: "100%",
-    paddingHorizontal: 20,
-    marginBottom: 10,
-  },
-  headerTitle: { 
-    fontSize: 22, 
-    fontWeight: "bold",
-    color: "#000",
-    letterSpacing: 1,
-  },
-  yummi: { 
-    fontStyle: "italic",
-    fontWeight: "300",
-    letterSpacing: 2,
-  },
-  divider: {
-    width: "90%",
-    height: 2,
-    backgroundColor: "#000",
-    marginBottom: 20,
-  },
-  
-  // Edit Profile Title
-  editTitle: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "#000",
-    marginBottom: 20,
-  },
-
-  // Profile Section
-  profileSection: {
-    alignItems: "center",
-    marginBottom: 30,
-  },
-  profileImageContainer: {
-    position: "relative",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  profileBackground: {
-    position: "absolute",
-    width: 140,
-    height: 140,
-    borderRadius: 70,
-    backgroundColor: "#2C3E2F",
-  },
-  profileImage: { 
-    width: 100, 
-    height: 100, 
-    borderRadius: 50,
-    zIndex: 2,
-  },
-  
-  // Decorative stars
-  star1: {
-    position: "absolute",
-    top: 15,
-    right: 10,
-    zIndex: 3,
-  },
-  star2: {
-    position: "absolute",
-    bottom: 35,
-    left: 5,
-    zIndex: 3,
-  },
-  
-  // Folder Button
-  folderButton: {
-    position: "absolute",
-    right: -5,
-    bottom: 0,
-    backgroundColor: "#FFFFFF",
-    borderRadius: 25,
-    width: 45,
-    height: 45,
-    justifyContent: "center",
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 4,
-    zIndex: 3,
-  },
-
-  // Form
-  form: {
-    width: "85%",
-    marginTop: 10,
-  },
-  inputGroup: {
-    marginBottom: 20,
-  },
-  label: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#1B5E20",
-    marginBottom: 8,
-    marginLeft: 5,
-  },
-  input: {
-    borderWidth: 3,
-    borderColor: "#000",
-    borderRadius: 25,
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    fontSize: 16,
-    backgroundColor: "#FFFFFF",
-    color: "#000",
-  },
-});
