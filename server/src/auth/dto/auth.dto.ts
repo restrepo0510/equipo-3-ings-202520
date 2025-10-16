@@ -23,7 +23,7 @@ export class RegisterUserDto {
 
   @IsEnum(UserRole)
   @IsOptional()
-  role?: UserRole; // ← Esta propiedad ya estaba, verifica que esté
+  role?: UserRole;
 }
 
 /**
@@ -66,7 +66,7 @@ export class UpdateUserDto {
  * Response DTO for user data (excludes sensitive information)
  */
 export class UserResponseDto {
-  id: number;
+  id: string;
   name: string;
   email: string;
   phone: string;

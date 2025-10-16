@@ -5,19 +5,18 @@ import { JwtModule } from '@nestjs/jwt';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { User } from './user.entity';
+import { Restaurant } from '../restaurants/restaurant.entity'; // ✅ AÑADIR ESTO
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User]),
+    TypeOrmModule.forFeature([User, Restaurant]), // ✅ Añadir Restaurant aquí
     JwtModule.register({
-      secret: process.env.JWT_SECRET || 'your-super-secret-key-change-in-production',
-      signOptions: { 
-        expiresIn: '7d' // Token expires in 7 days
-      },
+      secret: process.env.JWT_SECRET || 'your-secret-key',
+      signOptions: { expiresIn: '7d' },
     }),
   ],
   controllers: [AuthController],
   providers: [AuthService],
-  exports: [AuthService, JwtModule],
+  exports: [AuthService],
 })
 export class AuthModule {}

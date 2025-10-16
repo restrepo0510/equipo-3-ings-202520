@@ -27,10 +27,10 @@ export class Restaurant {
   @Column({ type: 'varchar', length: 255 })
   address: string;
 
-  @Column({ type: 'decimal', precision: 10, scale: 8 })
+  @Column({ type: 'decimal', precision: 10, scale: 8, default: 0 })
   latitude: number;
 
-  @Column({ type: 'decimal', precision: 11, scale: 8 })
+  @Column({ type: 'decimal', precision: 11, scale: 8, default: 0 })
   longitude: number;
 
   @Column({ type: 'varchar', length: 100, nullable: true })
@@ -39,11 +39,23 @@ export class Restaurant {
   @Column({ type: 'varchar', length: 20, nullable: true })
   phone: string;
 
+  // ✅ NUEVO: Email del restaurante
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  email: string;
+
+  // ✅ NUEVO: Relación con el usuario propietario
+  @Column({
+    type: 'uuid',
+    nullable: true,
+    name: 'user_id',
+  })
+  userId: string;
+
   // Explicitly specify column name in snake_case
   @Column({
     type: 'boolean',
     default: true,
-    name: 'is_active', // ← IMPORTANTE: Nombre de columna en snake_case
+    name: 'is_active',
   })
   isActive: boolean;
 
@@ -52,7 +64,7 @@ export class Restaurant {
     type: 'text',
     nullable: true,
     default: 'https://cdn-icons-png.flaticon.com/512/2921/2921822.png',
-    name: 'image_url', // ← IMPORTANTE: Nombre de columna en snake_case
+    name: 'image_url',
   })
   imageUrl: string;
 
@@ -61,7 +73,7 @@ export class Restaurant {
     type: 'varchar',
     length: 100,
     nullable: true,
-    name: 'opening_time', // ← IMPORTANTE: Nombre de columna en snake_case
+    name: 'opening_time',
   })
   openingTime: string;
 
@@ -70,7 +82,7 @@ export class Restaurant {
     type: 'varchar',
     length: 100,
     nullable: true,
-    name: 'closing_time', // ← IMPORTANTE: Nombre de columna en snake_case
+    name: 'closing_time',
   })
   closingTime: string;
 

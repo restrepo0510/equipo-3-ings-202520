@@ -10,6 +10,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { JwtService } from '@nestjs/jwt';
 import { Repository } from 'typeorm';
 import { User, UserRole } from './user.entity';
+import { Restaurant } from '../restaurants/restaurant.entity';
 import { 
   RegisterUserDto, 
   LoginUserDto, 
@@ -21,7 +22,7 @@ import {
  * JWT Payload interface
  */
 interface JwtPayload {
-  sub: number;
+  sub: string;
   email: string;
   role: UserRole;
 }
@@ -37,6 +38,8 @@ export class AuthService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    @InjectRepository(Restaurant)
+    private readonly restaurantRepository: Repository<Restaurant>,
     private readonly jwtService: JwtService,
   ) {}
 
@@ -51,13 +54,13 @@ export class AuthService {
       // Check email uniqueness
       await this.checkEmailUniqueness(registerUserDto.email);
 
-      // Hash password (basic implementation)
+      // Hash password (basic for now)
       const hashedPassword = await this.basicHashPassword(registerUserDto.password);
 
-      // Set default role if not provided
+      // Set default role
       const role = registerUserDto.role || UserRole.CUSTOMER;
 
-      // Create user
+      // Create user entity
       const user = this.userRepository.create({
         ...registerUserDto,
         password: hashedPassword,
@@ -65,8 +68,14 @@ export class AuthService {
       });
 
       const savedUser = await this.userRepository.save(user);
+      console.log(`✅ User created: ${savedUser.email} with role: ${savedUser.role}`);
 
-      // Generate JWT token
+      // ✅ If business, create a restaurant automatically
+      if (role === UserRole.BUSINESS) {
+        await this.createRestaurantForBusiness(savedUser);
+      }
+
+      // Generate token
       const accessToken = this.generateToken(savedUser);
 
       return new AuthResponseDto(
@@ -76,11 +85,12 @@ export class AuthService {
       );
     } catch (error) {
       if (
-        error instanceof ConflictException || 
+        error instanceof ConflictException ||
         error instanceof BadRequestException
       ) {
         throw error;
       }
+      console.error('❌ Registration error:', error);
       throw new InternalServerErrorException(`Registration failed: ${error.message}`);
     }
   }
@@ -219,5 +229,38 @@ export class AuthService {
 
   private isValidPhone(phone: string): boolean {
     return /^[\+]?[0-9\s\-\(\)]{10,}$/.test(phone.replace(/\s/g, ''));
+  }
+
+  /**
+   * Automatically creates a restaurant entry when a business user registers
+   */
+  private async createRestaurantForBusiness(user: User): Promise<void> {
+    try {
+      console.log(`🏪 Creating restaurant for business user: ${user.email}`);
+
+      const restaurant = this.restaurantRepository.create({
+        id: user.id, // 👈 same UUID as the business user
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        userId: user.id,
+        address: 'Dirección no especificada',
+        description: `Restaurante de ${user.name}`,
+        latitude: 0,
+        longitude: 0,
+        category: 'General',
+        isActive: true,
+        imageUrl: 'https://cdn-icons-png.flaticon.com/512/2921/2921822.png',
+        openingTime: '08:00',
+        closingTime: '20:00',
+      });
+
+      const savedRestaurant = await this.restaurantRepository.save(restaurant);
+      console.log(`✅ Restaurant created successfully with ID: ${savedRestaurant.id}`);
+    } catch (error) {
+      console.error('❌ Error creating restaurant for business:', error);
+      // No lanzamos el error para que el registro del usuario no falle
+      // Solo logueamos el error
+    }
   }
 }

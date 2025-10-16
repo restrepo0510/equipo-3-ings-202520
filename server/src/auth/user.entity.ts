@@ -1,3 +1,4 @@
+
 // src/auth/user.entity.ts
 import { 
   Entity, 
@@ -22,8 +23,9 @@ export enum UserRole {
  */
 @Entity('users')
 export class User {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+id: string;
+
 
   @Column({
     type: 'varchar',
@@ -80,4 +82,6 @@ export class User {
     comment: 'Last update timestamp'
   })
   updatedAt: Date;
+
+  
 }
