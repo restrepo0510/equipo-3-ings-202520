@@ -1,11 +1,17 @@
 // services/restaurantService.ts
-// VERSIÓN SIN AXIOS - USA FETCH NATIVO
 
-// Reemplaza con tu IP real (ejemplo: 192.168.1.100)
-const API_URL = __DEV__ 
-  ? 'http://192.168.20.1:3000/restaurants'
+/**
+ * Restaurant Service
+ * Handles all API calls related to restaurants
+ */
+
+const API_URL = __DEV__
+  ? 'http://192.168.20.22:3000/restaurants'
   : 'https://tu-api-production.com/restaurants';
 
+/**
+ * Restaurant data structure matching backend entity
+ */
 export interface Restaurant {
   id: string;
   name: string;
@@ -19,162 +25,153 @@ export interface Restaurant {
   imageUrl?: string;
   openingTime?: string;
   closingTime?: string;
-  distance?: number;
+  distance?: number; // Calculated by backend in nearby endpoint
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
-export interface NearbyParams {
+/**
+ * DTO for nearby restaurants query
+ */
+export interface NearbyRestaurantsDto {
   latitude: number;
   longitude: number;
   radius?: number;
   limit?: number;
 }
 
-// Datos mock para desarrollo
-const getMockRestaurants = (): Restaurant[] => {
-  return [
-    {
-      id: '1',
-      name: 'Restaurante Donde Juan',
-      description: 'Comida típica paisa con productos cercanos al vencimiento',
-      address: 'Carrera 43A #3-60, El Poblado',
-      latitude: 6.2088,
-      longitude: -75.5671,
-      category: 'Restaurante',
-      phone: '3001234567',
-      isActive: true,
-      imageUrl: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400',
-      openingTime: '08:00',
-      closingTime: '20:00',
-      distance: 0.5,
-    },
-    {
-      id: '2',
-      name: 'Mercado Orgánico Verde',
-      description: 'Frutas y verduras orgánicas de pequeños productores',
-      address: 'Calle 10 #43F-12, El Poblado',
-      latitude: 6.2095,
-      longitude: -75.5681,
-      category: 'Mercado',
-      phone: '3009876543',
-      isActive: true,
-      imageUrl: 'https://images.unsplash.com/photo-1488459716781-31db52582fe9?w=400',
-      openingTime: '07:00',
-      closingTime: '19:00',
-      distance: 1.2,
-    },
-    {
-      id: '3',
-      name: 'Panadería El Buen Pan',
-      description: 'Pan artesanal del día anterior a precios solidarios',
-      address: 'Carrera 37 #8A-32, El Poblado',
-      latitude: 6.2112,
-      longitude: -75.5689,
-      category: 'Panadería',
-      phone: '3002345678',
-      isActive: true,
-      imageUrl: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=400',
-      openingTime: '06:00',
-      closingTime: '18:00',
-      distance: 2.1,
-    },
-    {
-      id: '4',
-      name: 'Frutería Las Tres Esquinas',
-      description: 'Frutas y verduras frescas con descuento',
-      address: 'Circular 1 #70-25, Laureles',
-      latitude: 6.2447,
-      longitude: -75.5897,
-      category: 'Frutería',
-      phone: '3003456789',
-      isActive: true,
-      imageUrl: 'https://images.unsplash.com/photo-1610832958506-aa56368176cf?w=400',
-      openingTime: '07:00',
-      closingTime: '20:00',
-      distance: 3.5,
-    },
-    {
-      id: '5',
-      name: 'Restaurante No Disponible',
-      description: 'Temporalmente cerrado',
-      address: 'Calle 50 #50-50, Centro',
-      latitude: 6.2450,
-      longitude: -75.5650,
-      category: 'Restaurante',
-      isActive: false,
-      distance: 4.2,
-    },
-  ];
-};
-
+/**
+ * Restaurant Service
+ * Provides methods to interact with the restaurants API
+ */
 export const restaurantService = {
-  getNearbyRestaurants: async (params: NearbyParams): Promise<Restaurant[]> => {
+  /**
+   * Get all restaurants
+   * @returns Promise<Restaurant[]>
+   */
+  async getAll(): Promise<Restaurant[]> {
     try {
-      const queryParams = new URLSearchParams({
-        latitude: params.latitude.toString(),
-        longitude: params.longitude.toString(),
-        radius: (params.radius || 10).toString(),
-        limit: (params.limit || 20).toString(),
-      });
-
-      const response = await fetch(`${API_URL}/nearby?${queryParams}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
+      const response = await fetch(API_URL);
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error('Failed to fetch restaurants');
       }
-
-      const data = await response.json();
-      return data;
+      return await response.json();
     } catch (error) {
-      console.log('⚠️ No se pudo conectar al servidor, usando datos mock');
-      console.log('Error:', error);
-      // Retornar datos mock si falla
-      return getMockRestaurants();
+      console.error('Error fetching all restaurants:', error);
+      throw error;
     }
   },
 
-  getAllRestaurants: async (): Promise<Restaurant[]> => {
+  /**
+   * Get a single restaurant by ID
+   * @param id Restaurant UUID
+   * @returns Promise<Restaurant>
+   */
+  async getById(id: string): Promise<Restaurant> {
+    try {
+      const response = await fetch(`${API_URL}/${id}`);
+      if (!response.ok) {
+        throw new Error(`Restaurant with ID ${id} not found`);
+      }
+      return await response.json();
+    } catch (error) {
+      console.error(`Error fetching restaurant ${id}:`, error);
+      throw error;
+    }
+  },
+
+  /**
+   * Get nearby restaurants based on user location
+   * @param dto NearbyRestaurantsDto with coordinates and optional radius/limit
+   * @returns Promise<Restaurant[]> Sorted by distance
+   */
+  async getNearby(dto: NearbyRestaurantsDto): Promise<Restaurant[]> {
+    try {
+      const params = new URLSearchParams({
+        latitude: dto.latitude.toString(),
+        longitude: dto.longitude.toString(),
+        radius: dto.radius?.toString() || '100',
+        limit: dto.limit?.toString() || '20',
+      });
+
+      const response = await fetch(`${API_URL}/nearby?${params}`);
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch nearby restaurants');
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching nearby restaurants:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Create a new restaurant
+   * @param data Restaurant data without ID
+   * @returns Promise<Restaurant>
+   */
+  async create(data: Omit<Restaurant, 'id' | 'createdAt' | 'updatedAt'>): Promise<Restaurant> {
     try {
       const response = await fetch(API_URL, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error('Failed to create restaurant');
       }
 
-      const data = await response.json();
-      return data;
+      return await response.json();
     } catch (error) {
-      console.log('⚠️ Usando datos mock');
-      return getMockRestaurants();
+      console.error('Error creating restaurant:', error);
+      throw error;
     }
   },
 
-  getRestaurantById: async (id: string): Promise<Restaurant> => {
+  /**
+   * Update an existing restaurant
+   * @param id Restaurant UUID
+   * @param data Partial restaurant data to update
+   * @returns Promise<Restaurant>
+   */
+  async update(id: string, data: Partial<Restaurant>): Promise<Restaurant> {
     try {
       const response = await fetch(`${API_URL}/${id}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error('Failed to update restaurant');
       }
 
-      const data = await response.json();
-      return data;
+      return await response.json();
     } catch (error) {
-      console.error('Error fetching restaurant:', error);
+      console.error(`Error updating restaurant ${id}:`, error);
+      throw error;
+    }
+  },
+
+  /**
+   * Delete a restaurant
+   * @param id Restaurant UUID
+   * @returns Promise<void>
+   */
+  async remove(id: string): Promise<void> {
+    try {
+      const response = await fetch(`${API_URL}/${id}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete restaurant');
+      }
+    } catch (error) {
+      console.error(`Error deleting restaurant ${id}:`, error);
       throw error;
     }
   },

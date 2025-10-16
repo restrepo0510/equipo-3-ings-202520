@@ -1,430 +1,385 @@
-// screens/HomeScreen.tsx
-import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  Image,
-  TextInput,
-  Dimensions,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { useLocation } from '../../hooks/useLocation';
-import { restaurantService, Restaurant } from '../../services/restaurantService';
+  // screens/HomeScreen.tsx
 
-const { width } = Dimensions.get('window');
-const CARD_WIDTH = (width - 48) / 2;
+  import React, { useState, useEffect, useCallback } from 'react';
+  import {
+    View,
+    Text,
+    ScrollView,
+    TouchableOpacity,
+    Image,
+    TextInput,
+    ActivityIndicator,
+  } from 'react-native';
+  import { Ionicons } from '@expo/vector-icons';
 
-export const HomeScreen: React.FC = () => {
-  const { location } = useLocation();
-  const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
-  const [searchText, setSearchText] = useState('');
-  const [userName] = useState('Usuario'); // Puedes obtenerlo del contexto de auth
+  // Hooks and services
+  import { useLocation } from '../../hooks/useLocation';
+  import { restaurantService, Restaurant } from '../../services/restaurantService';
 
-  useEffect(() => {
-    loadRestaurants();
-  }, [location]);
+  // Components
+  import { BottomNavigation, NavItem } from '../../components/ui/BottomNavigation';
 
-  const loadRestaurants = async () => {
-    if (!location) return;
-    const data = await restaurantService.getNearbyRestaurants({
-      latitude: location.latitude,
-      longitude: location.longitude,
-      radius: 10,
-    });
-    setRestaurants(data);
-  };
+  // Styles and constants
+  import { styles, COLORS } from '../../styles/homeScreen.styles';
+  import { DEFAULT_VALUES, PLACEHOLDER_IMAGES } from '../../constants/homeScreen.constants';
 
-  const topRestaurant = restaurants.find(r => r.isActive);
-  const otherRestaurants = restaurants.filter(r => r.id !== topRestaurant?.id);
+  /**
+   * HomeScreen Component
+   * 
+   * Main screen that displays nearby restaurants in different layouts:
+   * - Search bar for filtering restaurants
+   * - Grid view for featured restaurants
+   * - TOP 1 highlighted restaurant
+   * - List view for additional restaurants
+   * - Bottom navigation bar
+   * 
+   * Uses geolocation to fetch restaurants within a specified radius.
+   */
+  export default function HomeScreen() {
+    // ============================================================================
+    // State Management
+    // ============================================================================
+    
+    const { location } = useLocation();
+    const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
+    const [searchText, setSearchText] = useState('');
+    const [userName] = useState(DEFAULT_VALUES.DEFAULT_USER_NAME);
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
-  return (
-    <View style={styles.container}>
-      {/* Header con logo */}
-      <View style={styles.header}>
+    // ============================================================================
+    // Data Fetching
+    // ============================================================================
+
+    /**
+     * Loads restaurants from the service based on user's location
+     * Fetches restaurants within the default radius
+     */
+    const loadRestaurants = useCallback(async () => {
+      if (!location) return;
+
+      try {
+        setIsLoading(true);
+        setError(null);
+
+        const data = await restaurantService.getNearby({
+          latitude: location.latitude,
+          longitude: location.longitude,
+          radius: DEFAULT_VALUES.SEARCH_RADIUS_KM,
+        });
+        
+        console.log('📍 Restaurants loaded:', data.length);
+        setRestaurants(data);
+      } catch (error) {
+        console.error('❌ Error loading restaurants:', error);
+        setError('Could not load restaurants');
+      } finally {
+        setIsLoading(false);
+      }
+    }, [location]);
+
+    useEffect(() => {
+      loadRestaurants();
+    }, [loadRestaurants]);
+
+    // ============================================================================
+    // Data Processing
+    // ============================================================================
+
+    /**
+     * Filters restaurants based on search text
+     * Case-insensitive search on restaurant names
+     */
+    const filteredRestaurants = restaurants.filter(restaurant =>
+      restaurant.name.toLowerCase().includes(searchText.toLowerCase())
+    );
+
+    /**
+     * Finds the top restaurant (first active one)
+     */
+    const topRestaurant = filteredRestaurants.find(r => r.isActive);
+
+    /**
+     * Gets other restaurants excluding the top one
+     * Only includes active restaurants
+     */
+    const otherRestaurants = filteredRestaurants.filter(
+      r => r.id !== topRestaurant?.id && r.isActive
+    );
+
+    // ============================================================================
+    // Event Handlers
+    // ============================================================================
+
+    const handleRestaurantPress = useCallback((restaurant: Restaurant) => {
+      console.log('Restaurant selected:', restaurant.name);
+      // navigation.navigate('RestaurantDetail', { id: restaurant.id });
+    }, []);
+
+    /**
+     * Navigation items configuration
+     */
+/**
+ * Navigation items configuration for Home Screen
+ */
+const navItems: NavItem[] = [
+  {
+    id: 'map',
+    icon: 'location',
+    onPress: () => {
+      console.log('Map pressed');
+      // navigation.navigate('Map');
+    },
+    isActive: false, // NO activo en Home
+  },
+  {
+    id: 'favorites',
+    icon: 'heart-outline',
+    onPress: () => console.log('Favorites pressed'),
+    isActive: false,
+  },
+  {
+    id: 'chat',
+    icon: 'chatbubbles-outline',
+    onPress: () => console.log('Chat pressed'),
+    isActive: false,
+  },
+  {
+    id: 'profile',
+    icon: 'person-outline',
+    onPress: () => console.log('Profile pressed'),
+    isActive: false,
+  },
+];
+
+
+    // ============================================================================
+    // Render Functions
+    // ============================================================================
+
+    /**
+     * Renders a grid restaurant card
+     */
+    const renderGridCard = (restaurant: Restaurant, index: number) => (
+      <TouchableOpacity
+        key={restaurant.id}
+        style={[
+          styles.gridCard,
+          index % 2 === 0 ? styles.gridCardLeft : styles.gridCardRight,
+        ]}
+        onPress={() => handleRestaurantPress(restaurant)}
+        accessibilityRole="button"
+        accessibilityLabel={`Restaurant ${restaurant.name}`}
+      >
+        <View style={styles.gridCardInner}>
+          {/* Circular Logo at Top */}
+          <View style={styles.gridLogoContainer}>
+            <Image
+              source={{ uri: restaurant.imageUrl || PLACEHOLDER_IMAGES.RESTAURANT_LOGO }}
+              style={styles.gridLogo}
+            />
+          </View>
+          
+          {/* Restaurant Image with Margins */}
+          <View style={styles.gridImageContainer}>
+            <Image
+              source={{ uri: restaurant.imageUrl || PLACEHOLDER_IMAGES.RESTAURANT_CARD }}
+              style={styles.gridImage}
+            />
+          </View>
+          
+          {/* Restaurant Name */}
+          <View style={styles.gridInfo}>
+            <Text style={styles.gridTitle} numberOfLines={2}>
+              {restaurant.name}
+            </Text>
+          </View>
+        </View>
+      </TouchableOpacity>
+    );
+
+    // Reemplaza la función renderTopRestaurant en tu HomeScreen.tsx
+
+  /**
+   * Renders the TOP 1 restaurant section with images side by side
+   */
+  const renderTopRestaurant = (restaurant: Restaurant) => (
+    <View style={styles.topSection}>
+      {/* TOP 1 Badge */}
+      <View style={styles.topBadge}>
+        <Ionicons name="trophy" size={20} color="#FFF" />
+        <Text style={styles.topBadgeText}>TOP 1</Text>
+      </View>
+
+      <TouchableOpacity
+        style={styles.topCard}
+        onPress={() => handleRestaurantPress(restaurant)}
+        accessibilityRole="button"
+        accessibilityLabel={`Top restaurant ${restaurant.name}`}
+      >
+        {/* Decorative Leaf - Left */}
         <Image
-          source={require('../../assets/img/logo.png')} // Agrega tu logo aquí
-          style={styles.logo}
+          source={require('../../assets/img/leaf.png')}
+          style={styles.topLeafLeft}
           resizeMode="contain"
         />
-      </View>
+        
+        {/* Decorative Leaf - Right */}
+        <Image
+          source={require('../../assets/img/leaf.png')}
+          style={styles.topLeafRight}
+          resizeMode="contain"
+        />
 
-      <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Barra de búsqueda */}
-        <View style={styles.searchContainer}>
-          <Ionicons name="search" size={20} color="#7F8C8D" style={styles.searchIcon} />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Buscar restaurantes..."
-            value={searchText}
-            onChangeText={setSearchText}
-            placeholderTextColor="#95A5A6"
-          />
-        </View>
-
-        {/* Saludo */}
-        <View style={styles.greetingContainer}>
-          <Text style={styles.greetingText}>
-            <Text style={styles.greetingBold}>Bienvenido</Text>{' '}
-            <Text style={styles.greetingName}>{userName}</Text>
-          </Text>
-        </View>
-
-        {/* Grid de restaurantes destacados */}
-        <View style={styles.gridContainer}>
-          {otherRestaurants.slice(0, 2).map((restaurant, index) => (
-            <TouchableOpacity
-              key={restaurant.id}
-              style={[
-                styles.gridCard,
-                index % 2 === 0 ? styles.gridCardLeft : styles.gridCardRight,
-              ]}
-            >
-              <View style={styles.gridCardInner}>
-                {/* Badge de país/categoría */}
-                {restaurant.category && (
-                  <View style={styles.badge}>
-                    <Text style={styles.badgeText}>{restaurant.category}</Text>
-                  </View>
-                )}
-                
-                <Image
-                  source={{ uri: restaurant.imageUrl || 'https://via.placeholder.com/200' }}
-                  style={styles.gridImage}
-                />
-                
-                <View style={styles.gridInfo}>
-                  <Text style={styles.gridTitle} numberOfLines={1}>
-                    {restaurant.name}
-                  </Text>
-                </View>
-              </View>
-            </TouchableOpacity>
-          ))}
-        </View>
-
-        {/* Restaurante TOP 1 */}
-        {topRestaurant && (
-          <View style={styles.topSection}>
-            <View style={styles.topBadge}>
-              <Ionicons name="trophy" size={20} color="#FFF" />
-              <Text style={styles.topBadgeText}>TOP 1</Text>
-            </View>
-
-            <TouchableOpacity style={styles.topCard}>
-              <Image
-                source={{ uri: topRestaurant.imageUrl || 'https://via.placeholder.com/400x200' }}
-                style={styles.topImage}
-              />
-              
-              {/* Logo del restaurante */}
-              {topRestaurant.category && (
-                <View style={styles.restaurantLogo}>
-                  <Text style={styles.restaurantLogoText}>
-                    {topRestaurant.category.substring(0, 1)}
-                  </Text>
-                </View>
-              )}
-
-              <View style={styles.topInfo}>
-                <Text style={styles.topTitle}>{topRestaurant.name}</Text>
-              </View>
-            </TouchableOpacity>
+        {/* Images Row - Main image and Logo side by side */}
+        <View style={styles.topImagesRow}>
+          {/* Main Restaurant Image (Left) */}
+          <View style={styles.topImageContainer}>
+            <Image
+              source={{ uri: restaurant.imageUrl || PLACEHOLDER_IMAGES.RESTAURANT_TOP }}
+              style={styles.topImage}
+              resizeMode="cover"
+            />
           </View>
-        )}
-
-        {/* Más restaurantes */}
-        <View style={styles.moreSection}>
-          {otherRestaurants.slice(2).map(restaurant => (
-            <TouchableOpacity key={restaurant.id} style={styles.listCard}>
-              <Image
-                source={{ uri: restaurant.imageUrl || 'https://via.placeholder.com/100' }}
-                style={styles.listImage}
-              />
-              <View style={styles.listInfo}>
-                <Text style={styles.listTitle}>{restaurant.name}</Text>
-                <Text style={styles.listAddress} numberOfLines={1}>
-                  {restaurant.address}
-                </Text>
-                {restaurant.distance && (
-                  <Text style={styles.listDistance}>📍 {restaurant.distance} km</Text>
-                )}
-              </View>
-              {restaurant.isActive && (
-                <View style={styles.activeIndicator} />
-              )}
-            </TouchableOpacity>
-          ))}
+          
+          {/* Restaurant Logo (Right, Square) */}
+          <View style={styles.topLogoContainer}>
+            <Image
+              source={{ uri: restaurant.imageUrl || PLACEHOLDER_IMAGES.RESTAURANT_LOGO }}
+              style={styles.topLogoImage}
+              resizeMode="cover"
+            />
+          </View>
         </View>
-      </ScrollView>
 
-      {/* Bottom Navigation */}
-      <View style={styles.bottomNav}>
-        <TouchableOpacity style={styles.navItem}>
-          <Ionicons name="location" size={28} color="#FFF" />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem}>
-          <Ionicons name="heart-outline" size={28} color="#FFF" />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem}>
-          <Ionicons name="chatbubbles-outline" size={28} color="#FFF" />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem}>
-          <Ionicons name="person-outline" size={28} color="#FFF" />
-        </TouchableOpacity>
-      </View>
+        {/* Restaurant Name (Right aligned) */}
+        <View style={styles.topInfo}>
+          <Text style={styles.topTitle}>{restaurant.name}</Text>
+        </View>
+      </TouchableOpacity>
     </View>
   );
-};
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F8F9FA',
-  },
-  header: {
-    backgroundColor: '#FFF',
-    paddingTop: 50,
-    paddingBottom: 16,
-    alignItems: 'center',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E8E8E8',
-  },
-  logo: {
-    width: 120,
-    height: 50,
-  },
-  searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#E8EDF2',
-    marginHorizontal: 16,
-    marginTop: 16,
-    borderRadius: 25,
-    paddingHorizontal: 16,
-    height: 50,
-  },
-  searchIcon: {
-    marginRight: 8,
-  },
-  searchInput: {
-    flex: 1,
-    fontSize: 16,
-    color: '#2C3E50',
-  },
-  greetingContainer: {
-    paddingHorizontal: 24,
-    paddingTop: 24,
-    paddingBottom: 16,
-  },
-  greetingText: {
-    fontSize: 24,
-  },
-  greetingBold: {
-    fontWeight: 'bold',
-    color: '#2C3E50',
-  },
-  greetingName: {
-    color: '#7F8C8D',
-    fontWeight: '400',
-  },
-  gridContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    paddingHorizontal: 8,
-  },
-  gridCard: {
-    width: CARD_WIDTH,
-    marginBottom: 16,
-  },
-  gridCardLeft: {
-    paddingLeft: 8,
-    paddingRight: 4,
-  },
-  gridCardRight: {
-    paddingLeft: 4,
-    paddingRight: 8,
-  },
-  gridCardInner: {
-    backgroundColor: '#FFF',
-    borderRadius: 20,
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  badge: {
-    position: 'absolute',
-    top: 12,
-    right: 12,
-    backgroundColor: '#FFF',
-    borderRadius: 20,
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    zIndex: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 2,
-    elevation: 3,
-  },
-  badgeText: {
-    fontSize: 10,
-    fontWeight: 'bold',
-    color: '#2C3E50',
-  },
-  gridImage: {
-    width: '100%',
-    height: 150,
-    backgroundColor: '#E8E8E8',
-  },
-  gridInfo: {
-    padding: 12,
-  },
-  gridTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#2C3E50',
-    textAlign: 'center',
-  },
-  topSection: {
-    paddingHorizontal: 16,
-    marginTop: 8,
-    marginBottom: 16,
-  },
-  topBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#1B5E20',
-    alignSelf: 'flex-start',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    marginBottom: 12,
-  },
-  topBadgeText: {
-    color: '#FFF',
-    fontWeight: 'bold',
-    fontSize: 16,
-    marginLeft: 6,
-  },
-  topCard: {
-    backgroundColor: '#FFF',
-    borderRadius: 20,
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 6,
-  },
-  topImage: {
-    width: '100%',
-    height: 180,
-    backgroundColor: '#E8E8E8',
-  },
-  restaurantLogo: {
-    position: 'absolute',
-    top: 140,
-    right: 20,
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: '#FFF',
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 4,
-  },
-  restaurantLogoText: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#27AE60',
-  },
-  topInfo: {
-    padding: 16,
-    paddingTop: 12,
-  },
-  topTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#2C3E50',
-  },
-  moreSection: {
-    paddingHorizontal: 16,
-    paddingBottom: 100,
-  },
-  listCard: {
-    flexDirection: 'row',
-    backgroundColor: '#FFF',
-    borderRadius: 16,
-    marginBottom: 12,
-    padding: 12,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  listImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 12,
-    backgroundColor: '#E8E8E8',
-  },
-  listInfo: {
-    flex: 1,
-    marginLeft: 12,
-  },
-  listTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#2C3E50',
-    marginBottom: 4,
-  },
-  listAddress: {
-    fontSize: 13,
-    color: '#7F8C8D',
-    marginBottom: 4,
-  },
-  listDistance: {
-    fontSize: 12,
-    color: '#27AE60',
-    fontWeight: '600',
-  },
-  activeIndicator: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: '#27AE60',
-    marginLeft: 8,
-  },
-  bottomNav: {
-    position: 'absolute',
-    bottom: 20,
-    left: 20,
-    right: 20,
-    flexDirection: 'row',
-    backgroundColor: '#1B3A2F',
-    borderRadius: 30,
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    justifyContent: 'space-around',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  navItem: {
-    padding: 8,
-  },
-});
+    /**
+     * Renders a list restaurant card
+     */
+    const renderListCard = (restaurant: Restaurant) => (
+      <TouchableOpacity
+        key={restaurant.id}
+        style={styles.listCard}
+        onPress={() => handleRestaurantPress(restaurant)}
+        accessibilityRole="button"
+      >
+        <Image
+          source={{ uri: restaurant.imageUrl || PLACEHOLDER_IMAGES.RESTAURANT_LIST }}
+          style={styles.listImage}
+        />
+        <View style={styles.listInfo}>
+          <Text style={styles.listTitle}>{restaurant.name}</Text>
+          <Text style={styles.listAddress} numberOfLines={1}>
+            {restaurant.address}
+          </Text>
+          {restaurant.distance !== undefined && (
+            <Text style={styles.listDistance}>
+              📍 {restaurant.distance.toFixed(1)} km
+            </Text>
+          )}
+        </View>
+        {restaurant.isActive && <View style={styles.activeIndicator} />}
+      </TouchableOpacity>
+    );
+
+    // ============================================================================
+    // Main Render
+    // ============================================================================
+
+    // Loading state
+    if (isLoading && restaurants.length === 0) {
+      return (
+        <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+          <ActivityIndicator size="large" color={COLORS.primary} />
+          <Text style={{ marginTop: 10, color: COLORS.text.secondary }}>
+            Loading restaurants...
+          </Text>
+        </View>
+      );
+    }
+
+    // Error state
+    if (error) {
+      return (
+        <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+          <Text style={{ color: COLORS.error, marginBottom: 10 }}>{error}</Text>
+          <TouchableOpacity
+            onPress={loadRestaurants}
+            style={{ padding: 10, backgroundColor: COLORS.primary, borderRadius: 8 }}
+          >
+            <Text style={{ color: COLORS.white }}>Retry</Text>
+          </TouchableOpacity>
+        </View>
+      );
+    }
+
+    return (
+      <View style={styles.container}>
+        {/* Header */}
+        <View style={styles.header}>
+          <Image
+            source={require('../../assets/img/logo2.png')}
+            style={styles.logo}
+            resizeMode="contain"
+            accessibilityLabel="App logo"
+          />
+          <View style={styles.underline} />
+        </View>
+
+        <ScrollView showsVerticalScrollIndicator={false}>
+          {/* Search Bar */}
+          <View style={styles.searchContainer}>
+            <Ionicons
+              name="search"
+              size={20}
+              color={COLORS.text.secondary}
+              style={styles.searchIcon}
+            />
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Buscar restaurantes..."
+              value={searchText}
+              onChangeText={setSearchText}
+              placeholderTextColor={COLORS.text.placeholder}
+              accessibilityLabel="Search restaurants"
+            />
+          </View>
+
+          {/* Greeting */}
+          <View style={styles.greetingContainer}>
+            <Text style={styles.greetingText}>
+              <Text style={styles.greetingBold}>Bienvenido</Text>{' '}
+              <Text style={styles.greetingName}>{userName}</Text>
+            </Text>
+          </View>
+
+          {/* Grid of Featured Restaurants */}
+          <View style={[styles.gridContainer, { marginTop: 30 }]}>
+            {otherRestaurants
+              .slice(0, DEFAULT_VALUES.GRID_RESTAURANT_COUNT)
+              .map(renderGridCard)}
+          </View>
+
+          {/* TOP 1 Restaurant */}
+          {topRestaurant && renderTopRestaurant(topRestaurant)}
+
+          {/* Additional Restaurants List */}
+          <View style={styles.moreSection}>
+            {otherRestaurants
+              .slice(DEFAULT_VALUES.TOP_RESTAURANT_SLICE_START)
+              .map(renderListCard)}
+          </View>
+        </ScrollView>
+
+        {/* Bottom Navigation */}
+        <BottomNavigation items={navItems} />
+      </View>
+    );
+  } 
