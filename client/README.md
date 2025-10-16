@@ -1,59 +1,88 @@
 # Carpeta `client`
 
-## ¿Qué hace esta carpeta?
+## 📌 ¿Qué hace esta carpeta?
 
-Esta carpeta contiene el **código FrontEnd** de la aplicación, es decir, la interfaz con la que interactúan los usuarios finales.  
+Esta carpeta contiene el código **FrontEnd** de la aplicación, es decir, la interfaz con la que interactúan los usuarios finales.
 
-Aquí se desarrollan las pantallas y componentes que permiten:  
-- 👤 El registro e inicio de sesión de los usuarios.  
-- 📍 La visualización de mercados y restaurantes cercanos según la ubicación.  
-- 🛒 El catálogo de alimentos disponibles** próximos a vencer.  
-- 🔔 La recepción de notificaciones inteligentes sobre productos de interés.  
-- 💳 La interacción con la pasarela de pagos y la generación de comprobantes. 
+Aquí se desarrollan las pantallas y componentes que permiten:
 
-## Get started
+* 👤 Registro e inicio de sesión de los usuarios.
+* 📍 Visualización de mercados y restaurantes cercanos según la ubicación.
+* 🛒 Catálogo de alimentos disponibles próximos a vencer.
+* 🔔 Recepción de notificaciones inteligentes sobre productos de interés.
+* 💳 Interacción con la pasarela de pagos y generación de comprobantes.
 
-1. Install dependencies
+El código está desarrollado bajo buenas prácticas, empleando documentación con **JSDoc** para mantener una estructura clara, legible y fácilmente escalable.
 
-   ```bash
-   npm install
-   ```
+---
 
-2. Start the app
+## ⚙ Instalación
 
-   ```bash
-   npx expo start
-   ```
+1. **Clona el repositorio** (si aún no lo tienes):
+```bash
+git clone https://github.com/restrepo0510/equipo-3-ings-202520.git
+```
 
-In the output, you'll find options to open the app in a
+2. **Ingresa a la carpeta del cliente:**
+```bash
+cd client
+```
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+3. **Instala las dependencias necesarias:**
+```bash
+npm install
+```
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+4. **Ejecuta el proyecto en modo desarrollo:**
+```bash
+npx expo start
+```
 
-## Get a fresh project
+En la consola aparecerán opciones para abrir la app en:
 
-When you're ready, run:
+* 💻 Development build
+* 🤖 Android emulator
+* 🍎 iOS simulator
+* 🚀 Expo Go, una opción ligera para probar la app.
 
+Puedes comenzar a desarrollar editando los archivos dentro del directorio `app/`, el cual usa **file-based routing** para organizar las vistas.
+
+---
+
+## 🧩 Estructura y estándares
+
+El proyecto sigue los siguientes estándares:
+
+* **Lenguaje principal:** JavaScript
+* **Framework:** React Native con Expo
+* **Documentación:** JSDoc para describir funciones, componentes y props
+* **Estilo de código:** Basado en ESLint y Prettier
+* **Buenas prácticas:** Código modular, reutilizable y comentado para facilitar el mantenimiento
+
+---
+
+## 🔄 Reiniciar el proyecto desde cero
+
+Si deseas restablecer el proyecto a su estado inicial, ejecuta:
 ```bash
 npm run reset-project
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+Esto moverá el código de ejemplo a la carpeta `app-example/` y creará una nueva carpeta `app/` vacía para comenzar desde cero.
 
-## Learn more
+---
 
-To learn more about developing your project with Expo, look at the following resources:
+## 📚 Recursos útiles
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+* 📘 [Documentación de Expo](https://docs.expo.dev/)
+* 📗 [Guías y tutoriales de Expo](https://docs.expo.dev/guides/)
+* 📙 [Tutorial paso a paso de Expo](https://docs.expo.dev/tutorial/introduction/)
 
-## Join the community
+---
 
-Join our community of developers creating universal apps.
+## 🧾 Versiones recomendadas
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+* **Node.js:** ≥ 18
+* **npm:** ≥ 9
+* **React Native:** ≥ 0.76
+* **Expo SDK:** ≥ 51
