@@ -1,3 +1,4 @@
+// src/auth/auth.service.ts
 import { 
   Injectable, 
   ConflictException, 
@@ -6,18 +7,29 @@ import {
   BadRequestException 
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { JwtService } from '@nestjs/jwt';
 import { Repository } from 'typeorm';
-import { User } from './user.entity';
-import { RegisterUserDto, LoginUserDto, UserResponseDto } from './dto/auth.dto';
+import { User, UserRole } from './user.entity';
+import { Restaurant } from '../restaurants/restaurant.entity';
 import { 
-  IAuthResponse, 
-  ILoginCredentials, 
-  IRegistrationData 
-} from './interfaces/auth.interfaces';
+  RegisterUserDto, 
+  LoginUserDto, 
+  UserResponseDto,
+  AuthResponseDto 
+} from './dto/auth.dto';
 
 /**
- * Authentication service handling user registration, login, and user management
- * Provides secure authentication with password hashing
+ * JWT Payload interface
+ */
+interface JwtPayload {
+  sub: string;
+  email: string;
+  role: UserRole;
+}
+
+/**
+ * Authentication service with JWT support
+ * Handles user registration, login, and token generation
  */
 @Injectable()
 export class AuthService {
@@ -26,105 +38,127 @@ export class AuthService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    @InjectRepository(Restaurant)
+    private readonly restaurantRepository: Repository<Restaurant>,
+    private readonly jwtService: JwtService,
   ) {}
 
   /**
-   * Registers a new user in the system
-   * @param registerUserDto - User registration data
-   * @returns Authentication response with user data
-   * @throws {ConflictException} When email already exists
-   * @throws {BadRequestException} When input data is invalid
-   * @throws {InternalServerErrorException} When registration fails
+   * Registers a new user and returns JWT token
    */
-  async register(registerUserDto: RegisterUserDto): Promise<IAuthResponse> {
+  async register(registerUserDto: RegisterUserDto): Promise<AuthResponseDto> {
     try {
-      // Validate input data
+      // Validate input
       this.validateRegistrationData(registerUserDto);
 
-      // Check if user already exists
+      // Check email uniqueness
       await this.checkEmailUniqueness(registerUserDto.email);
 
-      // Hash password (basic implementation - replace with bcrypt later)
+      // Hash password (basic for now)
       const hashedPassword = await this.basicHashPassword(registerUserDto.password);
+
+      // Set default role
+      const role = registerUserDto.role || UserRole.CUSTOMER;
 
       // Create user entity
       const user = this.userRepository.create({
         ...registerUserDto,
         password: hashedPassword,
+        role,
       });
 
-      // Save user to database
       const savedUser = await this.userRepository.save(user);
+      console.log(`✅ User created: ${savedUser.email} with role: ${savedUser.role}`);
 
-      // Return response without password
-      const userResponse = new UserResponseDto(savedUser);
+      // ✅ If business, create a restaurant automatically
+      if (role === UserRole.BUSINESS) {
+        await this.createRestaurantForBusiness(savedUser);
+      }
 
-      return {
-        message: 'User registered successfully',
-        user: userResponse,
-      };
+      // Generate token
+      const accessToken = this.generateToken(savedUser);
+
+      return new AuthResponseDto(
+        'User registered successfully',
+        savedUser,
+        accessToken
+      );
     } catch (error) {
       if (
-        error instanceof ConflictException || 
+        error instanceof ConflictException ||
         error instanceof BadRequestException
       ) {
         throw error;
       }
-      throw new InternalServerErrorException(`Failed to register user: ${error.message}`);
+      console.error('❌ Registration error:', error);
+      throw new InternalServerErrorException(`Registration failed: ${error.message}`);
     }
   }
 
   /**
-   * Authenticates a user and returns user data
-   * @param loginUserDto - User login credentials
-   * @returns Authentication response with user data
-   * @throws {UnauthorizedException} When credentials are invalid
-   * @throws {InternalServerErrorException} When login process fails
+   * Authenticates user and returns JWT token
    */
-  async login(loginUserDto: LoginUserDto): Promise<IAuthResponse> {
+  async login(loginUserDto: LoginUserDto): Promise<AuthResponseDto> {
     try {
-      // Validate input data
+      // Validate input
       this.validateLoginCredentials(loginUserDto);
 
-      // Find user by email
-      const user = await this.findUserByEmail(loginUserDto.email);
+      // Find user with password
+      const user = await this.userRepository.findOne({
+        where: { email: loginUserDto.email },
+        select: ['id', 'name', 'email', 'phone', 'password', 'role', 'createdAt', 'updatedAt'],
+      });
+
       if (!user) {
         throw new UnauthorizedException('Invalid credentials');
       }
 
-      // Verify password (basic implementation - replace with bcrypt later)
+      // Verify password
       const isPasswordValid = await this.basicVerifyPassword(
-        loginUserDto.password, 
+        loginUserDto.password,
         user.password
       );
+
       if (!isPasswordValid) {
         throw new UnauthorizedException('Invalid credentials');
       }
 
-      // Return response without password
-      const userResponse = new UserResponseDto(user);
+      // Generate JWT token
+      const accessToken = this.generateToken(user);
 
-      return {
-        message: 'Login successful',
-        user: userResponse,
-      };
+      return new AuthResponseDto(
+        'Login successful',
+        user,
+        accessToken
+      );
     } catch (error) {
       if (error instanceof UnauthorizedException) {
         throw error;
       }
-      throw new InternalServerErrorException(`Failed to authenticate user: ${error.message}`);
+      throw new InternalServerErrorException(`Login failed: ${error.message}`);
     }
   }
 
   /**
-   * Retrieves all users from the system (excluding passwords)
-   * @returns Array of user data without sensitive information
-   * @throws {InternalServerErrorException} When database query fails
+   * Generates JWT access token for user
+   */
+  private generateToken(user: User): string {
+    const payload: JwtPayload = {
+      sub: user.id,
+      email: user.email,
+      role: user.role,
+    };
+
+    return this.jwtService.sign(payload);
+  }
+
+  /**
+   * Retrieves all users (without passwords)
    */
   async getAllUsers(): Promise<UserResponseDto[]> {
     try {
       const users = await this.userRepository.find({
-        select: ['id', 'name', 'email', 'phone', 'createdAt', 'updatedAt'],
+        select: ['id', 'name', 'email', 'phone', 'role', 'createdAt', 'updatedAt'],
         order: { createdAt: 'DESC' },
       });
 
@@ -134,133 +168,99 @@ export class AuthService {
     }
   }
 
-  /**
-   * Validates registration data
-   * @param data - Registration data to validate
-   * @throws {BadRequestException} When data is invalid
-   */
-  private validateRegistrationData(data: IRegistrationData): void {
-    const { name, email, phone, password } = data;
-
-    if (!name || !email || !phone || !password) {
+  // Validation methods
+  private validateRegistrationData(data: RegisterUserDto): void {
+    if (!data.name || !data.email || !data.phone || !data.password) {
       throw new BadRequestException('All fields are required');
     }
 
-    if (name.trim().length < 2) {
-      throw new BadRequestException('Name must be at least 2 characters long');
+    if (data.name.trim().length < 2) {
+      throw new BadRequestException('Name must be at least 2 characters');
     }
 
-    if (!this.isValidEmail(email)) {
+    if (!this.isValidEmail(data.email)) {
       throw new BadRequestException('Invalid email format');
     }
 
-    if (password.length < 6) {
-      throw new BadRequestException('Password must be at least 6 characters long');
+    if (data.password.length < 6) {
+      throw new BadRequestException('Password must be at least 6 characters');
     }
 
-    if (!this.isValidPhone(phone)) {
-      throw new BadRequestException('Invalid phone number format');
+    if (!this.isValidPhone(data.phone)) {
+      throw new BadRequestException('Invalid phone number');
+    }
+
+    if (data.role && !Object.values(UserRole).includes(data.role)) {
+      throw new BadRequestException('Invalid role');
     }
   }
 
-  /**
-   * Validates login credentials
-   * @param credentials - Login credentials to validate
-   * @throws {BadRequestException} When credentials are invalid
-   */
-  private validateLoginCredentials(credentials: ILoginCredentials): void {
-    const { email, password } = credentials;
-
-    if (!email || !password) {
+  private validateLoginCredentials(credentials: LoginUserDto): void {
+    if (!credentials.email || !credentials.password) {
       throw new BadRequestException('Email and password are required');
     }
 
-    if (!this.isValidEmail(email)) {
+    if (!this.isValidEmail(credentials.email)) {
       throw new BadRequestException('Invalid email format');
     }
   }
 
-  /**
-   * Checks if email is unique in the system
-   * @param email - Email to check
-   * @throws {ConflictException} When email already exists
-   */
   private async checkEmailUniqueness(email: string): Promise<void> {
-    const existingUser = await this.findUserByEmail(email);
+    const existingUser = await this.userRepository.findOne({ where: { email } });
     if (existingUser) {
-      throw new ConflictException('Email address is already registered');
+      throw new ConflictException('Email already registered');
     }
   }
 
-  /**
-   * Finds a user by email address
-   * @param email - Email to search for
-   * @returns User entity or null if not found
-   */
-  private async findUserByEmail(email: string): Promise<User | null> {
-    try {
-      return await this.userRepository.findOne({ 
-        where: { email },
-        select: ['id', 'name', 'email', 'phone', 'password', 'createdAt', 'updatedAt']
-      });
-    } catch (error) {
-      throw new InternalServerErrorException(`Failed to find user by email: ${error.message}`);
-    }
-  }
-
-  /**
-   * Basic password hashing (REPLACE WITH BCRYPT AFTER INSTALLATION)
-   * @param password - Plain text password
-   * @returns Hashed password
-   */
+  // Basic password hashing (REPLACE WITH BCRYPT)
   private async basicHashPassword(password: string): Promise<string> {
-    try {
-      // Temporary basic hashing - replace with bcrypt after installation
-      // In a real application, use: return await bcrypt.hash(password, this.saltRounds);
-      const simpleHash = Buffer.from(password).toString('base64');
-      return `basic_hash_${simpleHash}`;
-    } catch (error) {
-      throw new InternalServerErrorException('Failed to hash password');
-    }
+    const simpleHash = Buffer.from(password).toString('base64');
+    return `basic_hash_${simpleHash}`;
   }
 
-  /**
-   * Basic password verification (REPLACE WITH BCRYPT AFTER INSTALLATION)
-   * @param plainPassword - Plain text password
-   * @param hashedPassword - Hashed password
-   * @returns Boolean indicating password validity
-   */
-  private async basicVerifyPassword(
-    plainPassword: string, 
-    hashedPassword: string
-  ): Promise<boolean> {
-    try {
-      // Temporary basic verification - replace with bcrypt after installation
-      // In a real application, use: return await bcrypt.compare(plainPassword, hashedPassword);
-      const testHash = Buffer.from(plainPassword).toString('base64');
-      return hashedPassword === `basic_hash_${testHash}`;
-    } catch (error) {
-      throw new InternalServerErrorException('Failed to verify password');
-    }
+  private async basicVerifyPassword(plain: string, hashed: string): Promise<boolean> {
+    const testHash = Buffer.from(plain).toString('base64');
+    return hashed === `basic_hash_${testHash}`;
   }
 
-  /**
-   * Validates email format
-   * @param email - Email to validate
-   * @returns Boolean indicating email validity
-   */
   private isValidEmail(email: string): boolean {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  }
+
+  private isValidPhone(phone: string): boolean {
+    return /^[\+]?[0-9\s\-\(\)]{10,}$/.test(phone.replace(/\s/g, ''));
   }
 
   /**
-   * Validates phone number format
-   * @param phone - Phone number to validate
-   * @returns Boolean indicating phone validity
+   * Automatically creates a restaurant entry when a business user registers
    */
-  private isValidPhone(phone: string): boolean {
-    const phoneRegex = /^[\+]?[0-9\s\-\(\)]{10,}$/;
-    return phoneRegex.test(phone.replace(/\s/g, ''));
+  private async createRestaurantForBusiness(user: User): Promise<void> {
+    try {
+      console.log(`🏪 Creating restaurant for business user: ${user.email}`);
+
+      const restaurant = this.restaurantRepository.create({
+        id: user.id, // 👈 same UUID as the business user
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        userId: user.id,
+        address: 'Dirección no especificada',
+        description: `Restaurante de ${user.name}`,
+        latitude: 0,
+        longitude: 0,
+        category: 'General',
+        isActive: true,
+        imageUrl: 'https://cdn-icons-png.flaticon.com/512/2921/2921822.png',
+        openingTime: '08:00',
+        closingTime: '20:00',
+      });
+
+      const savedRestaurant = await this.restaurantRepository.save(restaurant);
+      console.log(`✅ Restaurant created successfully with ID: ${savedRestaurant.id}`);
+    } catch (error) {
+      console.error('❌ Error creating restaurant for business:', error);
+      // No lanzamos el error para que el registro del usuario no falle
+      // Solo logueamos el error
+    }
   }
 }

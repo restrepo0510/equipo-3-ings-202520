@@ -1,17 +1,19 @@
 // screens/MapScreen.tsx
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { View, Text, ActivityIndicator } from 'react-native';
 import MapView, { Marker, Region } from 'react-native-maps';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 
 // Hooks and services
 import { useLocation } from '../../hooks/useLocation';
 import { restaurantService, Restaurant } from '../../services/restaurantService';
 
 // Components
-import { BottomNavigation, NavItem } from '../../components/ui/BottomNavigation';
+import { BottomNavigation } from '../../components/ui/BottomNavigation';
 import { UserLocationMarker } from '../../components/ui/map/UserLocationMarker';
 import { RestaurantMapCard } from '../../components/ui/map/RestaurantMapCard';
+import { createNavItems } from '../../utils/navigationHelpers';
 
 // Styles and constants
 import { mapStyles } from '../../styles/mapScreen.styles';
@@ -33,6 +35,16 @@ import {
  * Fetches restaurants within a specified radius from the user's location.
  */
 export default function MapScreen() {
+  const router = useRouter();
+  const { restaurantId, latitude, longitude } = useLocalSearchParams();
+  const mapRef = useRef<MapView>(null);
+  
+  // ============================================================================
+  // Navigation
+  // ============================================================================
+  
+  const navItems = createNavItems('map', router);
+
   // ============================================================================
   // State Management
   // ============================================================================
@@ -65,8 +77,26 @@ export default function MapScreen() {
           radius: DEFAULT_SEARCH_RADIUS_KM,
         });
 
-        console.log('📍 Nearby restaurants loaded:', data.length);
+        console.log('🗺️ Nearby restaurants loaded:', data.length);
         setRestaurants(data);
+
+        // ✅ Si viene un restaurantId desde HomeScreen, seleccionarlo
+        if (restaurantId) {
+          const targetRestaurant = data.find(r => r.id === restaurantId);
+          if (targetRestaurant) {
+            setSelectedRestaurant(targetRestaurant);
+            
+            // Centrar el mapa en el restaurante seleccionado
+            setTimeout(() => {
+              mapRef.current?.animateToRegion({
+                latitude: Number(targetRestaurant.latitude),
+                longitude: Number(targetRestaurant.longitude),
+                latitudeDelta: MAP_DELTA.LATITUDE / 3,
+                longitudeDelta: MAP_DELTA.LONGITUDE / 3,
+              }, 1000);
+            }, 500);
+          }
+        }
       } catch (err) {
         const errorMessage = 'Could not load restaurants';
         console.error('❌ Error loading restaurants:', err);
@@ -77,7 +107,7 @@ export default function MapScreen() {
     };
 
     loadRestaurants();
-  }, [location]);
+  }, [location, restaurantId]);
 
   // ============================================================================
   // Event Handlers
@@ -89,72 +119,58 @@ export default function MapScreen() {
    */
   const handleMarkerPress = useCallback((restaurant: Restaurant) => {
     setSelectedRestaurant(restaurant);
+    
+    // Centrar el mapa en el restaurante seleccionado
+    mapRef.current?.animateToRegion({
+      latitude: Number(restaurant.latitude),
+      longitude: Number(restaurant.longitude),
+      latitudeDelta: MAP_DELTA.LATITUDE / 3,
+      longitudeDelta: MAP_DELTA.LONGITUDE / 3,
+    }, 500);
   }, []);
 
   /**
    * Handles "View products" button press
-   * TODO: Navigate to restaurant products screen
+   * Navigates to ProductsScreen with restaurantId
    */
   const handleViewProducts = useCallback((restaurant: Restaurant) => {
-    console.log('View products from:', restaurant.name);
-    // navigation.navigate('RestaurantProducts', { id: restaurant.id });
-  }, []);
+    console.log('📦 Navigating to products from:', restaurant.name);
+    router.push({
+      pathname: '/(tabs)/ProductsScreen',
+      params: { restaurantId: restaurant.id },
+    });
+  }, [router]);
 
-  /**
-   * Bottom navigation items configuration
-   */
-const navItems: NavItem[] = [
-  {
-    id: 'map',
-    icon: 'location',
-    onPress: () => console.log('Map pressed'),
-    isActive: true, // SÍ activo en Map
-  },
-  {
-    id: 'favorites',
-    icon: 'heart-outline',
-    onPress: () => {
-      console.log('Favorites pressed');
-      // navigation.navigate('Favorites');
-    },
-    isActive: false,
-  },
-  {
-    id: 'chat',
-    icon: 'chatbubbles-outline',
-    onPress: () => {
-      console.log('Chat pressed');
-      // navigation.navigate('Chat');
-    },
-    isActive: false,
-  },
-  {
-    id: 'profile',
-    icon: 'person-outline',
-    onPress: () => {
-      console.log('Profile pressed');
-      // navigation.navigate('Profile');
-    },
-    isActive: false,
-  },
-];
   // ============================================================================
   // Map Configuration
   // ============================================================================
 
   /**
-   * Calculates initial map region based on user's location
+   * Calculates initial map region based on user's location or selected restaurant
    */
   const getInitialRegion = useCallback((): Region | undefined => {
-    if (!location) return undefined;
+    // Si viene desde HomeScreen con coordenadas específicas
+    if (latitude && longitude) {
+      return {
+        latitude: Number(latitude),
+        longitude: Number(longitude),
+        latitudeDelta: MAP_DELTA.LATITUDE / 2,
+        longitudeDelta: MAP_DELTA.LONGITUDE / 2,
+      };
+    }
 
-    return {
-      latitude: location.latitude,
-      longitude: location.longitude,
-      latitudeDelta: MAP_DELTA.LATITUDE,
-      longitudeDelta: MAP_DELTA.LONGITUDE,
-    };
-  }, [location]);
+    // Ubicación del usuario por defecto
+    if (location) {
+      return {
+        latitude: location.latitude,
+        longitude: location.longitude,
+        latitudeDelta: MAP_DELTA.LATITUDE,
+        longitudeDelta: MAP_DELTA.LONGITUDE,
+      };
+    }
+
+    return undefined;
+  }, [location, latitude, longitude]);
 
   // ============================================================================
   // Loading State
@@ -191,9 +207,10 @@ const navItems: NavItem[] = [
       {/* Map View */}
       {location && (
         <MapView
+          ref={mapRef}
           style={mapStyles.map}
           initialRegion={getInitialRegion()}
-          showsUserLocation={false} // We use custom marker instead
+          showsUserLocation={false}
           showsMyLocationButton
           showsCompass
         >
@@ -215,6 +232,7 @@ const navItems: NavItem[] = [
               title={restaurant.name}
               description={restaurant.description}
               onPress={() => handleMarkerPress(restaurant)}
+              pinColor={restaurant.id === selectedRestaurant?.id ? '#27AE60' : '#FF6B6B'}
             />
           ))}
         </MapView>
@@ -224,7 +242,7 @@ const navItems: NavItem[] = [
       {selectedRestaurant && (
         <RestaurantMapCard
           restaurant={selectedRestaurant}
-          onViewProducts={handleViewProducts}
+          onViewProducts={() => handleViewProducts(selectedRestaurant)}
         />
       )}
 

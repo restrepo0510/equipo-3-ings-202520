@@ -12,8 +12,8 @@ import {
   ConflictException
 } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { User } from './user.entity';
-import type { CreateUserDto } from './user.entity';
+import { User } from '../auth/user.entity';
+import type { CreateUserDto } from './users.service'; // ✅ Importar tipo desde service
 
 /**
  * Controller handling user-related HTTP requests

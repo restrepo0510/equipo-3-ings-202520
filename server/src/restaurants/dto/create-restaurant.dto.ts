@@ -1,5 +1,5 @@
 // src/restaurants/dto/create-restaurant.dto.ts
-import { IsString, IsNumber, IsOptional, IsBoolean, IsNotEmpty } from 'class-validator';
+import { IsString, IsNumber, IsOptional, IsBoolean, IsNotEmpty, IsEmail, IsUUID } from 'class-validator';
 
 export class CreateRestaurantDto {
   @IsString()
@@ -15,12 +15,12 @@ export class CreateRestaurantDto {
   address: string;
 
   @IsNumber()
-  @IsNotEmpty()
-  latitude: number;
+  @IsOptional()
+  latitude?: number;
 
   @IsNumber()
-  @IsNotEmpty()
-  longitude: number;
+  @IsOptional()
+  longitude?: number;
 
   @IsString()
   @IsOptional()
@@ -29,6 +29,14 @@ export class CreateRestaurantDto {
   @IsString()
   @IsOptional()
   phone?: string;
+
+  @IsEmail()
+  @IsOptional()
+  email?: string;
+
+  @IsUUID()
+  @IsOptional()
+  userId?: string;
 
   @IsBoolean()
   @IsOptional()
@@ -46,4 +54,3 @@ export class CreateRestaurantDto {
   @IsOptional()
   closingTime?: string;
 }
-

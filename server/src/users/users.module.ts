@@ -1,15 +1,15 @@
+// src/users/users.module.ts
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsersService } from './users.service';
 import { UsersController } from './users.controller';
-import { User } from './user.entity';
+import { User } from '../auth/user.entity';
+import { Restaurant } from '../restaurants/restaurant.entity';
 
-/**
- * Module encapsulating user-related components
- * Provides user management functionality to the application
- */
 @Module({
-  imports: [TypeOrmModule.forFeature([User])],
+  imports: [
+    TypeOrmModule.forFeature([User, Restaurant]),
+  ],
   controllers: [UsersController],
   providers: [UsersService],
   exports: [UsersService],

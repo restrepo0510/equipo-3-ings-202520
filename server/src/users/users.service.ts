@@ -7,8 +7,30 @@ import {
 } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User } from './user.entity';
-import type { CreateUserDto, UpdateUserDto } from './user.entity';
+import { User, UserRole } from '../auth/user.entity'; // ✅ Importar desde auth
+import { Restaurant } from '../restaurants/restaurant.entity';
+
+/**
+ * DTO para crear usuario (con role)
+ */
+export class CreateUserDto {
+  name: string;
+  email: string;
+  phone: string;
+  password: string;
+  role?: UserRole; // ✅ Ahora incluye role
+}
+
+/**
+ * DTO para actualizar usuario
+ */
+export class UpdateUserDto {
+  name?: string;
+  email?: string;
+  phone?: string;
+  password?: string;
+  role?: UserRole;
+}
 
 /**
  * Service handling business logic for user operations
@@ -19,6 +41,9 @@ export class UsersService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+
+    @InjectRepository(Restaurant)
+    private readonly restaurantRepository: Repository<Restaurant>,
   ) {}
 
   /**
@@ -29,7 +54,7 @@ export class UsersService {
   async findAll(): Promise<User[]> {
     try {
       return await this.userRepository.find({
-        select: ['id', 'name', 'email', 'phone', 'createdAt', 'updatedAt'],
+        select: ['id', 'name', 'email', 'phone', 'role', 'createdAt', 'updatedAt'],
         order: { createdAt: 'DESC' }
       });
     } catch (error) {
@@ -49,19 +74,31 @@ export class UsersService {
     try {
       // Validate required fields
       this.validateUserData(createUserDto);
-      
       await this.validateEmailUniqueness(createUserDto.email);
+
+      // Set default role if not provided
+      const role = createUserDto.role || UserRole.CUSTOMER;
+
+      const newUser = this.userRepository.create({
+        ...createUserDto,
+        role,
+      });
       
-      const newUser = this.userRepository.create(createUserDto);
       const savedUser = await this.userRepository.save(newUser);
-      
-      // Remove password from returned object for security
+      console.log(`✅ User created: ${savedUser.email} with role: ${savedUser.role}`);
+
+      // Automatically create a Restaurant if user is a business
+      if (role === UserRole.BUSINESS) {
+        await this.createBusinessRestaurant(savedUser);
+      }
+
       const { password: _, ...userWithoutPassword } = savedUser;
-      return savedUser;
+      return userWithoutPassword as User;
     } catch (error) {
       if (error instanceof ConflictException || error instanceof BadRequestException) {
         throw error;
       }
+      console.error('❌ Error creating user:', error);
       throw new InternalServerErrorException(`Failed to create user: ${error.message}`);
     }
   }
@@ -80,7 +117,7 @@ export class UsersService {
 
       return await this.userRepository.findOne({ 
         where: { email },
-        select: ['id', 'name', 'email', 'phone', 'password', 'createdAt'] 
+        select: ['id', 'name', 'email', 'phone', 'password', 'role', 'createdAt'] 
       });
     } catch (error) {
       if (error instanceof BadRequestException) {
@@ -96,15 +133,15 @@ export class UsersService {
    * returns Promise resolving to User entity or null if not found
    * throws {InternalServerErrorException} When database query fails
    */
-  async findById(userId: number): Promise<User | null> {
+  async findById(userId: string): Promise<User | null> {
     try {
-      if (!userId || typeof userId !== 'number' || userId <= 0) {
+      if (!userId || typeof userId !== 'string') {
         throw new BadRequestException('Valid user ID is required');
       }
 
       return await this.userRepository.findOne({ 
         where: { id: userId },
-        select: ['id', 'name', 'email', 'phone', 'createdAt', 'updatedAt']
+        select: ['id', 'name', 'email', 'phone', 'role', 'createdAt', 'updatedAt']
       });
     } catch (error) {
       if (error instanceof BadRequestException) {
@@ -149,6 +186,11 @@ export class UsersService {
     if (typeof password !== 'string' || password.length < 6) {
       throw new BadRequestException('Password must be at least 6 characters long');
     }
+
+    // Validate role if provided
+    if (userData.role && !Object.values(UserRole).includes(userData.role)) {
+      throw new BadRequestException('Invalid role');
+    }
   }
 
   /**
@@ -159,5 +201,38 @@ export class UsersService {
   private isValidEmail(email: string): boolean {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
+  }
+
+  /**
+   * Creates a restaurant automatically when a user with BUSINESS role registers
+   * @param user - The business user
+   */
+  private async createBusinessRestaurant(user: User): Promise<void> {
+    try {
+      console.log(`🏪 Creating restaurant for business user: ${user.email}`);
+
+      const restaurant = this.restaurantRepository.create({
+        id: user.id, // Use the same UUID as the user
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        userId: user.id,
+        address: 'Dirección no especificada',
+        description: `Restaurante de ${user.name}`,
+        latitude: 0,
+        longitude: 0,
+        category: 'General',
+        isActive: true,
+        imageUrl: 'https://cdn-icons-png.flaticon.com/512/2921/2921822.png',
+        openingTime: '08:00',
+        closingTime: '20:00',
+      });
+
+      await this.restaurantRepository.save(restaurant);
+      console.log(`✅ Restaurant created for business user: ${user.email}`);
+    } catch (error) {
+      console.error('❌ Failed to create restaurant automatically:', error);
+      // No lanzamos error para que el registro de usuario no falle
+    }
   }
 }
