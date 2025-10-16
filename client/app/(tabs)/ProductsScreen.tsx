@@ -4,48 +4,66 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { 
   View, 
   Text, 
-  StyleSheet, 
   ScrollView, 
   Image, 
   TouchableOpacity,
   ActivityIndicator,
   Alert,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { BottomNavigation } from '@/components/ui/BottomNavigation';
 import { createNavItems } from '@/utils/navigationHelpers';
 import { productService, Product } from '@/services/productService';
+import { restaurantService } from '@/services/restaurantService';
 import { useAuth } from '@/context/AuthContext';
-import { styles} from '../../styles/ProductsScreen.styles';
+import { styles } from '../../styles/ProductsScreen.styles';
 
 /**
  * ProductsScreen Component
  * 
- * Displays business products with availability status
- * Shows product name, description, price, and favorite toggle
+ * Displays products for a specific restaurant
+ * Receives restaurantId from route params
  */
 export default function ProductsScreen() {
   const router = useRouter();
+  const { restaurantId } = useLocalSearchParams();
   const { token } = useAuth();
-  const navItems = createNavItems('map', router); // Products screen uses 'map' as active
+  const navItems = createNavItems('map', router);
 
   // State
   const [products, setProducts] = useState<Product[]>([]);
+  const [restaurantName, setRestaurantName] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
 
-  // TODO: Get restaurant ID from user context or route params
-  // For now, we'll load all available products
-  const restaurantId = 'YOUR_RESTAURANT_ID'; // Replace with actual restaurant ID
+  /**
+   * Load restaurant info
+   */
+  const loadRestaurantInfo = useCallback(async () => {
+    if (!restaurantId) return;
+
+    try {
+      const restaurant = await restaurantService.getById(restaurantId as string);
+      setRestaurantName(restaurant.name);
+    } catch (error) {
+      console.error('Error loading restaurant:', error);
+    }
+  }, [restaurantId]);
 
   /**
-   * Load products from backend
+   * Load products for this specific restaurant
    */
   const loadProducts = useCallback(async () => {
+    if (!restaurantId) {
+      setError('No se especificó un restaurante');
+      setIsLoading(false);
+      return;
+    }
+
     if (!token) {
-      setError('No authentication token');
+      setError('No hay token de autenticación');
       setIsLoading(false);
       return;
     }
@@ -54,24 +72,27 @@ export default function ProductsScreen() {
       setIsLoading(true);
       setError(null);
 
-      // Load available products (or by restaurant if you have restaurantId)
-      const data = await productService.getAvailable(token);
+      // Load products by restaurant ID
+      const data = await productService.getByRestaurant(
+        restaurantId as string, 
+        token
+      );
       
-      console.log('📦 Products loaded:', data.length);
+      console.log(`📦 Products loaded for restaurant ${restaurantId}:`, data.length);
       setProducts(data);
     } catch (error: any) {
       console.error('❌ Error loading products:', error);
-      setError(error.message || 'Could not load products');
-      Alert.alert('Error', 'No se pudieron cargar los productos');
+      setError(error.message || 'No se pudieron cargar los productos');
     } finally {
       setIsLoading(false);
     }
-  }, [token]);
+  }, [token, restaurantId]);
 
-  // Load products on mount
+  // Load data on mount
   useEffect(() => {
+    loadRestaurantInfo();
     loadProducts();
-  }, [loadProducts]);
+  }, [loadRestaurantInfo, loadProducts]);
 
   /**
    * Toggles product favorite status
@@ -101,7 +122,10 @@ export default function ProductsScreen() {
   const handleProductPress = (product: Product) => {
     console.log('Product pressed:', product.name);
     // TODO: Navigate to product detail screen
-    // router.push(`/(tabs)/ProductDetail?id=${product.id}`);
+    // router.push({
+    //   pathname: '/(tabs)/ProductDetail',
+    //   params: { productId: product.id }
+    // });
   };
 
   // Loading state
@@ -155,12 +179,17 @@ export default function ProductsScreen() {
           {/* Divider */}
           <View style={styles.divider} />
 
+          {/* Restaurant Name */}
+          {restaurantName && (
+            <Text style={styles.restaurantName}>{restaurantName}</Text>
+          )}
+
           {/* Empty state */}
           <View style={styles.emptyContainer}>
             <Ionicons name="fast-food-outline" size={80} color="#BDC3C7" />
             <Text style={styles.emptyText}>No hay productos disponibles</Text>
             <Text style={styles.emptySubtext}>
-              Los productos aparecerán aquí cuando estén disponibles
+              Este restaurante aún no tiene productos publicados
             </Text>
           </View>
         </ScrollView>
@@ -191,6 +220,14 @@ export default function ProductsScreen() {
 
         {/* Divider */}
         <View style={styles.divider} />
+
+        {/* Restaurant Name */}
+        {restaurantName && (
+          <View style={styles.restaurantHeader}>
+            <Ionicons name="restaurant" size={24} color="#27AE60" />
+            <Text style={styles.restaurantName}>{restaurantName}</Text>
+          </View>
+        )}
 
         {/* Section Title */}
         <Text style={styles.sectionTitle}>Productos Disponibles</Text>
@@ -286,4 +323,3 @@ export default function ProductsScreen() {
     </View>
   );
 }
-

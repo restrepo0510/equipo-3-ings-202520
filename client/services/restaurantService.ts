@@ -1,17 +1,6 @@
 // services/restaurantService.ts
+import { API_URL } from '@/config/api';
 
-/**
- * Restaurant Service
- * Handles all API calls related to restaurants
- */
-
-const API_URL = __DEV__
-  ? 'http://192.168.20.22:3000/restaurants'
-  : 'https://tu-api-production.com/restaurants';
-
-/**
- * Restaurant data structure matching backend entity
- */
 export interface Restaurant {
   id: string;
   name: string;
@@ -21,81 +10,79 @@ export interface Restaurant {
   longitude: number;
   category?: string;
   phone?: string;
+  email?: string;
+  userId?: string;
   isActive: boolean;
   imageUrl?: string;
   openingTime?: string;
   closingTime?: string;
-  distance?: number; // Calculated by backend in nearby endpoint
-  createdAt?: Date;
-  updatedAt?: Date;
+  createdAt: Date;
+  updatedAt: Date;
+  distance?: number; // Only present in nearby searches
 }
 
-/**
- * DTO for nearby restaurants query
- */
-export interface NearbyRestaurantsDto {
+interface NearbyParams {
   latitude: number;
   longitude: number;
   radius?: number;
   limit?: number;
 }
 
-/**
- * Restaurant Service
- * Provides methods to interact with the restaurants API
- */
-export const restaurantService = {
+class RestaurantService {
   /**
    * Get all restaurants
-   * @returns Promise<Restaurant[]>
    */
   async getAll(): Promise<Restaurant[]> {
     try {
-      const response = await fetch(API_URL);
+      const response = await fetch(`${API_URL}/restaurants`);
+      
       if (!response.ok) {
         throw new Error('Failed to fetch restaurants');
       }
+
       return await response.json();
     } catch (error) {
-      console.error('Error fetching all restaurants:', error);
+      console.error('Error fetching restaurants:', error);
       throw error;
     }
-  },
+  }
 
   /**
    * Get a single restaurant by ID
-   * @param id Restaurant UUID
-   * @returns Promise<Restaurant>
    */
-  async getById(id: string): Promise<Restaurant> {
+  async getById(restaurantId: string): Promise<Restaurant> {
     try {
-      const response = await fetch(`${API_URL}/${id}`);
+      const response = await fetch(`${API_URL}/restaurants/${restaurantId}`);
+      
       if (!response.ok) {
-        throw new Error(`Restaurant with ID ${id} not found`);
+        throw new Error('Failed to fetch restaurant');
       }
+
       return await response.json();
     } catch (error) {
-      console.error(`Error fetching restaurant ${id}:`, error);
+      console.error('Error fetching restaurant:', error);
       throw error;
     }
-  },
+  }
 
   /**
    * Get nearby restaurants based on user location
-   * @param dto NearbyRestaurantsDto with coordinates and optional radius/limit
-   * @returns Promise<Restaurant[]> Sorted by distance
    */
-  async getNearby(dto: NearbyRestaurantsDto): Promise<Restaurant[]> {
+  async getNearby(params: NearbyParams): Promise<Restaurant[]> {
     try {
-      const params = new URLSearchParams({
-        latitude: dto.latitude.toString(),
-        longitude: dto.longitude.toString(),
-        radius: dto.radius?.toString() || '100',
-        limit: dto.limit?.toString() || '20',
+      const { latitude, longitude, radius = 10, limit = 20 } = params;
+
+      const queryParams = new URLSearchParams({
+        latitude: latitude.toString(),
+        longitude: longitude.toString(),
+        radius: radius.toString(),
+        limit: limit.toString(),
       });
 
-      const response = await fetch(`${API_URL}/nearby?${params}`);
-      
+      const response = await fetch(
+        `${API_URL}/restaurants/nearby?${queryParams.toString()}`
+      );
+
       if (!response.ok) {
         throw new Error('Failed to fetch nearby restaurants');
       }
@@ -105,19 +92,20 @@ export const restaurantService = {
       console.error('Error fetching nearby restaurants:', error);
       throw error;
     }
-  },
+  }
 
   /**
    * Create a new restaurant
-   * @param data Restaurant data without ID
-   * @returns Promise<Restaurant>
    */
-  async create(data: Omit<Restaurant, 'id' | 'createdAt' | 'updatedAt'>): Promise<Restaurant> {
+  async create(restaurantData: Partial<Restaurant>, token: string): Promise<Restaurant> {
     try {
-      const response = await fetch(API_URL, {
+      const response = await fetch(`${API_URL}/restaurants`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(restaurantData),
       });
 
       if (!response.ok) {
@@ -129,20 +117,24 @@ export const restaurantService = {
       console.error('Error creating restaurant:', error);
       throw error;
     }
-  },
+  }
 
   /**
-   * Update an existing restaurant
-   * @param id Restaurant UUID
-   * @param data Partial restaurant data to update
-   * @returns Promise<Restaurant>
+   * Update a restaurant
    */
-  async update(id: string, data: Partial<Restaurant>): Promise<Restaurant> {
+  async update(
+    restaurantId: string,
+    updateData: Partial<Restaurant>,
+    token: string
+  ): Promise<Restaurant> {
     try {
-      const response = await fetch(`${API_URL}/${id}`, {
+      const response = await fetch(`${API_URL}/restaurants/${restaurantId}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(updateData),
       });
 
       if (!response.ok) {
@@ -151,28 +143,32 @@ export const restaurantService = {
 
       return await response.json();
     } catch (error) {
-      console.error(`Error updating restaurant ${id}:`, error);
+      console.error('Error updating restaurant:', error);
       throw error;
     }
-  },
+  }
 
   /**
    * Delete a restaurant
-   * @param id Restaurant UUID
-   * @returns Promise<void>
    */
-  async remove(id: string): Promise<void> {
+  async delete(restaurantId: string, token: string): Promise<void> {
     try {
-      const response = await fetch(`${API_URL}/${id}`, {
+      const response = await fetch(`${API_URL}/restaurants/${restaurantId}`, {
         method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
 
       if (!response.ok) {
         throw new Error('Failed to delete restaurant');
       }
     } catch (error) {
-      console.error(`Error deleting restaurant ${id}:`, error);
+      console.error('Error deleting restaurant:', error);
       throw error;
     }
-  },
-};
+  }
+}
+
+export const restaurantService = new RestaurantService();
+export default restaurantService;
