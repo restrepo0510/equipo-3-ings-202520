@@ -124,61 +124,63 @@ export default function HomeScreen() {
   // ============================================================================
 
   const handleRestaurantPress = useCallback((restaurant: Restaurant) => {
-    console.log('Restaurant selected:', restaurant.name);
-    // navigation.navigate('RestaurantDetail', { id: restaurant.id });
-  }, []);
-
+  console.log('Restaurant selected:', restaurant.name);
+  router.push({
+    pathname: '/(tabs)/MapScreen',
+    params: {
+      restaurantId: restaurant.id,
+      latitude: restaurant.latitude.toString(),
+      longitude: restaurant.longitude.toString(),
+    },
+  });
+}, [router]);
   // ============================================================================
   // Render Functions
   // ============================================================================
 
-  /**
-   * Renders a grid restaurant card
-   */
-  const renderGridCard = (restaurant: Restaurant, index: number) => (
-    
-    <TouchableOpacity
-      key={restaurant.id}
-      style={[
-        styles.gridCard,
-        index % 2 === 0 ? styles.gridCardLeft : styles.gridCardRight,
-      ]}
-      onPress={() => handleRestaurantPress(restaurant)}
-      accessibilityRole="button"
-      accessibilityLabel={`Restaurant ${restaurant.name}`}
-    >
-      <View style={styles.gridCardInner}>
-        {/* Circular Logo at Top */}
-        <View style={styles.gridLogoContainer}>
-          <Image
-            source={{ uri: restaurant.imageUrl || PLACEHOLDER_IMAGES.RESTAURANT_LOGO }}
-            style={styles.gridLogo}
-          />
-        </View>
-         <TouchableOpacity
-  style={{ padding: 10, backgroundColor: '#27AE60', margin: 20 }}
-  onPress={() => router.push('/(tabs)/ProductsScreen')}
->
-  <Text style={{ color: '#FFF', textAlign: 'center' }}>Ver Productos</Text>
-</TouchableOpacity>
-        
-        {/* Restaurant Image with Margins */}
-        <View style={styles.gridImageContainer}>
-          <Image
-            source={{ uri: restaurant.imageUrl || PLACEHOLDER_IMAGES.RESTAURANT_CARD }}
-            style={styles.gridImage}
-          />
-        </View>
-        
-        {/* Restaurant Name */}
-        <View style={styles.gridInfo}>
-          <Text style={styles.gridTitle} numberOfLines={2}>
-            {restaurant.name}
-          </Text>
-        </View>
+
+/**
+ * Renders a grid restaurant card
+ */
+const renderGridCard = (restaurant: Restaurant, index: number) => (
+  <TouchableOpacity
+    key={restaurant.id}
+    style={[
+      styles.gridCard,
+      index % 2 === 0 ? styles.gridCardLeft : styles.gridCardRight,
+    ]}
+    onPress={() => handleRestaurantPress(restaurant)}
+    accessibilityRole="button"
+    accessibilityLabel={`Restaurant ${restaurant.name}`}
+  >
+    <View style={styles.gridCardInner}>
+      {/* Circular Logo at Top */}
+      <View style={styles.gridLogoContainer}>
+        <Image
+          source={{ uri: restaurant.imageUrl || PLACEHOLDER_IMAGES.RESTAURANT_LOGO }}
+          style={styles.gridLogo}
+        />
       </View>
-    </TouchableOpacity>
-  );
+      
+  
+      
+      {/* Restaurant Image with Margins */}
+      <View style={styles.gridImageContainer}>
+        <Image
+          source={{ uri: restaurant.imageUrl || PLACEHOLDER_IMAGES.RESTAURANT_CARD }}
+          style={styles.gridImage}
+        />
+      </View>
+      
+      {/* Restaurant Name */}
+      <View style={styles.gridInfo}>
+        <Text style={styles.gridTitle} numberOfLines={2}>
+          {restaurant.name}
+        </Text>
+      </View>
+    </View>
+  </TouchableOpacity>
+);
 
   /**
    * Renders the TOP 1 restaurant section with images side by side
