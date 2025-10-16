@@ -23,7 +23,7 @@ export class RegisterUserDto {
 
   @IsEnum(UserRole)
   @IsOptional()
-  role?: UserRole; // ← Esta propiedad ya estaba, verifica que esté
+  role?: UserRole;
 }
 
 /**

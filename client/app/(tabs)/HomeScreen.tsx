@@ -136,6 +136,7 @@ export default function HomeScreen() {
    * Renders a grid restaurant card
    */
   const renderGridCard = (restaurant: Restaurant, index: number) => (
+    
     <TouchableOpacity
       key={restaurant.id}
       style={[
@@ -154,6 +155,12 @@ export default function HomeScreen() {
             style={styles.gridLogo}
           />
         </View>
+         <TouchableOpacity
+  style={{ padding: 10, backgroundColor: '#27AE60', margin: 20 }}
+  onPress={() => router.push('/(tabs)/ProductsScreen')}
+>
+  <Text style={{ color: '#FFF', textAlign: 'center' }}>Ver Productos</Text>
+</TouchableOpacity>
         
         {/* Restaurant Image with Margins */}
         <View style={styles.gridImageContainer}>
@@ -261,6 +268,7 @@ export default function HomeScreen() {
       {restaurant.isActive && <View style={styles.activeIndicator} />}
     </TouchableOpacity>
   );
+ 
 
   // ============================================================================
   // Main Render

@@ -12,7 +12,7 @@ import { useRouter } from "expo-router";
 import { BottomNavigation } from "@/components/ui/BottomNavigation";
 import { useAuth } from "@/context/AuthContext";
 import { createNavItems } from "../../utils/navigationHelpers";
-import { profileStyles as styles } from "../../styles/profileScreens.styles";
+import { profileStyles as styles } from "../../styles/ProfileScreens.styles";
 
 /**
  * ProfileScreen
