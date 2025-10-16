@@ -1,5 +1,5 @@
 // context/AuthContext.tsx
-
+import { router } from 'expo-router';
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_URL } from '@/config/api';
@@ -138,7 +138,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         isAuthenticated: true,
       });
 
-      console.log('✅ Login successful:', data.user.email);
+// ✅ Redirect based on user role
+if (data.user.role === UserRole.BUSINESS) {
+  router.replace('/(tabs)/BusinessProfileScreen');
+} else {
+  router.replace('/(tabs)/HomeScreen');
+}
+
+console.log('✅ Login successful:', data.user.email, 'Role:', data.user.role);
     } catch (error) {
       setState(prev => ({ ...prev, isLoading: false }));
       throw error;

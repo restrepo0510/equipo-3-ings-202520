@@ -234,5 +234,5 @@ export const styles = StyleSheet.create({
     fontSize: 14,
     color: '#7F8C8D',
     textAlign: 'center',
-  },
+  }
 });

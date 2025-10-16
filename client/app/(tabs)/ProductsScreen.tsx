@@ -17,7 +17,7 @@ import { BottomNavigation } from '@/components/ui/BottomNavigation';
 import { createNavItems } from '@/utils/navigationHelpers';
 import { productService, Product } from '@/services/productService';
 import { useAuth } from '@/context/AuthContext';
-import { styles } from '../../styles/ProductsScreen.styles';
+import { styles} from '../../styles/ProductsScreen.styles';
 
 /**
  * ProductsScreen Component
@@ -28,7 +28,7 @@ import { styles } from '../../styles/ProductsScreen.styles';
 export default function ProductsScreen() {
   const router = useRouter();
   const { token } = useAuth();
-  const navItems = createNavItems('map', router);
+  const navItems = createNavItems('map', router); // Products screen uses 'map' as active
 
   // State
   const [products, setProducts] = useState<Product[]>([]);

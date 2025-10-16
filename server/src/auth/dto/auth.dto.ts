@@ -66,7 +66,7 @@ export class UpdateUserDto {
  * Response DTO for user data (excludes sensitive information)
  */
 export class UserResponseDto {
-  id: number;
+  id: string;
   name: string;
   email: string;
   phone: string;
