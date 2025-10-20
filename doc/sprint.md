@@ -1,16 +1,23 @@
 # Diagramas Burndown y Kanban de YUMMI
 
-## Primer diagrama 
+## Primer Sprint 
 ![alt text](/doc/design/img/burndown1.png)
 
-## Primer Kanban
+## Kanban:
 ![alt text](/doc/design/img/Kanban1.png)
 ![alt text](/doc/design/img/Kanban1.1.png)
 
-## Segundo diagrama 
+## Segundo Sprint 
 ![alt text](/doc/design/img/burndown2.png)
 
-## Segundo Kanban
+## Kanban
 ![alt text](/doc/design/img/Kanban2.png)
 ![alt text](/doc/design/img/Kanban2.1.png)
+
+## Tercer Sprint
+![alt text](/doc/design/img/burndown3.png)
+
+## Kanban
+![alt text](/doc/design/img/Kanban3.png)
+
 
