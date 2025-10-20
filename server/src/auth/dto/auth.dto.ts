@@ -5,6 +5,8 @@ import { IsEmail, IsString, IsEnum, IsOptional, MinLength } from 'class-validato
 /**
  * DTO for user registration
  */
+// src/auth/dto/auth.dto.ts
+
 export class RegisterUserDto {
   @IsString()
   @MinLength(2)
@@ -24,6 +26,12 @@ export class RegisterUserDto {
   @IsEnum(UserRole)
   @IsOptional()
   role?: UserRole;
+
+  // ✅ Nuevo campo opcional para dirección
+  @IsString()
+  @IsOptional()
+  @MinLength(10)
+  address?: string;
 }
 
 /**

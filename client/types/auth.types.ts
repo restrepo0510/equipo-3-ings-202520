@@ -13,7 +13,7 @@ export enum UserRole {
  * User data structure
  */
 export interface User {
-  id: number;
+  id: string;
   name: string;
   email: string;
   phone: string;
@@ -48,6 +48,7 @@ export interface RegisterData {
   phone: string;
   password: string;
   role?: UserRole;
+  address?: string; // ✅ Añadir campo opcional
 }
 
 /**

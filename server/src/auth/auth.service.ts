@@ -17,6 +17,7 @@ import {
   UserResponseDto,
   AuthResponseDto 
 } from './dto/auth.dto';
+import axios from 'axios';
 
 /**
  * JWT Payload interface
@@ -28,12 +29,24 @@ interface JwtPayload {
 }
 
 /**
+ * Coordinates interface
+ */
+interface Coordinates {
+  latitude: number;
+  longitude: number;
+}
+
+/**
  * Authentication service with JWT support
  * Handles user registration, login, and token generation
  */
 @Injectable()
 export class AuthService {
   private readonly saltRounds: number = 12;
+  private readonly DEFAULT_COORDINATES: Coordinates = {
+    latitude: 6.2476,  // Medellín, Colombia
+    longitude: -75.5658,
+  };
 
   constructor(
     @InjectRepository(User)
@@ -70,9 +83,9 @@ export class AuthService {
       const savedUser = await this.userRepository.save(user);
       console.log(`✅ User created: ${savedUser.email} with role: ${savedUser.role}`);
 
-      // ✅ If business, create a restaurant automatically
+      // ✅ If business, create a restaurant with address
       if (role === UserRole.BUSINESS) {
-        await this.createRestaurantForBusiness(savedUser);
+        await this.createRestaurantForBusiness(savedUser, registerUserDto.address);
       }
 
       // Generate token
@@ -193,6 +206,13 @@ export class AuthService {
     if (data.role && !Object.values(UserRole).includes(data.role)) {
       throw new BadRequestException('Invalid role');
     }
+
+    // Validate address for business accounts
+    if (data.role === UserRole.BUSINESS) {
+      if (!data.address || data.address.trim().length < 10) {
+        throw new BadRequestException('Valid business address is required (minimum 10 characters)');
+      }
+    }
   }
 
   private validateLoginCredentials(credentials: LoginUserDto): void {
@@ -232,22 +252,86 @@ export class AuthService {
   }
 
   /**
-   * Automatically creates a restaurant entry when a business user registers
+   * Geocodes an address to latitude and longitude using Nominatim (OpenStreetMap)
+   * Optimized for Medellín, Colombia addresses
    */
-  private async createRestaurantForBusiness(user: User): Promise<void> {
+  private async geocodeAddress(address: string): Promise<Coordinates> {
+    try {
+      // ✅ Normalizar dirección colombiana
+      let searchAddress = address.trim();
+      
+      // Si no contiene "Medellín" o "Colombia", agregarlos
+      if (!searchAddress.toLowerCase().includes('medellín') && 
+          !searchAddress.toLowerCase().includes('medellin')) {
+        searchAddress = `${searchAddress}, Medellín, Antioquia, Colombia`;
+      } else if (!searchAddress.toLowerCase().includes('colombia')) {
+        searchAddress = `${searchAddress}, Colombia`;
+      }
+
+      console.log(`📍 Geocoding address: ${searchAddress}`);
+
+      const response = await axios.get('https://nominatim.openstreetmap.org/search', {
+        params: {
+          q: searchAddress,
+          format: 'json',
+          limit: 1,
+          countrycodes: 'co', // Solo Colombia
+          bounded: 1, // Mantener dentro de bounds
+          viewbox: '-75.6500,6.3500,-75.4500,6.1500', // Bounding box de Medellín
+        },
+        headers: {
+          'User-Agent': 'YummiApp/1.0',
+        },
+        timeout: 5000,
+      });
+
+      if (response.data && response.data.length > 0) {
+        const coordinates: Coordinates = {
+          latitude: parseFloat(response.data[0].lat),
+          longitude: parseFloat(response.data[0].lon),
+        };
+        
+        console.log(`✅ Geocoded successfully: (${coordinates.latitude}, ${coordinates.longitude})`);
+        console.log(`   Display name: ${response.data[0].display_name}`);
+        return coordinates;
+      }
+
+      console.warn('⚠️ No geocoding results found, using default coordinates (Parque Lleras)');
+      return this.DEFAULT_COORDINATES;
+    } catch (error) {
+      console.error('❌ Geocoding error:', error.message);
+      console.log('📍 Using default coordinates for Medellín');
+      return this.DEFAULT_COORDINATES;
+    }
+  }
+
+  /**
+   * Automatically creates a restaurant entry when a business user registers
+   * Includes geocoding of the provided address
+   */
+  private async createRestaurantForBusiness(user: User, address?: string): Promise<void> {
     try {
       console.log(`🏪 Creating restaurant for business user: ${user.email}`);
 
+      let coordinates: Coordinates = this.DEFAULT_COORDINATES;
+
+      // ✅ Geocode address if provided
+      if (address && address.trim().length > 0) {
+        coordinates = await this.geocodeAddress(address.trim());
+      } else {
+        console.warn('⚠️ No address provided, using default coordinates');
+      }
+
       const restaurant = this.restaurantRepository.create({
-        id: user.id, // 👈 same UUID as the business user
+        id: user.id, // Same UUID as the business user
         name: user.name,
         email: user.email,
         phone: user.phone,
         userId: user.id,
-        address: 'Dirección no especificada',
+        address: address?.trim() || 'Dirección no especificada',
         description: `Restaurante de ${user.name}`,
-        latitude: 0,
-        longitude: 0,
+        latitude: coordinates.latitude,
+        longitude: coordinates.longitude,
         category: 'General',
         isActive: true,
         imageUrl: 'https://cdn-icons-png.flaticon.com/512/2921/2921822.png',
@@ -256,11 +340,11 @@ export class AuthService {
       });
 
       const savedRestaurant = await this.restaurantRepository.save(restaurant);
-      console.log(`✅ Restaurant created successfully with ID: ${savedRestaurant.id}`);
+      console.log(`✅ Restaurant created at coordinates: (${coordinates.latitude}, ${coordinates.longitude})`);
+      console.log(`   Address: ${savedRestaurant.address}`);
     } catch (error) {
       console.error('❌ Error creating restaurant for business:', error);
       // No lanzamos el error para que el registro del usuario no falle
-      // Solo logueamos el error
     }
   }
 }

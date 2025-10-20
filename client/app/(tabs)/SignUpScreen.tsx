@@ -30,6 +30,7 @@ interface RegistrationFormData {
   email: string;
   password: string;
   role: UserRole;
+  address?: string; // ✅ Nuevo campo opcional para empresas
 }
 
 /**
@@ -62,6 +63,15 @@ const validateForm = (formData: RegistrationFormData): Partial<RegistrationFormD
     errors.password = 'Password must be at least 6 characters';
   }
 
+  // ✅ Validar dirección solo para empresas
+  if (formData.role === UserRole.BUSINESS) {
+    if (!formData.address?.trim()) {
+      errors.address = 'Business address is required';
+    } else if (formData.address.trim().length < 10) {
+      errors.address = 'Please enter a complete address';
+    }
+  }
+
   return errors;
 };
 
@@ -80,7 +90,8 @@ const SignUpScreen: React.FC = () => {
     phone: '',
     email: '',
     password: '',
-    role: UserRole.CUSTOMER, // Default role
+    role: UserRole.CUSTOMER,
+    address: '', // ✅ Inicializar dirección
   });
   
   const [errors, setErrors] = useState<Partial<RegistrationFormData>>({});
@@ -101,7 +112,11 @@ const SignUpScreen: React.FC = () => {
    */
   const handleRoleChange = useCallback((role: UserRole) => {
     setFormData(prev => ({ ...prev, role }));
-  }, []);
+    // Limpiar error de dirección si cambia de rol
+    if (errors.address) {
+      setErrors(prev => ({ ...prev, address: undefined }));
+    }
+  }, [errors.address]);
 
   /**
    * Handles registration submission
@@ -124,10 +139,10 @@ const SignUpScreen: React.FC = () => {
         phone: formData.phone.trim(),
         password: formData.password,
         role: formData.role,
+        address: formData.role === UserRole.BUSINESS ? formData.address?.trim() : undefined,
       });
 
-      // Success! Navigation updates automatically
-      console.log('✅ Registration successful, navigation will update automatically');
+      console.log('✅ Registration successful');
     } catch (error: any) {
       console.error('Registration error:', error);
       Alert.alert(
@@ -201,10 +216,10 @@ const SignUpScreen: React.FC = () => {
 
             {/* Name field */}
             <FormField
-              label="Nombre"
+              label={formData.role === UserRole.BUSINESS ? "Nombre del Negocio" : "Nombre"}
               value={formData.name}
               error={errors.name}
-              placeholder="Ingresa tu nombre completo"
+              placeholder={formData.role === UserRole.BUSINESS ? "Ej: Restaurante El Buen Sabor" : "Ingresa tu nombre completo"}
               onChangeText={(value) => handleFieldChange('name', value)}
               disabled={authLoading}
             />
@@ -231,6 +246,19 @@ const SignUpScreen: React.FC = () => {
               keyboardType="email-address"
               autoComplete="email"
             />
+
+            {/* ✅ Address field - Solo para empresas */}
+            {formData.role === UserRole.BUSINESS && (
+              <FormField
+                label="Dirección del Negocio"
+                value={formData.address || ''}
+                error={errors.address}
+                placeholder="Calle 123 #45-67, Medellín, Antioquia"
+                onChangeText={(value) => handleFieldChange('address', value)}
+                disabled={authLoading}
+                multiline
+              />
+            )}
 
             {/* Password field */}
             <FormField
