@@ -385,7 +385,7 @@ Puntos: 3
 
 ## RF-21: Perfil de usuario
 
-Descripción: Permite que los usuarios visualicen y editen la información de su perfil, incluyendo nombre, correo electrónico y foto de perfil.
+Descripción: Permite que los usuarios y empresas visualicen y editen la información de su perfil, incluyendo nombre, correo electrónico y foto de perfil.
 
 Criterios de aceptación:
 
@@ -417,7 +417,7 @@ Feature: Productos favoritos
     Then el producto se guarda en la sección de favoritos del usuario
 ```
 
-Prioridad: P1
+Prioridad: P2
 
 Puntos: 2
 
@@ -479,7 +479,7 @@ Feature: Agregar un nuevo producto
 
 Prioridad: P0
 
-Puntos: 5
+Puntos: 4
 
 ---
 
@@ -499,7 +499,7 @@ Feature: Editar producto existente
 
 Prioridad: P0
 
-Puntos: 4
+Puntos: 3
 
 ---
 
