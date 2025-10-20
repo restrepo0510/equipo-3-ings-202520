@@ -1,87 +1,202 @@
-# Carpeta `server`
+# `server` folder
 
-## ¿Qué hace esta carpeta?
+## 📌 What does this folder do?
 
-Esta carpeta contiene el **código BackEnd**, donde se gestiona la lógica del negocio y la conexión con la base de datos.  Asegurando que toda la información fluya correctamente y que las funcionalidades del proyecto trabajen correctamente.
+This folder contains the project's **backend code**, where business logic and database connections are managed. It ensures that all information flows correctly and that the project's features work optimally.
 
-Aquí se implementan las funciones que permiten:  
-- 🔐 El almacenamiento seguro de credenciales y datos de usuarios.  
-- 🗂️ El registro, filtrado y actualización de productos próximos a vencer.  
-- 📊 El cálculo de estadísticas de impacto ambiental y social.  
-- 📡 La comunicación entre el cliente y la base de datos mediante API REST.  
-- 📲 El envío de notificaciones automáticas a usuarios y negocios.  
-- ⚡ La integración con servicios externos como pasarelas de pago y Google Maps.  
+The following functions are implemented here:
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+* 🔐 Secure storage of user credentials and data
+* 🗂️ Registration, filtering, and updating of products nearing expiration
+* 📊 Calculation of environmental and social impact statistics
+* 📡 Communication between the client and the database via REST API
+* 📲 Sending automatic notifications to users and businesses
+* ⚡ Integration with external services such as payment gateways and Google Maps
 
-## Project setup
+The code is developed with **NestJS**, a progressive Node.js framework that uses TypeScript by default, ensuring robust, scalable, and maintainable code.
 
+---
+
+## ⚙️ Installation and configuration
+
+### Prerequisites
+- **Node.js**: ≥ 18
+- **npm**: ≥ 9
+- **Database**: PostgreSQL
+
+### Initial configuration
+
+1. **Clone the repository** (if you don't already have it):
 ```bash
-$ npm install
+git clone https://github.com/restrepo0510/equipo-3-ings-202520.git
 ```
 
-## Compile and run the project
-
+2. **Enter the server folder**:
 ```bash
-# development
-$ npm run start
+cd server
+```
 
-# watch mode
+3. **Install dependencies**:
+```bash
+npm install
+```
+
+4. **Configure environment variables**:
+Create a `.env` file in the server root with:
+```env
+DATABASE_URL=your_postgresql_url
+JWT_SECRET=your_jwt_secret_key
+PORT=3000
+NODE_ENV=development
+```
+
+---
+
+## 🚀 Running the project
+
+### Development
+```bash
+# Development mode with hot-reload
 $ npm run start:dev
+```
 
-# production mode
+### Production
+```bash
+# Compilation for production
+$ npm run build
+
+# Execution in production
 $ npm run start:prod
 ```
 
-## Run tests
+---
+
+## 🧪 Testing
 
 ```bash
-# unit tests
+# Unit tests
 $ npm run test
 
-# e2e tests
+# End-to-end tests
 $ npm run test:e2e
 
-# test coverage
+# Test coverage
 $ npm run test:cov
 ```
 
-## Deployment
+---
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+## 🏗️ Project structure
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+```
+server/
+├── src/
+│   ├── auth/          # Authentication and authorization
+│   ├── users/         # User management
+│   ├── restaurants/   # Restaurant management
+│   ├── products/      # Product management
+│   ├── common/        # Shared utilities
+│   └── main.ts        # Entry point
+├── test/              # Testing files
+├── package.json
+└── tsconfig.json
+```
 
+---
+
+## 📚 Technical features
+
+* **Framework**: NestJS with TypeScript
+* **Database**: PostgreSQL with TypeORM
+* **Authentication**: JWT (JSON Web Tokens)
+* **Validation**: Class-validator and class-transformer
+* **Documentation**: Integrated OpenAPI (Swagger)
+* **Testing**: Jest for unit and integration testing
+
+---
+
+## 🔌 Main API Endpoints
+
+### Authentication
+- `POST /auth/register` - User registration
+- `POST /auth/login` - Login
+
+### Users
+- `GET /users` - List users
+- `GET /users/:id` - Get specific user
+- `PUT /users/:id` - Update user
+
+### Restaurants
+- `GET /restaurants` - List restaurants
+- `GET /restaurants/nearby` - Nearby restaurants
+- `POST /restaurants` - Create restaurant
+
+### Products
+- `GET /products` - List products
+- `GET /products/restaurant/:id` - Products by restaurant
+- `POST /products` - Create product
+
+---
+
+## 🛠️ Development
+
+### Generate a new module
+```bash
+nest generate module module-name
+nest generate service module-name
+nest generate controller module-name
+```
+
+### Database migrations
+```bash
+# Generate migration
+npm run typeorm migration:generate -- -n MigrationName
+
+# Run migrations
+npm run typeorm migration:run
+
+# Revert migration
+npm run typeorm migration:revert
+```
+
+---
+
+## 📦 Deployment
+
+### Option 1: Mau (Official NestJS platform)
 ```bash
 $ npm install -g @nestjs/mau
 $ mau deploy
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+### Option 2: Docker
+```dockerfile
+FROM node:18-alpine
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+RUN npm run build
+EXPOSE 3000
+CMD [“npm”, ‘run’, “start:prod”]
+```
 
-## Resources
+---
 
-Check out a few resources that may come in handy when working with NestJS:
+## 📖 Useful resources
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+* [NestJS documentation](https://docs.nestjs.com)
+* [TypeORM documentation](https://typeorm.io)
+* [PostgreSQL Documentation](https://www.postgresql.org/docs/)
+* [JWT Official](https://jwt.io)
 
-## Support
+---
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+## 🤝 Support
 
-## Stay in touch
+- **Documentation**: [NestJS Docs](https://docs.nestjs.com)
+- **Community**: [NestJS Discord](https://discord.gg/G7Qnnhy)
+- **Courses**: [NestJS Courses](https://courses.nestjs.com/)
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
 
-## License
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
