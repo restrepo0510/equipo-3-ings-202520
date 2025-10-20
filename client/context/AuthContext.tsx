@@ -1,25 +1,19 @@
 // context/AuthContext.tsx
-import { router } from 'expo-router';
+
 import React, { createContext, useState, useEffect, useContext } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { API_URL } from '@/config/api';
+import { router } from 'expo-router';
+import { authService } from '@/services/authService';
+import { storageService } from '@/services/storageService';
 import {
   User,
   UserRole,
-  AuthResponse,
   LoginCredentials,
   RegisterData,
+  RegistrationData,
   AuthContextValue,
   AuthState,
-} from '../types/auth.types';
-
-/**
- * Storage keys for AsyncStorage
- */
-const STORAGE_KEYS = {
-  TOKEN: '@auth_token',
-  USER: '@auth_user',
-} as const;
+  isBusinessUser,
+} from '@/types/auth.types';
 
 /**
  * Auth Context
@@ -67,21 +61,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, []);
 
   /**
-   * Loads authentication data from AsyncStorage on app start
+   * Loads authentication data from storage on app start
    */
-  const loadStoredAuth = async () => {
+  const loadStoredAuth = async (): Promise<void> => {
     try {
-      const [storedToken, storedUser] = await Promise.all([
-        AsyncStorage.getItem(STORAGE_KEYS.TOKEN),
-        AsyncStorage.getItem(STORAGE_KEYS.USER),
-      ]);
+      const authData = await storageService.getAuthData();
 
-      if (storedToken && storedUser) {
-        const user: User = JSON.parse(storedUser);
-        
+      if (authData) {
         setState({
-          user,
-          token: storedToken,
+          user: authData.user,
+          token: authData.token,
           isLoading: false,
           isAuthenticated: true,
         });
@@ -102,7 +91,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   /**
    * Logs in a user with email and password
-   * Stores token and user data in AsyncStorage
+   * Redirects based on user role
    * 
    * @throws Error if login fails
    */
@@ -110,42 +99,28 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       setState(prev => ({ ...prev, isLoading: true }));
 
-      const response = await fetch(`${API_URL}/auth/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: JSON.stringify(credentials),
-      });
-
-      const data: AuthResponse = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Login failed');
-      }
+      // Call authentication service
+      const response = await authService.login(credentials);
 
       // Store auth data
-      await Promise.all([
-        AsyncStorage.setItem(STORAGE_KEYS.TOKEN, data.accessToken),
-        AsyncStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(data.user)),
-      ]);
+      await storageService.saveAuthData(response.accessToken, response.user);
 
+      // Update state
       setState({
-        user: data.user,
-        token: data.accessToken,
+        user: response.user,
+        token: response.accessToken,
         isLoading: false,
         isAuthenticated: true,
       });
 
-// ✅ Redirect based on user role
-if (data.user.role === UserRole.BUSINESS) {
-  router.replace('/(tabs)/BusinessProfileScreen');
-} else {
-  router.replace('/(tabs)/HomeScreen');
-}
+      // Redirect based on user role
+      if (isBusinessUser(response.user)) {
+        router.replace('/(tabs)/BusinessProfileScreen');
+      } else {
+        router.replace('/(tabs)/HomeScreen');
+      }
 
-console.log('✅ Login successful:', data.user.email, 'Role:', data.user.role);
+      console.log('✅ Login successful:', response.user.email, 'Role:', response.user.role);
     } catch (error) {
       setState(prev => ({ ...prev, isLoading: false }));
       throw error;
@@ -162,35 +137,28 @@ console.log('✅ Login successful:', data.user.email, 'Role:', data.user.role);
     try {
       setState(prev => ({ ...prev, isLoading: true }));
 
-      const response = await fetch(`${API_URL}/auth/register`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
-
-      const responseData: AuthResponse = await response.json();
-
-      if (!response.ok) {
-        throw new Error(responseData.message || 'Registration failed');
-      }
+      // Call authentication service (handles role normalization)
+      const response = await authService.register(data);
 
       // Store auth data
-      await Promise.all([
-        AsyncStorage.setItem(STORAGE_KEYS.TOKEN, responseData.accessToken),
-        AsyncStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(responseData.user)),
-      ]);
+      await storageService.saveAuthData(response.accessToken, response.user);
 
+      // Update state
       setState({
-        user: responseData.user,
-        token: responseData.accessToken,
+        user: response.user,
+        token: response.accessToken,
         isLoading: false,
         isAuthenticated: true,
       });
 
-      console.log('✅ Registration successful:', responseData.user.email);
+      // Redirect based on user role
+      if (isBusinessUser(response.user)) {
+        router.replace('/(tabs)/BusinessProfileScreen');
+      } else {
+        router.replace('/(tabs)/HomeScreen');
+      }
+
+      console.log('✅ Registration successful:', response.user.email);
     } catch (error) {
       setState(prev => ({ ...prev, isLoading: false }));
       throw error;
@@ -199,22 +167,23 @@ console.log('✅ Login successful:', data.user.email, 'Role:', data.user.role);
 
   /**
    * Logs out the current user
-   * Clears all stored authentication data
+   * Clears all stored authentication data and redirects to login
    */
   const logout = async (): Promise<void> => {
     try {
       // Clear stored data
-      await Promise.all([
-        AsyncStorage.removeItem(STORAGE_KEYS.TOKEN),
-        AsyncStorage.removeItem(STORAGE_KEYS.USER),
-      ]);
+      await storageService.clearAuthData();
 
+      // Update state
       setState({
         user: null,
         token: null,
         isLoading: false,
         isAuthenticated: false,
       });
+
+      // Redirect to login
+      router.replace('/(tabs)/LoginScreen');
 
       console.log('✅ Logout successful');
     } catch (error) {
@@ -229,7 +198,7 @@ console.log('✅ Login successful:', data.user.email, 'Role:', data.user.role);
    */
   const updateUser = async (user: User): Promise<void> => {
     try {
-      await AsyncStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
+      await storageService.updateUserData(user);
       
       setState(prev => ({
         ...prev,

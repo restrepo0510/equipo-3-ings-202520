@@ -70,7 +70,7 @@ class RestaurantService {
    */
   async getNearby(params: NearbyParams): Promise<Restaurant[]> {
     try {
-      const { latitude, longitude, radius = 20, limit = 20 } = params;
+      const { latitude, longitude, radius = 20, limit = 30 } = params;
 
       const queryParams = new URLSearchParams({
         latitude: latitude.toString(),
