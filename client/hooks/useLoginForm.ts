@@ -70,42 +70,45 @@ export const useLoginForm = (): UseLoginFormReturn => {
     }
   }, [errors]);
 
-  /**
-   * Validates and submits the login form
-   */
-  const handleSubmit = useCallback(async () => {
-    // Validate form data
-    const validationErrors = validateLoginForm(formData);
+ /**
+ * Validates and submits the login form
+ */
+const handleSubmit = useCallback(async () => {
+  // Validate form data
+  const validationErrors = validateLoginForm(formData);
+  
+  if (!isFormValid(validationErrors)) {
+    setErrors(validationErrors);
+    Alert.alert(
+      'Campos incompletos', 
+      'Por favor rellena todos los campos antes de enviar'
+    );
+    return;
+  }
+
+  try {
+    setIsSubmitting(true);
     
-    if (!isFormValid(validationErrors)) {
-      setErrors(validationErrors);
-      Alert.alert('Validation Error', ERROR_MESSAGES.VALIDATION_ERROR);
-      return;
-    }
+    // Call authentication service
+    await login({
+      email: formData.email.trim(),
+      password: formData.password,
+    });
 
-    try {
-      setIsSubmitting(true);
-      
-      // Call authentication service
-      await login({
-        email: formData.email.trim(),
-        password: formData.password,
-      });
-
-      console.log('✅ Login successful');
-      // Navigation is handled by AuthContext
-    } catch (error: any) {
-      console.error('❌ Login error:', error);
-      
-      Alert.alert(
-        'Login Failed',
-        error.message || ERROR_MESSAGES.LOGIN_FAILED
-      );
-    } finally {
-      setIsSubmitting(false);
-    }
-  }, [formData, login]);
-
+    console.log('✅ Login successful');
+    // Navigation is handled by AuthContext
+  } catch (error: any) {
+    console.error('❌ Login error:', error);
+    
+    // Show user-friendly error message
+    Alert.alert(
+      'Error al iniciar sesión',
+      error.message || ERROR_MESSAGES.LOGIN_FAILED
+    );
+  } finally {
+    setIsSubmitting(false);
+  }
+}, [formData, login]);
   /**
    * Resets form to initial state
    */

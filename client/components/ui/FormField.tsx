@@ -1,22 +1,35 @@
 // components/ui/FormField.tsx
+/**
+ * FormField Component
+ * 
+ * Reusable text input field with label and error message
+ * Uses theme colors for consistent styling across auth screens
+ */
 
 import React from 'react';
-import { View, Text, TextInput, StyleSheet, TextInputProps } from 'react-native';
+import {
+  View,
+  Text,
+  TextInput,
+  StyleSheet,
+  TextInputProps,
+} from 'react-native';
+import { COLORS, TYPOGRAPHY, SPACING, RADIUS } from '@/styles/authTheme';
 
 /**
- * Props for FormField component
+ * FormField Props
  */
 export interface FormFieldProps extends Omit<TextInputProps, 'style'> {
-  /** Field label */
+  /** Field label displayed above input */
   label: string;
-  /** Current value */
+  /** Current input value */
   value: string;
-  /** Error message to display */
+  /** Error message to display below input */
   error?: string;
   /** Placeholder text */
   placeholder?: string;
-  /** Change handler */
-  onChangeText: (value: string) => void;
+  /** Callback when text changes */
+  onChangeText: (text: string) => void;
   /** Whether field is disabled */
   disabled?: boolean;
   /** Accessibility hint - OPCIONAL */
@@ -26,7 +39,8 @@ export interface FormFieldProps extends Omit<TextInputProps, 'style'> {
 /**
  * FormField Component
  * 
- * Reusable form input field with label and error message
+ * Renders a labeled text input with optional error message
+ * Automatically adapts styling for auth screens (light text on dark background)
  * 
  * @example
  * ```tsx
@@ -36,6 +50,7 @@ export interface FormFieldProps extends Omit<TextInputProps, 'style'> {
  *   error={errors.email}
  *   placeholder="you@example.com"
  *   onChangeText={setEmail}
+ *   keyboardType="email-address"
  * />
  * ```
  */
@@ -47,14 +62,14 @@ export const FormField: React.FC<FormFieldProps> = ({
   onChangeText,
   disabled = false,
   accessibilityHint,
-  ...otherProps
+  ...textInputProps
 }) => {
   return (
     <View style={styles.container}>
       {/* Label */}
       <Text style={styles.label}>{label}</Text>
 
-      {/* Input */}
+      {/* Text Input */}
       <TextInput
         style={[
           styles.input,
@@ -65,47 +80,68 @@ export const FormField: React.FC<FormFieldProps> = ({
         placeholder={placeholder}
         onChangeText={onChangeText}
         editable={!disabled}
+        placeholderTextColor={COLORS.placeholder}
         accessibilityHint={accessibilityHint}
-        {...otherProps}
+        accessibilityRole="text"
+        {...textInputProps}
       />
 
-      {/* Error message */}
-      {error && <Text style={styles.errorText}>{error}</Text>}
+      {/* Error Message */}
+      {error && (
+        <Text style={styles.errorText} accessibilityRole="alert">
+          {error}
+        </Text>
+      )}
     </View>
   );
 };
 
+/**
+ * Component Styles
+ * Uses theme tokens for consistency
+ */
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 16,
+    width: '100%',
+    marginBottom: SPACING.md,
   },
+  
   label: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#2C3E50',
-    marginBottom: 8,
+    color: COLORS.textLight, 
+    fontSize: TYPOGRAPHY.label.fontSize,
+    
+    fontWeight: TYPOGRAPHY.label.fontWeight,
+    marginLeft: SPACING.sm,
+    marginBottom: SPACING.xs,
   },
+  
   input: {
-    backgroundColor: '#F8F9FA',
+    height: 42,
+    backgroundColor: COLORS.white,
+    borderRadius: RADIUS.xl,
+    paddingHorizontal: SPACING.md,
+    color: COLORS.text,
+    fontSize: TYPOGRAPHY.body.fontSize,
     borderWidth: 1,
-    borderColor: '#E8E8E8',
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    fontSize: 16,
-    color: '#2C3E50',
+    borderColor: COLORS.transparent,
+    width: '100%',
   },
+  
   inputError: {
-    borderColor: '#E74C3C',
-    backgroundColor: '#FFEBEE',
+    borderColor: COLORS.error,
+    borderWidth: 2,
   },
+  
   inputDisabled: {
-    backgroundColor: '#ECEFF1',
-    color: '#95A5A6',
+    backgroundColor: '#f0f0f0',
+    opacity: 0.6,
   },
+  
   errorText: {
-    fontSize: 12,
-    color: '#E74C3C',
-    marginTop: 4,
+    color: COLORS.error,
+    fontSize: TYPOGRAPHY.small.fontSize,
+    marginTop: SPACING.xs,
+    marginLeft: SPACING.sm,
+    fontWeight: '500',
   },
 });

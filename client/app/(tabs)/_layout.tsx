@@ -41,64 +41,49 @@ export default function TabLayout() {
         }}
       />
 
-      {/* Protected Screens - Only when authenticated */}
-      {isAuthenticated && (
-        <Stack.Screen 
-          name="HomeScreen" 
-          options={{
-            animation: 'fade',
-          }}
-        />
-      )}
-      {isAuthenticated && (
-        <Stack.Screen 
-          name="MapScreen" 
-          options={{
-            animation: 'slide_from_right',
-          }}
-        />
-      )}
-      {isAuthenticated && (
-        <Stack.Screen 
-          name="FavoritesScreen" 
-          options={{
-            animation: 'slide_from_right',
-          }}
-        />
-      )}
-      {isAuthenticated && (
-        <Stack.Screen 
-          name="ProfileScreen" 
-          options={{
-            animation: 'slide_from_right',
-          }}
-        />
-      )}
-      {isAuthenticated && (
-        <Stack.Screen 
-          name="EditProfileScreen" 
-          options={{
-            animation: 'slide_from_bottom',
-          }}
-        />
-      )}
-      {isAuthenticated && (
-        <Stack.Screen 
-          name="ProductsScreen" 
-          options={{
-            animation: 'slide_from_right',
-          }}
-        />
-      )}
-      {isAuthenticated && (
-        <Stack.Screen 
-          name="OrdersScreen" 
-          options={{
-            animation: 'slide_from_right',
-          }}
-        />
-      )}
-      
+      {/* Protected Screens - Always declared but guarded by navigation */}
+      <Stack.Screen 
+        name="HomeScreen" 
+        options={{
+          animation: 'fade',
+        }}
+      />
+      <Stack.Screen 
+        name="MapScreen" 
+        options={{
+          animation: 'slide_from_right',
+        }}
+      />
+      <Stack.Screen 
+        name="FavoritesScreen" 
+        options={{
+          animation: 'slide_from_right',
+        }}
+      />
+      <Stack.Screen 
+        name="ProfileScreen" 
+        options={{
+          animation: 'slide_from_right',
+        }}
+      />
+      <Stack.Screen 
+        name="EditProfileScreen" 
+        options={{
+          animation: 'slide_from_bottom',
+        }}
+      />
+      <Stack.Screen 
+        name="ProductsScreen" 
+        options={{
+          animation: 'slide_from_right',
+        }}
+      />
+      <Stack.Screen 
+        name="OrdersScreen" 
+        options={{
+          animation: 'slide_from_right',
+        }}
+      />
     </Stack>
   );
 }

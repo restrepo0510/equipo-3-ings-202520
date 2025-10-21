@@ -6,15 +6,8 @@
  */
 
 import { API_URL } from '@/config/api';
-import { 
-  LoginCredentials, 
-  RegisterData,
-  RegistrationData, 
-  AuthResponse, 
-  ApiError,
-  UserRole 
-} from '@/types/auth.types';
-import { API_ENDPOINTS, ERROR_MESSAGES } from '@/constants/auth.constants';
+import { LoginCredentials, RegistrationData, AuthResponse, ApiError } from '../types/auth.types';
+import { API_ENDPOINTS, ERROR_MESSAGES } from '../constants/auth.constants';
 
 /**
  * HTTP request configuration
@@ -35,16 +28,61 @@ const createApiError = (message: string, statusCode?: number): ApiError => ({
 });
 
 /**
+ * Maps backend error messages to user-friendly messages
+ */
+const mapBackendError = (backendMessage: string, statusCode: number): string => {
+  const lowerMessage = backendMessage.toLowerCase();
+  
+  // Login errors
+  if (lowerMessage.includes('user not found') || lowerMessage.includes('no user')) {
+    return ERROR_MESSAGES.USER_NOT_FOUND;
+  }
+  if (lowerMessage.includes('invalid credentials') || lowerMessage.includes('incorrect password')) {
+    return ERROR_MESSAGES.INVALID_CREDENTIALS;
+  }
+  if (lowerMessage.includes('wrong password')) {
+    return ERROR_MESSAGES.WRONG_PASSWORD;
+  }
+  
+  // Registration errors
+  if (lowerMessage.includes('email already') || lowerMessage.includes('already registered')) {
+    return ERROR_MESSAGES.EMAIL_ALREADY_EXISTS;
+  }
+  if (lowerMessage.includes('validation') || lowerMessage.includes('required')) {
+    return ERROR_MESSAGES.VALIDATION_ERROR;
+  }
+  
+  // HTTP status codes
+  if (statusCode === 401) {
+    return ERROR_MESSAGES.INVALID_CREDENTIALS;
+  }
+  if (statusCode === 404) {
+    return ERROR_MESSAGES.USER_NOT_FOUND;
+  }
+  if (statusCode === 409) {
+    return ERROR_MESSAGES.EMAIL_ALREADY_EXISTS;
+  }
+  if (statusCode >= 500) {
+    return ERROR_MESSAGES.SERVER_ERROR;
+  }
+  
+  // Default: return original message if we can't map it
+  return backendMessage;
+};
+
+/**
  * Handles API response and errors
  */
 const handleApiResponse = async <T>(response: Response): Promise<T> => {
   const data = await response.json();
 
   if (!response.ok) {
-    throw createApiError(
+    const userFriendlyMessage = mapBackendError(
       data.message || ERROR_MESSAGES.SERVER_ERROR,
       response.status
     );
+    
+    throw createApiError(userFriendlyMessage, response.status);
   }
 
   return data;
@@ -67,7 +105,7 @@ class AuthService {
    * 
    * @param credentials - User login credentials
    * @returns Promise resolving to authentication response
-   * @throws ApiError if authentication fails
+   * @throws ApiError with user-friendly message if authentication fails
    */
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
     try {
@@ -79,44 +117,55 @@ class AuthService {
 
       return await handleApiResponse<AuthResponse>(response);
     } catch (error) {
+      // If it's already an ApiError, re-throw it
+      if ('statusCode' in (error as any)) {
+        throw error;
+      }
+      
+      // Network or other errors
+      if (error instanceof TypeError) {
+        throw createApiError(ERROR_MESSAGES.NETWORK_ERROR);
+      }
+      
       if (error instanceof Error) {
         throw createApiError(error.message || ERROR_MESSAGES.LOGIN_FAILED);
       }
+      
       throw createApiError(ERROR_MESSAGES.NETWORK_ERROR);
     }
   }
 
   /**
    * Registers a new user account
-   * Accepts both RegisterData and RegistrationData types
    * 
    * @param data - User registration data
    * @returns Promise resolving to authentication response
-   * @throws ApiError if registration fails
+   * @throws ApiError with user-friendly message if registration fails
    */
-  async register(data: RegisterData | RegistrationData): Promise<AuthResponse> {
+  async register(data: RegistrationData): Promise<AuthResponse> {
     try {
-      // Normalize data to ensure role is always set
-      const registrationData: RegistrationData = {
-        name: data.name,
-        email: data.email,
-        phone: data.phone,
-        password: data.password,
-        role: 'role' in data && data.role ? data.role : UserRole.CUSTOMER,
-        address: data.address,
-      };
-
       const response = await fetch(`${this.baseUrl}${API_ENDPOINTS.REGISTER}`, {
         method: 'POST',
         ...REQUEST_CONFIG,
-        body: JSON.stringify(registrationData),
+        body: JSON.stringify(data),
       });
 
       return await handleApiResponse<AuthResponse>(response);
     } catch (error) {
+      // If it's already an ApiError, re-throw it
+      if ('statusCode' in (error as any)) {
+        throw error;
+      }
+      
+      // Network or other errors
+      if (error instanceof TypeError) {
+        throw createApiError(ERROR_MESSAGES.NETWORK_ERROR);
+      }
+      
       if (error instanceof Error) {
         throw createApiError(error.message || ERROR_MESSAGES.REGISTRATION_FAILED);
       }
+      
       throw createApiError(ERROR_MESSAGES.NETWORK_ERROR);
     }
   }

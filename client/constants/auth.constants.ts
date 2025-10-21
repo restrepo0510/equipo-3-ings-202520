@@ -46,30 +46,36 @@ export const API_ENDPOINTS = {
  */
 export const ERROR_MESSAGES = {
   // Required fields
-  EMAIL_REQUIRED: 'Email is required',
-  PASSWORD_REQUIRED: 'Password is required',
-  NAME_REQUIRED: 'Name is required',
-  PHONE_REQUIRED: 'Phone number is required',
-  ADDRESS_REQUIRED: 'Business address is required',
+  EMAIL_REQUIRED: 'El correo electrónico es obligatorio',
+  PASSWORD_REQUIRED: 'La contraseña es obligatoria',
+  NAME_REQUIRED: 'El nombre es obligatorio',
+  PHONE_REQUIRED: 'El número de teléfono es obligatorio',
+  ADDRESS_REQUIRED: 'La dirección del negocio es obligatoria',
   
   // Format validation
-  INVALID_EMAIL: 'Please enter a valid email address',
-  INVALID_PHONE: 'Please enter a valid phone number',
+  INVALID_EMAIL: 'Por favor ingresa un correo electrónico válido',
+  INVALID_PHONE: 'Por favor ingresa un número de teléfono válido',
   
   // Length validation
-  PASSWORD_TOO_SHORT: `Password must be at least ${VALIDATION_RULES.MIN_PASSWORD_LENGTH} characters`,
-  NAME_TOO_SHORT: `Name must be at least ${VALIDATION_RULES.MIN_NAME_LENGTH} characters`,
-  ADDRESS_TOO_SHORT: 'Please enter a complete address',
+  PASSWORD_TOO_SHORT: `La contraseña debe tener al menos ${VALIDATION_RULES.MIN_PASSWORD_LENGTH} caracteres`,
+  NAME_TOO_SHORT: `El nombre debe tener al menos ${VALIDATION_RULES.MIN_NAME_LENGTH} caracteres`,
+  ADDRESS_TOO_SHORT: 'Por favor ingresa una dirección completa',
   
-  // Authentication errors
-  LOGIN_FAILED: 'Unable to connect to server',
-  REGISTRATION_FAILED: 'Unable to complete registration',
-  VALIDATION_ERROR: 'Please fix the errors before submitting',
-  UNAUTHORIZED: 'Invalid credentials',
+  // Authentication errors - MÁS ESPECÍFICOS
+  LOGIN_FAILED: 'No se pudo iniciar sesión',
+  INVALID_CREDENTIALS: 'Correo o contraseña incorrectos',
+  USER_NOT_FOUND: 'No existe una cuenta con este correo',
+  WRONG_PASSWORD: 'La contraseña es incorrecta',
+  EMAIL_ALREADY_EXISTS: 'Ya existe una cuenta con este correo',
+  REGISTRATION_FAILED: 'No se pudo completar el registro',
+  VALIDATION_ERROR: 'Por favor completa todos los campos correctamente',
+  INCOMPLETE_FORM: 'Por favor rellena todos los campos antes de enviar',
+  UNAUTHORIZED: 'Credenciales inválidas',
   
   // Network errors
-  NETWORK_ERROR: 'Network connection failed',
-  SERVER_ERROR: 'Server error occurred',
+  NETWORK_ERROR: 'Error de conexión. Verifica tu internet',
+  SERVER_ERROR: 'Error del servidor. Intenta más tarde',
+  TIMEOUT_ERROR: 'La solicitud tardó demasiado. Intenta de nuevo',
 } as const;
 
 /**

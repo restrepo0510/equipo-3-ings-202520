@@ -87,51 +87,55 @@ export const useRegistrationForm = (): UseRegistrationFormReturn => {
     }
   }, [errors.address]);
 
-  /**
-   * Validates and submits the registration form
-   */
-  const handleSubmit = useCallback(async () => {
-    // Validate form data
-    const validationErrors = validateRegistrationForm(formData);
+ /**
+ * Validates and submits the registration form
+ */
+const handleSubmit = useCallback(async () => {
+  // Validate form data
+  const validationErrors = validateRegistrationForm(formData);
+  
+  if (!isFormValid(validationErrors)) {
+    setErrors(validationErrors);
+    Alert.alert(
+      'Campos incompletos',
+      'Por favor rellena todos los campos correctamente antes de enviar'
+    );
+    return;
+  }
+
+  try {
+    setIsSubmitting(true);
     
-    if (!isFormValid(validationErrors)) {
-      setErrors(validationErrors);
-      Alert.alert('Validation Error', ERROR_MESSAGES.VALIDATION_ERROR);
-      return;
-    }
+    // Prepare registration data
+    const registrationData: RegistrationData = {
+      name: formData.name.trim(),
+      email: formData.email.trim(),
+      phone: formData.phone.trim(),
+      password: formData.password,
+      role: formData.role,
+      // Only include address for business accounts
+      address: formData.role === UserRole.BUSINESS 
+        ? formData.address?.trim() 
+        : undefined,
+    };
 
-    try {
-      setIsSubmitting(true);
-      
-      // Prepare registration data
-      const registrationData: RegistrationData = {
-        name: formData.name.trim(),
-        email: formData.email.trim(),
-        phone: formData.phone.trim(),
-        password: formData.password,
-        role: formData.role,
-        // Only include address for business accounts
-        address: formData.role === UserRole.BUSINESS 
-          ? formData.address?.trim() 
-          : undefined,
-      };
+    // Call authentication service
+    await register(registrationData);
 
-      // Call authentication service
-      await register(registrationData);
-
-      console.log('✅ Registration successful');
-      // Navigation is handled by AuthContext
-    } catch (error: any) {
-      console.error('❌ Registration error:', error);
-      
-      Alert.alert(
-        'Registration Failed',
-        error.message || ERROR_MESSAGES.REGISTRATION_FAILED
-      );
-    } finally {
-      setIsSubmitting(false);
-    }
-  }, [formData, register]);
+    console.log('✅ Registration successful');
+    // Navigation is handled by AuthContext
+  } catch (error: any) {
+    console.error('❌ Registration error:', error);
+    
+    // Show user-friendly error message
+    Alert.alert(
+      'Error en el registro',
+      error.message || ERROR_MESSAGES.REGISTRATION_FAILED
+    );
+  } finally {
+    setIsSubmitting(false);
+  }
+}, [formData, register]);
 
   /**
    * Resets form to initial state
