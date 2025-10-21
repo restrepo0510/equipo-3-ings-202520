@@ -26,13 +26,13 @@ export const COLORS = {
   
   // Text Colors
   text: '#222222',
-  textLight: '#E8F5E9', // ✅ Nuevo: Color claro para labels en fondo oscuro
+  textLight: '#E8F5E9', 
   textSecondary: '#7F8C8D',
   placeholder: '#999999',
   placeholderLight: '#bbbbbb',
   
   // Status Colors
-  error: '#ff6b6b',
+  error: '#e8c423ff',
   success: '#27AE60',
   warning: '#FDFFD1',
   warningText: '#6b6b3f',
