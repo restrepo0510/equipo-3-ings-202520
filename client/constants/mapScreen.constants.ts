@@ -8,7 +8,7 @@
 /**
  * Default search radius for nearby restaurants (in kilometers)
  */
-export const DEFAULT_SEARCH_RADIUS_KM = 20;
+export const DEFAULT_SEARCH_RADIUS_KM = 30;
 
 /**
  * Map region delta values

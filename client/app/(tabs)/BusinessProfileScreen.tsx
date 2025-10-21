@@ -87,6 +87,13 @@ export default function BusinessProfileScreen(): React.ReactElement {
   };
 
   /**
+   * Navigate to edit business profile screen
+   */
+  const handleEditProfile = (): void => {
+    router.push("/(tabs)/EditBusinessProfileScreen");
+  };
+
+  /**
    * Navigate to edit product screen
    */
   const handleEditProduct = (product: Product): void => {
@@ -210,7 +217,13 @@ export default function BusinessProfileScreen(): React.ReactElement {
             <View style={styles.companyImage}>
               <Text style={styles.companyEmoji}>😊</Text>
             </View>
-            <TouchableOpacity style={styles.editCompanyButton}>
+            {/* ✅ BOTÓN DE EDITAR PERFIL ENLAZADO */}
+            <TouchableOpacity 
+              style={styles.editCompanyButton}
+              onPress={handleEditProfile}
+              accessibilityLabel="Edit business profile"
+              accessibilityHint="Tap to edit your business information"
+            >
               <Ionicons name="pencil" size={16} color="#FFF" />
             </TouchableOpacity>
           </View>
@@ -309,4 +322,4 @@ export default function BusinessProfileScreen(): React.ReactElement {
       <BottomNavigation items={navItems} />
     </View>
   );
-}
+} 

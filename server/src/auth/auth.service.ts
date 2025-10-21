@@ -252,47 +252,94 @@ export class AuthService {
   }
 
   /**
+   * Normaliza y limpia direcciones colombianas
+   */
+  private normalizeAddress(address: string): string {
+    let normalized = address.trim();
+    
+    // Remover espacios extras alrededor de caracteres especiales
+    normalized = normalized.replace(/\s*#\s*/g, ' #').replace(/\s*-\s*/g, '-');
+    
+    // Convertir a minúsculas para comparaciones
+    const lowerAddress = normalized.toLowerCase();
+    
+    // Detectar si ya tiene ciudad
+    const hasBello = lowerAddress.includes('bello');
+    const hasEnvigado = lowerAddress.includes('envigado');
+    const hasItagui = lowerAddress.includes('itagüí') || lowerAddress.includes('itagui');
+    const hasSabaneta = lowerAddress.includes('sabaneta');
+    const hasMedellin = lowerAddress.includes('medellín') || lowerAddress.includes('medellin');
+    
+    // Si tiene municipio del área metropolitana pero no Medellín completo
+    if ((hasBello || hasEnvigado || hasItagui || hasSabaneta) && !lowerAddress.includes('colombia')) {
+      // Remover duplicados de "Antioquia"
+      normalized = normalized.replace(/,?\s*(antioquia|Antioquia)\s*,?\s*/gi, ', ');
+      // Limpiar comas duplicadas
+      normalized = normalized.replace(/,\s*,/g, ',').trim();
+      return `${normalized}, Antioquia, Colombia`;
+    }
+    
+    // Si solo tiene Medellín
+    if (hasMedellin && !lowerAddress.includes('colombia')) {
+      normalized = normalized.replace(/,?\s*(antioquia|Antioquia)\s*,?\s*/gi, ', ');
+      normalized = normalized.replace(/,\s*,/g, ',').trim();
+      return `${normalized}, Antioquia, Colombia`;
+    }
+    
+    // Si no tiene ninguna ciudad, agregar Medellín por defecto
+    if (!hasMedellin && !hasBello && !hasEnvigado && !hasItagui && !hasSabaneta) {
+      return `${normalized}, Medellín, Antioquia, Colombia`;
+    }
+    
+    // Si ya está completo, solo limpiar
+    normalized = normalized.replace(/,?\s*(antioquia|Antioquia)\s*,?\s*(antioquia|Antioquia)\s*,?/gi, ', Antioquia, ');
+    normalized = normalized.replace(/,\s*,/g, ',').trim();
+    
+    return normalized;
+  }
+
+  /**
    * Geocodes an address to latitude and longitude using Nominatim (OpenStreetMap)
    * Optimized for Medellín, Colombia addresses
    */
   private async geocodeAddress(address: string): Promise<Coordinates> {
     try {
-      // ✅ Normalizar dirección colombiana
-      let searchAddress = address.trim();
-      
-      // Si no contiene "Medellín" o "Colombia", agregarlos
-      if (!searchAddress.toLowerCase().includes('medellín') && 
-          !searchAddress.toLowerCase().includes('medellin')) {
-        searchAddress = `${searchAddress}, Medellín, Antioquia, Colombia`;
-      } else if (!searchAddress.toLowerCase().includes('colombia')) {
-        searchAddress = `${searchAddress}, Colombia`;
-      }
-
-      console.log(`📍 Geocoding address: ${searchAddress}`);
+      const searchAddress = this.normalizeAddress(address);
+      console.log(`📍 Original: ${address}`);
+      console.log(`📍 Normalized: ${searchAddress}`);
 
       const response = await axios.get('https://nominatim.openstreetmap.org/search', {
         params: {
           q: searchAddress,
           format: 'json',
-          limit: 1,
-          countrycodes: 'co', // Solo Colombia
-          bounded: 1, // Mantener dentro de bounds
-          viewbox: '-75.6500,6.3500,-75.4500,6.1500', // Bounding box de Medellín
+          limit: 3, // ✅ Aumentar a 3 resultados para tener alternativas
+          countrycodes: 'co',
+          addressdetails: 1, // ✅ Obtener detalles de la dirección
         },
         headers: {
           'User-Agent': 'YummiApp/1.0',
         },
-        timeout: 5000,
+        timeout: 8000, // ✅ Aumentar timeout
       });
 
       if (response.data && response.data.length > 0) {
+        // Buscar el mejor resultado (priorizar área metropolitana de Medellín)
+        const bestResult = response.data.find((result: any) => {
+          const displayName = result.display_name.toLowerCase();
+          return displayName.includes('medellín') || 
+                 displayName.includes('bello') || 
+                 displayName.includes('envigado') ||
+                 displayName.includes('itagüí') ||
+                 displayName.includes('sabaneta');
+        }) || response.data[0]; // Si no encuentra, usar el primero
+
         const coordinates: Coordinates = {
-          latitude: parseFloat(response.data[0].lat),
-          longitude: parseFloat(response.data[0].lon),
+          latitude: parseFloat(bestResult.lat),
+          longitude: parseFloat(bestResult.lon),
         };
         
         console.log(`✅ Geocoded successfully: (${coordinates.latitude}, ${coordinates.longitude})`);
-        console.log(`   Display name: ${response.data[0].display_name}`);
+        console.log(`   Location: ${bestResult.display_name}`);
         return coordinates;
       }
 

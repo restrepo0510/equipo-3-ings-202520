@@ -16,7 +16,7 @@ export class NearbyRestaurantsDto {
   @Min(1)
   @Max(50)
   @Type(() => Number)
-  radius?: number = 10; // Radio en kilómetros, default 10km
+  radius?: number = 30; // Radio en kilómetros, default 30km
 
   @IsNumber()
   @IsOptional()

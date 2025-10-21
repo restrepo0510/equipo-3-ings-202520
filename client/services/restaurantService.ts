@@ -37,7 +37,8 @@ class RestaurantService {
       const response = await fetch(`${API_URL}/restaurants`);
       
       if (!response.ok) {
-        throw new Error('Failed to fetch restaurants');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Failed to fetch restaurants');
       }
 
       return await response.json();
@@ -52,15 +53,20 @@ class RestaurantService {
    */
   async getById(restaurantId: string): Promise<Restaurant> {
     try {
+      console.log(`🔍 Fetching restaurant: ${restaurantId}`);
+      
       const response = await fetch(`${API_URL}/restaurants/${restaurantId}`);
       
       if (!response.ok) {
-        throw new Error('Failed to fetch restaurant');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Failed to fetch restaurant');
       }
 
-      return await response.json();
+      const data = await response.json();
+      console.log('✅ Restaurant fetched:', data.name);
+      return data;
     } catch (error) {
-      console.error('Error fetching restaurant:', error);
+      console.error('❌ Error fetching restaurant:', error);
       throw error;
     }
   }
@@ -84,7 +90,8 @@ class RestaurantService {
       );
 
       if (!response.ok) {
-        throw new Error('Failed to fetch nearby restaurants');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Failed to fetch nearby restaurants');
       }
 
       return await response.json();
@@ -99,6 +106,8 @@ class RestaurantService {
    */
   async create(restaurantData: Partial<Restaurant>, token: string): Promise<Restaurant> {
     try {
+      console.log('📝 Creating restaurant:', restaurantData);
+      
       const response = await fetch(`${API_URL}/restaurants`, {
         method: 'POST',
         headers: {
@@ -109,18 +118,22 @@ class RestaurantService {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to create restaurant');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Failed to create restaurant');
       }
 
-      return await response.json();
+      const data = await response.json();
+      console.log('✅ Restaurant created:', data.id);
+      return data;
     } catch (error) {
-      console.error('Error creating restaurant:', error);
+      console.error('❌ Error creating restaurant:', error);
       throw error;
     }
   }
 
   /**
    * Update a restaurant
+   * Uses PUT method to match NestJS controller
    */
   async update(
     restaurantId: string,
@@ -128,8 +141,10 @@ class RestaurantService {
     token: string
   ): Promise<Restaurant> {
     try {
+      console.log(`📝 Updating restaurant: ${restaurantId}`, updateData);
+      
       const response = await fetch(`${API_URL}/restaurants/${restaurantId}`, {
-        method: 'PATCH',
+        method: 'PUT', // ✅ Changed from PATCH to PUT
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
@@ -138,12 +153,24 @@ class RestaurantService {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to update restaurant');
+        const errorText = await response.text();
+        console.error('❌ Server response:', response.status, errorText);
+        
+        let errorData;
+        try {
+          errorData = JSON.parse(errorText);
+        } catch {
+          errorData = { message: errorText || 'Failed to update restaurant' };
+        }
+        
+        throw new Error(errorData.message || `Server error: ${response.status}`);
       }
 
-      return await response.json();
-    } catch (error) {
-      console.error('Error updating restaurant:', error);
+      const data = await response.json();
+      console.log('✅ Restaurant updated:', data.name);
+      return data;
+    } catch (error: any) {
+      console.error('❌ Error updating restaurant:', error.message);
       throw error;
     }
   }
@@ -153,6 +180,8 @@ class RestaurantService {
    */
   async delete(restaurantId: string, token: string): Promise<void> {
     try {
+      console.log(`🗑️ Deleting restaurant: ${restaurantId}`);
+      
       const response = await fetch(`${API_URL}/restaurants/${restaurantId}`, {
         method: 'DELETE',
         headers: {
@@ -161,10 +190,13 @@ class RestaurantService {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to delete restaurant');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Failed to delete restaurant');
       }
+
+      console.log('✅ Restaurant deleted');
     } catch (error) {
-      console.error('Error deleting restaurant:', error);
+      console.error('❌ Error deleting restaurant:', error);
       throw error;
     }
   }
