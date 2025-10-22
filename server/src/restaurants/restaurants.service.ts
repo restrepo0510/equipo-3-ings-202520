@@ -5,24 +5,14 @@ import { Repository } from 'typeorm';
 import { Restaurant } from './restaurant.entity';
 import { CreateRestaurantDto } from './dto/create-restaurant.dto';
 import { NearbyRestaurantsDto } from './dto/nearby-restaurants.dto';
-import axios from 'axios';
 
 export interface RestaurantWithDistance extends Restaurant {
   distance: number;
 }
 
-interface Coordinates {
-  latitude: number;
-  longitude: number;
-}
-
 @Injectable()
 export class RestaurantsService {
   private readonly logger = new Logger(RestaurantsService.name);
-  private readonly DEFAULT_COORDINATES: Coordinates = {
-    latitude: 6.2476,  // Medellín, Colombia
-    longitude: -75.5658,
-  };
 
   constructor(
     @InjectRepository(Restaurant)
@@ -78,6 +68,7 @@ export class RestaurantsService {
           Number(restaurant.longitude),
         );
 
+        // Log each restaurant's distance
         this.logger.debug(
           `   📌 ${restaurant.name}: ${distance.toFixed(2)} km away`,
         );
@@ -135,76 +126,10 @@ export class RestaurantsService {
     return degrees * (Math.PI / 180);
   }
 
-  /**
-   * Geocodes an address using Nominatim (OpenStreetMap)
-   * Optimized for Medellín, Colombia addresses
-   */
-  private async geocodeAddress(address: string): Promise<Coordinates> {
-    try {
-      // ✅ Normalizar dirección colombiana
-      let searchAddress = address.trim();
-      
-      // Si no contiene "Medellín" o "Colombia", agregarlos
-      if (!searchAddress.toLowerCase().includes('medellín') && 
-          !searchAddress.toLowerCase().includes('medellin')) {
-        searchAddress = `${searchAddress}, Medellín, Antioquia, Colombia`;
-      } else if (!searchAddress.toLowerCase().includes('colombia')) {
-        searchAddress = `${searchAddress}, Colombia`;
-      }
-
-      this.logger.log(`📍 Geocoding address: ${searchAddress}`);
-
-      const response = await axios.get('https://nominatim.openstreetmap.org/search', {
-        params: {
-          q: searchAddress,
-          format: 'json',
-          limit: 1,
-          countrycodes: 'co',
-          bounded: 1,
-          viewbox: '-75.6500,6.3500,-75.4500,6.1500', // Bounding box de Medellín
-        },
-        headers: {
-          'User-Agent': 'YummiApp/1.0',
-        },
-        timeout: 5000,
-      });
-
-      if (response.data && response.data.length > 0) {
-        const coordinates: Coordinates = {
-          latitude: parseFloat(response.data[0].lat),
-          longitude: parseFloat(response.data[0].lon),
-        };
-        
-        this.logger.log(`✅ Geocoded: (${coordinates.latitude}, ${coordinates.longitude})`);
-        this.logger.log(`   Display name: ${response.data[0].display_name}`);
-        return coordinates;
-      }
-
-      this.logger.warn('⚠️ No geocoding results, using defaults');
-      return this.DEFAULT_COORDINATES;
-    } catch (error) {
-      this.logger.error(`❌ Geocoding error: ${error.message}`);
-      return this.DEFAULT_COORDINATES;
-    }
-  }
-
-  /**
-   * Update restaurant - Automatically geocodes if address changed
-   */
   async update(
     id: string,
     updateData: Partial<CreateRestaurantDto>,
   ): Promise<Restaurant> {
-    const existingRestaurant = await this.findOne(id);
-
-    // ✅ If address changed, geocode it
-    if (updateData.address && updateData.address !== existingRestaurant.address) {
-      this.logger.log(`🔄 Address changed, geocoding new address...`);
-      const coordinates = await this.geocodeAddress(updateData.address);
-      updateData.latitude = coordinates.latitude;
-      updateData.longitude = coordinates.longitude;
-    }
-
     await this.restaurantRepository.update(id, updateData);
     return this.findOne(id);
   }
@@ -215,4 +140,4 @@ export class RestaurantsService {
       throw new NotFoundException(`Restaurant with ID ${id} not found`);
     }
   }
-} 
+}

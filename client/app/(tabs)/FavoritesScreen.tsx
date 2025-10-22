@@ -3,8 +3,8 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { BottomNavigation } from '../../components/ui/BottomNavigation';
-import { createNavItems } from '../../utils/navigationHelpers';
+import { BottomNavigation } from '@/components/ui/BottomNavigation';
+import { createNavItems } from '@/utils/navigationHelpers';
 
 export default function FavoritesScreen() {
   const router = useRouter();
