@@ -225,7 +225,7 @@ export default function EditProductScreen() {
               style={styles.galleryButton}
               onPress={handlePickImage}
             >
-              <Ionicons name="folder-open" size={24} color="#000" />
+              <Ionicons name="folder-open" size={24} color="#ffffffff" />
             </TouchableOpacity>
           </View>
 

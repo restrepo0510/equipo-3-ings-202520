@@ -72,6 +72,71 @@ export const styles = StyleSheet.create({
     textAlignVertical: "top",
   },
 
+  // Image Picker
+  imagePickerButton: {
+    borderWidth: 3,
+    borderColor: "#000",
+    borderStyle: "dashed",
+    borderRadius: 16,
+    height: 200,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#F9FAFB",
+  },
+  imagePickerText: {
+    marginTop: 10,
+    fontSize: 14,
+    color: "#6B7280",
+    fontWeight: "500",
+  },
+
+  // Image Preview
+  imagePreviewContainer: {
+    position: "relative",
+    width: "100%",
+    height: 200,
+    borderRadius: 16,
+    overflow: "hidden",
+    backgroundColor: "#F3F4F6",
+  },
+  imagePreview: {
+    width: "100%",
+    height: "100%",
+  },
+  removeImageButton: {
+    position: "absolute",
+    top: 10,
+    right: 10,
+    backgroundColor: "#FFF",
+    borderRadius: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.5,
+    elevation: 5,
+  },
+  changeImageButton: {
+    position: "absolute",
+    bottom: 10,
+    right: 10,
+    backgroundColor: "#1B5E20",
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.5,
+    elevation: 5,
+  },
+  changeImageText: {
+    color: "#FFF",
+    fontSize: 14,
+    fontWeight: "600",
+    marginLeft: 6,
+  },
   // Row Layout
   row: {
     flexDirection: "row",
