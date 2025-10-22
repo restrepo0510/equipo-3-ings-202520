@@ -1,6 +1,11 @@
-// app/(tabs)/LoginScreen.tsx
+/**
+ * Login Screen
+ * 
+ * User authentication screen with email and password
+ * Handles user login and navigation to registration
+ */
 
-import React, { useState, useCallback } from 'react';
+import React, { useCallback } from 'react';
 import {
   View,
   Text,
@@ -9,121 +14,47 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  Alert,
   ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { useAuth } from '../../context/AuthContext';
+import { useLoginForm } from '@/hooks/useLoginForm';
+import { FormField } from '@/components/ui/FormField';
 import {
   COLORS,
   BASE_STYLES,
   LOGIN_STYLES,
   DECORATIVE_STYLES,
-} from '../../styles/authStyles';
-import { FormField } from '../../components/ui/FormField';
-
-const MIN_PASSWORD_LENGTH = 6;
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-interface LoginFormData {
-  email: string;
-  password: string;
-}
-
-/**
- * Validates login form data
- */
-const validateForm = (formData: LoginFormData): Partial<LoginFormData> => {
-  const errors: Partial<LoginFormData> = {};
-
-  const trimmedEmail = formData.email.trim();
-  if (!trimmedEmail) {
-    errors.email = 'Email is required';
-  } else if (!EMAIL_REGEX.test(trimmedEmail)) {
-    errors.email = 'Please enter a valid email address';
-  }
-
-  if (!formData.password) {
-    errors.password = 'Password is required';
-  } else if (formData.password.length < MIN_PASSWORD_LENGTH) {
-    errors.password = `Password must be at least ${MIN_PASSWORD_LENGTH} characters`;
-  }
-
-  return errors;
-};
+} from '@/styles/authStyles';
 
 /**
  * LoginScreen Component
  * 
- * Handles user authentication using AuthContext
- * Redirects to home screen on successful login
+ * Renders login form with email and password fields
+ * Uses custom hook for form state management
+ * Automatically redirects on successful authentication
  */
 const LoginScreen: React.FC = () => {
   const router = useRouter();
-  const { login, isLoading: authLoading } = useAuth();
-
-  const [formData, setFormData] = useState<LoginFormData>({
-    email: '',
-    password: '',
-  });
   
-  const [errors, setErrors] = useState<Partial<LoginFormData>>({});
-
-  /**
-   * Updates form field and clears its error
-   */
-  const handleFieldChange = useCallback((field: keyof LoginFormData, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-    
-    if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: undefined }));
-    }
-  }, [errors]);
-
-  /**
-   * Handles login submission
-   */
-  const handleLogin = useCallback(async () => {
-    // Validate form
-    const validationErrors = validateForm(formData);
-
-    if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors);
-      Alert.alert('Validation Error', 'Please fix the errors before submitting.');
-      return;
-    }
-
-    try {
-      // Call login from AuthContext
-      await login({
-        email: formData.email.trim(),
-        password: formData.password,
-      });
-
-      // Success! AuthContext automatically updates navigation
-      // No need to navigate manually - the layout will handle it
-      console.log('✅ Login successful, navigation will update automatically');
-    } catch (error: any) {
-      console.error('Login error:', error);
-      Alert.alert(
-        'Login Failed',
-        error.message || 'Unable to connect to server'
-      );
-    }
-  }, [formData, login]);
+  // Custom hook handles all form logic
+  const {
+    formData,
+    errors,
+    isSubmitting,
+    handleFieldChange,
+    handleSubmit,
+  } = useLoginForm();
 
   /**
    * Navigates to registration screen
    */
-  const handleNavigateToRegister = useCallback(() => {
-    if (authLoading) return;
+  const navigateToSignUp = useCallback(() => {
+    if (isSubmitting) return;
     router.push('/SignUpScreen');
-  }, [authLoading, router]);
+  }, [isSubmitting, router]);
 
   return (
-
-    
     <SafeAreaView style={LOGIN_STYLES.safeArea}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -134,87 +65,94 @@ const LoginScreen: React.FC = () => {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          {/* App logo */}
+          {/* App Logo */}
           <Image
             source={require('@/assets/img/logo.png')}
             style={BASE_STYLES.logo}
             resizeMode="contain"
-            accessibilityLabel="App Logo"
+            accessibilityLabel="Yummi App Logo"
           />
 
           <View style={BASE_STYLES.cardContainer}>
-            {/* Decorative leaf top */}
+            {/* Decorative Leaf - Top */}
             <Image
               source={require('@/assets/img/leaf.png')}
               style={[BASE_STYLES.leaf, DECORATIVE_STYLES.leafTop]}
-              accessibilityLabel="Decorative leaf"
+              accessibilityLabel="Decorative element"
             />
 
-            {/* Login card */}
+            {/* Login Form Card */}
             <View style={LOGIN_STYLES.formCard}>
               <Text style={BASE_STYLES.title}>Iniciar Sesión</Text>
               <View style={BASE_STYLES.underline} />
 
-              {/* Email field */}
+              {/* Email Input */}
               <FormField
                 label="Correo Electrónico"
                 value={formData.email}
                 error={errors.email}
                 placeholder="you@example.com"
                 onChangeText={(value) => handleFieldChange('email', value)}
-                disabled={authLoading}
+                disabled={isSubmitting}
                 keyboardType="email-address"
                 autoComplete="email"
                 textContentType="emailAddress"
-                accessibilityLabel="Email input"
+                autoCapitalize="none"
+                accessibilityLabel="Email input field"
+                accessibilityHint="Enter your email address"
               />
 
-              {/* Password field */}
+              {/* Password Input */}
               <FormField
                 label="Contraseña"
                 value={formData.password}
                 error={errors.password}
                 placeholder="••••••"
                 onChangeText={(value) => handleFieldChange('password', value)}
-                disabled={authLoading}
+                disabled={isSubmitting}
                 secureTextEntry
                 autoComplete="password"
                 textContentType="password"
-                accessibilityLabel="Password input"
+                accessibilityLabel="Password input field"
+                accessibilityHint="Enter your password"
               />
 
-              {/* Login button */}
+              {/* Login Button */}
               <TouchableOpacity
                 style={[
                   BASE_STYLES.button,
                   { marginTop: 20 },
-                  authLoading && BASE_STYLES.buttonDisabled,
+                  isSubmitting && BASE_STYLES.buttonDisabled,
                 ]}
-                onPress={handleLogin}
-                disabled={authLoading}
+                onPress={handleSubmit}
+                disabled={isSubmitting}
                 accessibilityLabel="Login button"
+                accessibilityHint="Tap to sign in to your account"
+                accessibilityRole="button"
               >
-                {authLoading ? (
+                {isSubmitting ? (
                   <ActivityIndicator color={COLORS.white} size="small" />
                 ) : (
                   <Text style={BASE_STYLES.buttonText}>Entrar</Text>
                 )}
               </TouchableOpacity>
 
-              {/* Decorative leaf bottom */}
+              {/* Decorative Leaf - Bottom */}
               <Image
                 source={require('@/assets/img/leaf.png')}
                 style={[BASE_STYLES.leaf, DECORATIVE_STYLES.leafBottom]}
-                accessibilityLabel="Decorative leaf"
+                accessibilityLabel="Decorative element"
               />
             </View>
 
-            {/* Register button */}
+            {/* Registration Link */}
             <TouchableOpacity
               style={BASE_STYLES.secondaryButton}
-              onPress={handleNavigateToRegister}
-              disabled={authLoading}
-              accessibilityLabel="Not registered button"
+              onPress={navigateToSignUp}
+              disabled={isSubmitting}
+              accessibilityLabel="Go to registration"
+              accessibilityHint="Tap to create a new account"
+              accessibilityRole="button"
             >
               <Text style={BASE_STYLES.secondaryButtonText}>
                 ¿No estás registrado?

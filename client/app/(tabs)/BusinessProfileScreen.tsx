@@ -1,4 +1,5 @@
-// app/(tabs)/BusinessProductsScreen.tsx
+// app/(tabs)/BusinessProfileScreen.tsx
+
 import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
@@ -15,26 +16,26 @@ import { BottomNavigation } from "@/components/ui/BottomNavigation";
 import { createBusinessNavItems } from "@/utils/navigationHelpers";
 import { productService, Product } from "@/services/productService";
 import { useAuth } from "@/context/AuthContext";
-import { styles } from "../../styles/BusinessProfileScreen.styles";
+import { styles } from "@/styles/BusinessProfileScreen.styles";
 
 /**
- * BusinessProductsScreen
+ * BusinessProfileScreen Component
  *
  * Main screen for business users to view and manage their products.
- * Includes logout button for business session management.
+ * This is the home screen for business accounts.
  */
-export default function BusinessProductsScreen(): React.ReactElement {
+export default function BusinessProfileScreen(): React.ReactElement {
   const router = useRouter();
   const { token, user, logout } = useAuth();
-  const navItems = createBusinessNavItems("products", router);
+  const navItems = createBusinessNavItems("profile", router);
 
   // State
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Get restaurant ID from user (ensure proper link between user & restaurant)
-  const restaurantId = user?.id?.toString();
+  // Get restaurant ID from user (user.id is already a string UUID)
+  const restaurantId = user?.id;
 
   /**
    * Fetch products for this business from backend
@@ -79,7 +80,6 @@ export default function BusinessProductsScreen(): React.ReactElement {
     try {
       await logout();
       Alert.alert("Goodbye!", "You have been logged out.");
-      router.replace("/LoginScreen");
     } catch (error) {
       console.error("❌ Logout error:", error);
       Alert.alert("Error", "Could not log out. Please try again.");
@@ -110,11 +110,15 @@ export default function BusinessProductsScreen(): React.ReactElement {
 
     try {
       await productService.update(product.id, { stock: newStock }, token);
+      
+      // Update local state
       setProducts((prev) =>
         prev.map((p) => (p.id === product.id ? { ...p, stock: newStock } : p))
       );
+      
+      console.log(`✅ Stock updated: ${product.name} - ${newStock}`);
     } catch (error) {
-      console.error("Error updating quantity:", error);
+      console.error("❌ Error updating quantity:", error);
       Alert.alert("Error", "No se pudo actualizar la cantidad");
     }
   };
@@ -139,7 +143,7 @@ export default function BusinessProductsScreen(): React.ReactElement {
               setProducts((prev) => prev.filter((p) => p.id !== product.id));
               Alert.alert("Éxito", "Producto eliminado");
             } catch (error) {
-              console.error("Error deleting product:", error);
+              console.error("❌ Error deleting product:", error);
               Alert.alert("Error", "No se pudo eliminar el producto");
             }
           },
