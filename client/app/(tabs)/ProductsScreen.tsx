@@ -119,14 +119,13 @@ export default function ProductsScreen() {
   /**
    * Navigate to product detail
    */
-  const handleProductPress = (product: Product) => {
-    console.log('Product pressed:', product.name);
-    // TODO: Navigate to product detail screen
-    // router.push({
-    //   pathname: '/(tabs)/ProductDetail',
-    //   params: { productId: product.id }
-    // });
-  };
+const handleProductPress = (product: Product) => {
+  console.log('Product pressed:', product.name);
+  router.push({
+    pathname: './(tabs)/OrderSummaryScreen',
+    params: { productId: product.id }
+  });
+};
 
   // Loading state
   if (isLoading) {

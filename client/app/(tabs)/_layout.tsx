@@ -28,60 +28,72 @@ export default function TabLayout() {
       }}
     >
       {/* Auth Screens - Always accessible */}
-      <Stack.Screen 
-        name="LoginScreen" 
+      <Stack.Screen
+        name="LoginScreen"
         options={{
           animation: 'fade',
         }}
       />
-      <Stack.Screen 
-        name="SignUpScreen" 
+      <Stack.Screen
+        name="SignUpScreen"
         options={{
-          animation: 'slide_from_right',
+          animation: 'fade',
         }}
       />
 
       {/* Protected Screens - Always declared but guarded by navigation */}
-      <Stack.Screen 
-        name="HomeScreen" 
+      <Stack.Screen
+        name="HomeScreen"
         options={{
           animation: 'fade',
         }}
       />
-      <Stack.Screen 
-        name="MapScreen" 
+      <Stack.Screen
+        name="MapScreen"
+        options={{
+          animation: 'fade',
+        }}
+      />
+      <Stack.Screen
+        name="FavoritesScreen"
+        options={{
+          animation: 'fade',
+        }}
+      />
+      <Stack.Screen
+        name="ProfileScreen"
+        options={{
+          animation: 'fade',
+        }}
+      />
+      <Stack.Screen
+        name="EditProfileScreen"
+        options={{
+          animation: 'fade',
+        }}
+      />
+      <Stack.Screen
+        name="ProductsScreen"
+        options={{
+          animation: 'fade',
+        }}
+      />
+      <Stack.Screen
+        name="OrdersScreen"
+        options={{
+          animation: 'fade',
+        }}
+      />
+      <Stack.Screen
+        name="ProductDetailScreen"
         options={{
           animation: 'slide_from_right',
         }}
       />
-      <Stack.Screen 
-        name="FavoritesScreen" 
-        options={{
-          animation: 'slide_from_right',
-        }}
-      />
-      <Stack.Screen 
-        name="ProfileScreen" 
-        options={{
-          animation: 'slide_from_right',
-        }}
-      />
-      <Stack.Screen 
-        name="EditProfileScreen" 
+      <Stack.Screen
+        name="OrderSummaryScreen"
         options={{
           animation: 'slide_from_bottom',
-        }}
-      />
-      <Stack.Screen 
-        name="ProductsScreen" 
-        options={{
-          animation: 'slide_from_right',
-        }}
-      />
-      <Stack.Screen 
-        name="OrdersScreen" 
-        options={{
-          animation: 'slide_from_right',
         }}
       />
     </Stack>

@@ -1,3 +1,5 @@
+// styles/ProfileScreens.styles.ts
+
 import { StyleSheet } from "react-native";
 
 export const profileStyles = StyleSheet.create({
@@ -7,7 +9,7 @@ export const profileStyles = StyleSheet.create({
     },
     scrollContent: {
         paddingTop: 50,
-        paddingBottom: 120, // espacio para bottom nav
+        paddingBottom: 120,
         alignItems: "center",
     },
 
@@ -38,14 +40,6 @@ export const profileStyles = StyleSheet.create({
         marginBottom: 20,
     },
 
-    // Edit Profile Title
-    editTitle: {
-        fontSize: 24,
-        fontWeight: "bold",
-        color: "#000",
-        marginBottom: 20,
-    },
-
     // Profile Section
     profileSection: {
         alignItems: "center",
@@ -70,20 +64,63 @@ export const profileStyles = StyleSheet.create({
         borderRadius: 60,
         zIndex: 2,
     },
-    // ➕ Add these lines to profile.styles.ts
 
+    // User Info
+    name: {
+        fontWeight: "bold",
+        fontSize: 24,
+        color: "#000",
+    },
     email: {
         fontSize: 16,
         color: "#555",
         marginTop: 4,
         fontWeight: "400",
     },
-
     phone: {
         fontSize: 16,
         color: "#555",
         marginTop: 2,
         fontWeight: "400",
+    },
+
+    // Role Badge
+    roleBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+        marginTop: 8,
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        backgroundColor: '#E8F5E9',
+        borderRadius: 20,
+    },
+    roleText: {
+        fontSize: 14,
+        color: '#27AE60',
+        fontWeight: '600',
+    },
+
+    // Image Loading & Fallback
+    imageLoadingOverlay: {
+        position: 'absolute',
+        width: 120,
+        height: 120,
+        borderRadius: 60,
+        backgroundColor: 'rgba(0,0,0,0.3)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 3,
+    },
+    initialsContainer: {
+        backgroundColor: '#27AE60',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    initialsText: {
+        fontSize: 40,
+        fontWeight: 'bold',
+        color: '#FFFFFF',
     },
 
     // Decorative stars
@@ -106,7 +143,7 @@ export const profileStyles = StyleSheet.create({
         zIndex: 3,
     },
 
-    // Edit / Folder Button
+    // Edit Button
     editButton: {
         position: "absolute",
         right: 5,
@@ -123,30 +160,6 @@ export const profileStyles = StyleSheet.create({
         shadowRadius: 4,
         elevation: 4,
         zIndex: 3,
-    },
-    folderButton: {
-        position: "absolute",
-        right: -5,
-        bottom: 0,
-        backgroundColor: "#FFFFFF",
-        borderRadius: 25,
-        width: 45,
-        height: 45,
-        justifyContent: "center",
-        alignItems: "center",
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.2,
-        shadowRadius: 4,
-        elevation: 4,
-        zIndex: 3,
-    },
-
-    // Name & text
-    name: {
-        fontWeight: "bold",
-        fontSize: 24,
-        color: "#000",
     },
 
     // Purchase Card
@@ -212,7 +225,12 @@ export const profileStyles = StyleSheet.create({
         marginHorizontal: 20,
         marginTop: 20,
         paddingVertical: 14,
+        paddingHorizontal: 20,
         borderRadius: 12,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 8,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1,
@@ -223,10 +241,9 @@ export const profileStyles = StyleSheet.create({
         color: '#FFFFFF',
         fontSize: 16,
         fontWeight: 'bold',
-        textAlign: 'center',
     },
 
-    // Form
+    // Form Styles (for EditProfileScreen)
     form: {
         width: "85%",
         marginTop: 10,
@@ -250,5 +267,28 @@ export const profileStyles = StyleSheet.create({
         fontSize: 16,
         backgroundColor: "#FFFFFF",
         color: "#000",
+    },
+    editTitle: {
+        fontSize: 24,
+        fontWeight: "bold",
+        color: "#000",
+        marginBottom: 20,
+    },
+    folderButton: {
+        position: "absolute",
+        right: -5,
+        bottom: 0,
+        backgroundColor: "#FFFFFF",
+        borderRadius: 25,
+        width: 45,
+        height: 45,
+        justifyContent: "center",
+        alignItems: "center",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 4,
+        elevation: 4,
+        zIndex: 3,
     },
 });

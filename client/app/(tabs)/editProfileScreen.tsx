@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import * as ImagePicker from 'expo-image-picker';
 import { BottomNavigation } from "../../components/ui/BottomNavigation";
 import { createNavItems } from "../../utils/navigationHelpers";
 import { useAuth } from "@/context/AuthContext";
@@ -33,6 +34,7 @@ export default function EditProfileScreen(): React.ReactElement {
     password: "",
   });
 
+  const [profileImage, setProfileImage] = useState<string | null>(null);
   const navItems = createNavItems("profile", router);
 
   // ---------------------------------------------------------------------------
@@ -40,11 +42,38 @@ export default function EditProfileScreen(): React.ReactElement {
   // ---------------------------------------------------------------------------
 
   /**
-   * Opens image picker (to be implemented with Expo Image Picker)
+   * Opens image picker from gallery
    */
-  const handleImagePicker = (): void => {
-    console.log("🖼️ Open image picker");
-    // TODO: Implement image picker
+  const handleImagePicker = async (): Promise<void> => {
+    try {
+      // Pedir permisos
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      
+      if (status !== 'granted') {
+        Alert.alert(
+          'Permisos necesarios',
+          'Necesitamos acceso a tu galería para cambiar la foto de perfil'
+        );
+        return;
+      }
+
+      // Abrir selector de imagen
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+      });
+
+      if (!result.canceled) {
+        setProfileImage(result.assets[0].uri);
+        console.log('✅ Image selected:', result.assets[0].uri);
+        // TODO: Subir imagen al servidor cuando implementes el backend
+      }
+    } catch (error) {
+      console.error('Error picking image:', error);
+      Alert.alert('Error', 'No se pudo seleccionar la imagen');
+    }
   };
 
   /**
@@ -121,10 +150,18 @@ export default function EditProfileScreen(): React.ReactElement {
         <View style={styles.profileSection}>
           <View style={styles.profileImageContainer}>
             <View style={styles.profileBackground} />
-            <Image
-              source={require("../../assets/img/profile.png")}
-              style={styles.profileImage}
-            />
+            
+            {/* Profile Image - Touch to change */}
+            <TouchableOpacity onPress={handleImagePicker}>
+              <Image
+                source={
+                  profileImage 
+                    ? { uri: profileImage }
+                    : require("../../assets/img/profile.png")
+                }
+                style={styles.profileImage}
+              />
+            </TouchableOpacity>
 
             {/* Decorative stars */}
             <Ionicons name="add" size={20} color="#E8E8E8" style={styles.star1} />
@@ -138,6 +175,8 @@ export default function EditProfileScreen(): React.ReactElement {
               <Ionicons name="folder-open" size={20} color="#000" />
             </TouchableOpacity>
           </View>
+          
+         
         </View>
 
         {/* Form */}
