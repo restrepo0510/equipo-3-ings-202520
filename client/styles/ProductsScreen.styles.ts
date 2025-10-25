@@ -84,14 +84,35 @@ export const styles = StyleSheet.create({
     marginBottom: 20,
   },
 
-  // Restaurant Header
-  restaurantHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    marginBottom: 10,
-    gap: 8,
-  },
+ // Agregar estos estilos a ProductsScreen.styles.ts
+
+productCardDisabled: {
+  opacity: 0.5,
+},
+
+productImageDisabled: {
+  opacity: 0.6,
+},
+
+stockRow: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  gap: 4,
+  marginTop: 4,
+},
+
+stockTextEmpty: {
+  color: '#E74C3C',
+  fontWeight: '600',
+},
+
+restaurantHeader: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  gap: 8,
+  paddingHorizontal: 20,
+  marginBottom: 16,
+},
 
   restaurantName: {
     fontSize: 20,

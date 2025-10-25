@@ -85,15 +85,9 @@ export default function TabLayout() {
         }}
       />
       <Stack.Screen
-        name="ProductDetailScreen"
-        options={{
-          animation: 'slide_from_right',
-        }}
-      />
-      <Stack.Screen
         name="OrderSummaryScreen"
         options={{
-          animation: 'slide_from_bottom',
+          animation: 'fade',
         }}
       />
     </Stack>

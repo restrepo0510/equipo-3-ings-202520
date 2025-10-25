@@ -15,9 +15,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { BottomNavigation } from '@/components/ui/BottomNavigation';
 import { createNavItems } from '@/utils/navigationHelpers';
 import { productService, Product } from '@/services/productService';
-import { restaurantService } from '@/services/restaurantService';
+import { restaurantService, Restaurant } from '@/services/restaurantService';
 import { useAuth } from '@/context/AuthContext';
-import { styles } from '../../styles/ProductsScreen.styles';
+import { styles } from '@/styles/ProductsScreen.styles';
 
 /**
  * ProductsScreen Component
@@ -33,7 +33,7 @@ export default function ProductsScreen() {
 
   // State
   const [products, setProducts] = useState<Product[]>([]);
-  const [restaurantName, setRestaurantName] = useState<string>('');
+  const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
@@ -45,10 +45,11 @@ export default function ProductsScreen() {
     if (!restaurantId) return;
 
     try {
-      const restaurant = await restaurantService.getById(restaurantId as string);
-      setRestaurantName(restaurant.name);
+      const restaurantData = await restaurantService.getById(restaurantId as string);
+      setRestaurant(restaurantData);
+      console.log('✅ Restaurant loaded:', restaurantData.name);
     } catch (error) {
-      console.error('Error loading restaurant:', error);
+      console.error('❌ Error loading restaurant:', error);
     }
   }, [restaurantId]);
 
@@ -117,15 +118,37 @@ export default function ProductsScreen() {
   };
 
   /**
-   * Navigate to product detail
+   * Navigate to OrderSummary with product details
    */
-const handleProductPress = (product: Product) => {
-  console.log('Product pressed:', product.name);
-  router.push({
-    pathname: './(tabs)/OrderSummaryScreen',
-    params: { productId: product.id }
-  });
-};
+  const handleProductPress = (product: Product) => {
+    if (!restaurant) {
+      Alert.alert('Error', 'No se pudo cargar la información del restaurante');
+      return;
+    }
+
+    if (!product.isAvailable || product.stock <= 0) {
+      Alert.alert('Producto no disponible', 'Este producto no está disponible actualmente');
+      return;
+    }
+
+    console.log('🛒 Product selected:', product.name);
+    
+    // Navigate to OrderSummaryScreen with all needed data
+    router.push({
+      pathname: '/(tabs)/OrderSummaryScreen',
+      params: {
+        productId: product.id,
+        productName: product.name,
+        productImage: product.imageUrl || '',
+        restaurantId: restaurant.id,
+        restaurantName: restaurant.name,
+        restaurantAddress: restaurant.address,
+        quantity: '1', // Default quantity
+        price: product.price.toString(),
+        originalPrice: product.originalPrice?.toString() || '',
+      },
+    });
+  };
 
   // Loading state
   if (isLoading) {
@@ -179,8 +202,8 @@ const handleProductPress = (product: Product) => {
           <View style={styles.divider} />
 
           {/* Restaurant Name */}
-          {restaurantName && (
-            <Text style={styles.restaurantName}>{restaurantName}</Text>
+          {restaurant && (
+            <Text style={styles.restaurantName}>{restaurant.name}</Text>
           )}
 
           {/* Empty state */}
@@ -221,10 +244,10 @@ const handleProductPress = (product: Product) => {
         <View style={styles.divider} />
 
         {/* Restaurant Name */}
-        {restaurantName && (
+        {restaurant && (
           <View style={styles.restaurantHeader}>
             <Ionicons name="restaurant" size={24} color="#27AE60" />
-            <Text style={styles.restaurantName}>{restaurantName}</Text>
+            <Text style={styles.restaurantName}>{restaurant.name}</Text>
           </View>
         )}
 
@@ -239,9 +262,13 @@ const handleProductPress = (product: Product) => {
           {products.map((product) => (
             <TouchableOpacity
               key={product.id}
-              style={styles.productCard}
+              style={[
+                styles.productCard,
+                (!product.isAvailable || product.stock <= 0) && styles.productCardDisabled
+              ]}
               onPress={() => handleProductPress(product)}
               activeOpacity={0.7}
+              disabled={!product.isAvailable || product.stock <= 0}
             >
               {/* Product Image */}
               <View style={styles.imageContainer}>
@@ -249,12 +276,15 @@ const handleProductPress = (product: Product) => {
                   source={{ 
                     uri: product.imageUrl || 'https://via.placeholder.com/150' 
                   }}
-                  style={styles.productImage}
+                  style={[
+                    styles.productImage,
+                    (!product.isAvailable || product.stock <= 0) && styles.productImageDisabled
+                  ]}
                   resizeMode="cover"
                 />
                 
                 {/* Discount badge */}
-                {product.discount && product.discount > 0 && (
+                {product.discount && product.discount > 0 && product.isAvailable && (
                   <View style={styles.discountBadge}>
                     <Text style={styles.discountText}>-{product.discount}%</Text>
                   </View>
@@ -278,13 +308,23 @@ const handleProductPress = (product: Product) => {
                 )}
 
                 {/* Stock info */}
-                <Text style={styles.stockText}>
-                  Stock: {product.stock} unidades
-                </Text>
+                <View style={styles.stockRow}>
+                  <Ionicons 
+                    name={product.stock > 5 ? "checkmark-circle" : "alert-circle"} 
+                    size={14} 
+                    color={product.stock > 5 ? "#27AE60" : "#F39C12"} 
+                  />
+                  <Text style={[
+                    styles.stockText,
+                    product.stock <= 0 && styles.stockTextEmpty
+                  ]}>
+                    {product.stock > 0 ? `${product.stock} disponibles` : 'Agotado'}
+                  </Text>
+                </View>
               </View>
 
               {/* Price Badge */}
-              {product.isAvailable ? (
+              {product.isAvailable && product.stock > 0 ? (
                 <View style={styles.priceBadge}>
                   {product.originalPrice && product.originalPrice > product.price && (
                     <Text style={styles.originalPrice}>
@@ -304,7 +344,10 @@ const handleProductPress = (product: Product) => {
               {/* Favorite Button */}
               <TouchableOpacity
                 style={styles.favoriteButton}
-                onPress={() => toggleFavorite(product.id)}
+                onPress={(e) => {
+                  e.stopPropagation();
+                  toggleFavorite(product.id);
+                }}
               >
                 <Ionicons
                   name={favorites.has(product.id) ? 'heart' : 'heart-outline'}
