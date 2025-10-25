@@ -20,4 +20,10 @@
 ## Kanban
 ![alt text](/doc/design/img/Kanban3.png)
 
+## Cuarto Sprint
+![alt text](/doc/design/img/burndown4.png)
+
+## Kanban
+![alt text](/doc/design/img/Kanban4.png)
+![alt text](/doc/design/img/Kanban4.1.png)
 

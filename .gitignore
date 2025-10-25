@@ -1,0 +1,6 @@
+# Ignorar todo el código para esta rama
+client/
+server/
+
+# Solo mantener documentación
+!doc/
