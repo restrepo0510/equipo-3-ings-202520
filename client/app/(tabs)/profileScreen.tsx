@@ -127,7 +127,6 @@ export default function ProfileScreen(): React.ReactElement {
         <View style={styles.profileSection}>
           <View style={styles.profileImageContainer}>
             {/* Background circle */}
-            <View style={styles.profileBackground} />
 
             {/* Profile Image */}
             {!imageError ? (
@@ -159,7 +158,7 @@ export default function ProfileScreen(): React.ReactElement {
 
             {/* Edit Button */}
             <TouchableOpacity style={styles.editButton} onPress={handleEditProfile}>
-              <Ionicons name="pencil" size={18} color="#000" />
+              <Ionicons name="pencil" size={30} color="#000" />
             </TouchableOpacity>
           </View>
 
@@ -168,17 +167,7 @@ export default function ProfileScreen(): React.ReactElement {
           {user?.email && <Text style={styles.email}>{user.email}</Text>}
           {user?.phone && <Text style={styles.phone}>{user.phone}</Text>}
           
-          {/* User Role Badge */}
-          <View style={styles.roleBadge}>
-            <Ionicons 
-              name={user?.role === 'business' ? 'briefcase' : 'person'} 
-              size={14} 
-              color="#27AE60" 
-            />
-            <Text style={styles.roleText}>
-              {user?.role === 'business' ? 'Negocio' : 'Cliente'}
-            </Text>
-          </View>
+          
         </View>
 
         {/* Last Purchase Card */}

@@ -155,7 +155,7 @@ export default function EditProfileScreen(): React.ReactElement {
             <Ionicons name="arrow-back" size={24} color="#000" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>
-            MI <Text style={styles.yummi}>YUMMI</Text>
+            Mi <Text style={styles.yummi}>YUMMI</Text>
           </Text>
           <View style={{ width: 24 }} />
         </View>
@@ -164,12 +164,11 @@ export default function EditProfileScreen(): React.ReactElement {
         <View style={styles.divider} />
 
         {/* Title */}
-        <Text style={styles.editTitle}>Edit Profile</Text>
+        <Text style={styles.editTitle}>Editar Perfil</Text>
 
         {/* Profile Picture */}
         <View style={styles.profileSection}>
           <View style={styles.profileImageContainer}>
-            <View style={styles.profileBackground} />
             
             {/* Profile Image - Touch to change */}
             <TouchableOpacity onPress={handleImagePicker}>
@@ -188,21 +187,19 @@ export default function EditProfileScreen(): React.ReactElement {
               style={styles.folderButton}
               onPress={handleImagePicker}
             >
-              <Ionicons name="folder-open" size={20} color="#000" />
+              <Ionicons name="folder-open" size={40} color="#000" />
             </TouchableOpacity>
           </View>
-          
-          {/* Hint text */}
-          <Text style={styles.imageHint}>Toca la imagen o el botón para cambiarla</Text>
+      
         </View>
 
         {/* Form */}
         <View style={styles.form}>
           {[
-            { label: "Name", field: "name", keyboard: "default" },
-            { label: "Phone number", field: "phone", keyboard: "phone-pad" },
-            { label: "e-mail", field: "email", keyboard: "email-address" },
-            { label: "Password", field: "password", keyboard: "default", secure: true },
+            { label: "Nombre", field: "name", keyboard: "default" },
+            { label: "Número de teléfono", field: "phone", keyboard: "phone-pad" },
+            { label: "Correo eléctronico", field: "email", keyboard: "email-address" },
+            { label: "Contraseña", field: "password", keyboard: "default", secure: true },
           ].map(({ label, field, keyboard, secure }) => (
             <View key={field} style={styles.inputGroup}>
               <Text style={styles.label}>{label}</Text>
@@ -221,7 +218,7 @@ export default function EditProfileScreen(): React.ReactElement {
 
           {/* Save Button */}
           <TouchableOpacity style={styles.saveButton} onPress={handleSaveProfile}>
-            <Text style={styles.saveButtonText}>Save Changes</Text>
+            <Text style={styles.saveButtonText}>Guardar</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
