@@ -1,4 +1,3 @@
-
 // src/auth/user.entity.ts
 import { 
   Entity, 
@@ -24,8 +23,7 @@ export enum UserRole {
 @Entity('users')
 export class User {
   @PrimaryGeneratedColumn('uuid')
-id: string;
-
+  id: string;
 
   @Column({
     type: 'varchar',
@@ -69,9 +67,19 @@ id: string;
   })
   role: UserRole;
 
+  @Column({
+    type: 'varchar',
+    length: 500,
+    nullable: true,
+    name: 'profile_image',
+    comment: 'URL or path to user profile image'
+  })
+  profileImage: string;
+
   @CreateDateColumn({
     type: 'timestamp',
     default: () => 'CURRENT_TIMESTAMP',
+    name: 'created_at',
     comment: 'Account creation timestamp'
   })
   createdAt: Date;
@@ -79,9 +87,8 @@ id: string;
   @UpdateDateColumn({
     type: 'timestamp',
     default: () => 'CURRENT_TIMESTAMP',
+    name: 'updated_at',
     comment: 'Last update timestamp'
   })
   updatedAt: Date;
-
-  
 }

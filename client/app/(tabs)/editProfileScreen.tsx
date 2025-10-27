@@ -10,21 +10,22 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import * as ImagePicker from 'expo-image-picker';
 import { BottomNavigation } from "../../components/ui/BottomNavigation";
 import { createNavItems } from "../../utils/navigationHelpers";
 import { useAuth } from "@/context/AuthContext";
 import { editProfileStyles as styles } from "../../styles/EditProfileScreen.styles";
-import type { User } from "@/types/auth.types";
+import type { UpdateProfileData, User } from "@/types/auth.types";
 
 /**
  * EditProfileScreen
  * 
  * Screen that allows the authenticated user to edit their profile information.
- * Supports updating local user data stored in the AuthContext.
+ * Supports updating user data both locally and on the server.
  */
 export default function EditProfileScreen(): React.ReactElement {
   const router = useRouter();
-  const { user, updateUser } = useAuth();
+  const { user, updateProfile } = useAuth();
 
   const [formData, setFormData] = useState({
     name: user?.name ?? "",
@@ -33,18 +34,56 @@ export default function EditProfileScreen(): React.ReactElement {
     password: "",
   });
 
+  const [profileImage, setProfileImage] = useState<string | null>(
+    user?.profileImage ?? null
+  );
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const navItems = createNavItems("profile", router);
+
+  // Actualizar imagen cuando cambie el usuario
+  useEffect(() => {
+    if (user?.profileImage) {
+      setProfileImage(user.profileImage);
+    }
+  }, [user?.profileImage]);
 
   // ---------------------------------------------------------------------------
   // Handlers
   // ---------------------------------------------------------------------------
 
   /**
-   * Opens image picker (to be implemented with Expo Image Picker)
+   * Opens image picker from gallery
    */
-  const handleImagePicker = (): void => {
-    console.log("🖼️ Open image picker");
-    // TODO: Implement image picker
+  const handleImagePicker = async (): Promise<void> => {
+    try {
+      // Pedir permisos
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      
+      if (status !== 'granted') {
+        Alert.alert(
+          'Permisos necesarios',
+          'Necesitamos acceso a tu galería para cambiar la foto de perfil'
+        );
+        return;
+      }
+
+      // Abrir selector de imagen
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+      });
+
+      if (!result.canceled) {
+        const imageUri = result.assets[0].uri;
+        setProfileImage(imageUri);
+        console.log('✅ Image selected:', imageUri);
+      }
+    } catch (error) {
+      console.error('Error picking image:', error);
+      Alert.alert('Error', 'No se pudo seleccionar la imagen');
+    }
   };
 
   /**
@@ -72,15 +111,15 @@ export default function EditProfileScreen(): React.ReactElement {
     if (!validateForm() || !user) return;
 
     try {
-      const updatedUser: User = {
-        ...user,
+      const updatedUser: UpdateProfileData = {
         name: formData.name.trim(),
         phone: formData.phone.trim(),
         email: formData.email.trim(),
+        profileImage: profileImage || undefined,
         ...(formData.password ? { password: formData.password } : {}),
       };
 
-      await updateUser(updatedUser);
+      await updateProfile(updatedUser);
 
       Alert.alert("Success", "Profile updated successfully.");
       console.log("✅ Updated user:", updatedUser);
@@ -89,6 +128,16 @@ export default function EditProfileScreen(): React.ReactElement {
       console.error("❌ Error updating profile:", error);
       Alert.alert("Error", "Could not update profile. Please try again.");
     }
+  };
+
+  /**
+   * Get current profile image source
+   */
+  const getProfileImageSource = () => {
+    if (profileImage && profileImage.trim() !== '') {
+      return { uri: profileImage };
+    }
+    return require("../../assets/img/profile.png");
   };
 
   // ---------------------------------------------------------------------------
@@ -121,10 +170,14 @@ export default function EditProfileScreen(): React.ReactElement {
         <View style={styles.profileSection}>
           <View style={styles.profileImageContainer}>
             <View style={styles.profileBackground} />
-            <Image
-              source={require("../../assets/img/profile.png")}
-              style={styles.profileImage}
-            />
+            
+            {/* Profile Image - Touch to change */}
+            <TouchableOpacity onPress={handleImagePicker}>
+              <Image
+                source={getProfileImageSource()}
+                style={styles.profileImage}
+              />
+            </TouchableOpacity>
 
             {/* Decorative stars */}
             <Ionicons name="add" size={20} color="#E8E8E8" style={styles.star1} />
@@ -138,6 +191,9 @@ export default function EditProfileScreen(): React.ReactElement {
               <Ionicons name="folder-open" size={20} color="#000" />
             </TouchableOpacity>
           </View>
+          
+          {/* Hint text */}
+          <Text style={styles.imageHint}>Toca la imagen o el botón para cambiarla</Text>
         </View>
 
         {/* Form */}

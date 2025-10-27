@@ -18,7 +18,7 @@ export interface Product {
   discount?: number;
 }
 
-interface CreateProductData {
+export interface CreateProductData {
   name: string;
   description?: string;
   price: number;

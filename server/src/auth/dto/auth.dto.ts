@@ -5,8 +5,6 @@ import { IsEmail, IsString, IsEnum, IsOptional, MinLength } from 'class-validato
 /**
  * DTO for user registration
  */
-// src/auth/dto/auth.dto.ts
-
 export class RegisterUserDto {
   @IsString()
   @MinLength(2)
@@ -27,11 +25,14 @@ export class RegisterUserDto {
   @IsOptional()
   role?: UserRole;
 
-  // ✅ Nuevo campo opcional para dirección
   @IsString()
   @IsOptional()
   @MinLength(10)
   address?: string;
+
+  @IsString()
+  @IsOptional()
+  profileImage?: string;
 }
 
 /**
@@ -68,6 +69,10 @@ export class UpdateUserDto {
   @IsOptional()
   @MinLength(6)
   password?: string;
+
+  @IsString()
+  @IsOptional()
+  profileImage?: string;
 }
 
 /**
@@ -79,6 +84,7 @@ export class UserResponseDto {
   email: string;
   phone: string;
   role: UserRole;
+  profileImage?: string | null;
   createdAt: Date;
   updatedAt: Date;
 
@@ -88,6 +94,7 @@ export class UserResponseDto {
     this.email = user.email;
     this.phone = user.phone;
     this.role = user.role;
+    this.profileImage = user.profileImage;
     this.createdAt = user.createdAt;
     this.updatedAt = user.updatedAt;
   }
@@ -95,7 +102,6 @@ export class UserResponseDto {
 
 /**
  * Response DTO for authentication (includes JWT token)
- * ← ESTE ES EL QUE FALTABA EXPORTAR
  */
 export class AuthResponseDto {
   message: string;
@@ -113,5 +119,5 @@ export class AuthResponseDto {
 export interface IAuthResponse {
   message: string;
   user: UserResponseDto;
-  accessToken?: string; // Opcional para compatibilidad
+  accessToken?: string;
 }

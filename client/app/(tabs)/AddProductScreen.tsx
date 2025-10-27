@@ -15,7 +15,7 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { BottomNavigation } from '@/components/ui/BottomNavigation';
 import { createBusinessNavItems } from '@/utils/navigationHelpers';
-import { productService, CreateProductDto } from '@/services/productService';
+import { productService, CreateProductData } from '@/services/productService';
 import { useAuth } from '@/context/AuthContext';
 import { styles} from '../../styles/AddProductScreen.styles';
 
@@ -30,7 +30,7 @@ export default function AddProductScreen() {
   const navItems = createBusinessNavItems('add', router);
 
   // Form state
-  const [formData, setFormData] = useState<CreateProductDto>({
+  const [formData, setFormData] = useState<CreateProductData>({
     name: '',
     description: '',
     price: 0,
@@ -47,7 +47,7 @@ export default function AddProductScreen() {
   /**
    * Update form field
    */
-  const updateField = (field: keyof CreateProductDto, value: any) => {
+  const updateField = (field: keyof CreateProductData, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 

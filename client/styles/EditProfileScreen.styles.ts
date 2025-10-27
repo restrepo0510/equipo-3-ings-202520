@@ -128,6 +128,14 @@ export const editProfileStyles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
     color: "#000",
   },
+  // Añade esto a los estilos existentes
+imageHint: {
+  fontSize: 12,
+  color: '#7F8C8D',
+  textAlign: 'center',
+  marginTop: 8,
+  fontStyle: 'italic',
+},
 // Save Button
 saveButton: {
   backgroundColor: "#1B5E20",
