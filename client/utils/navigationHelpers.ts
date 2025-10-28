@@ -87,3 +87,51 @@ export const createBusinessNavItems = (
     },
   ];
 };
+
+/**
+ * Creates navigation items for reviews screens
+ * Only 4 buttons: Home ,favorites , reviews, Profile
+ */
+export const createReviewsNavItems = (
+  currentScreen: NavigationScreen,
+  router: any
+): NavItem[] => {
+  return [
+    {
+      id: 'home',
+      icon: 'home',
+      onPress: () => {
+        console.log('🏠 Navegando a el inicio');
+        router.push('/(tabs)/HomeScreen');
+      },
+      isActive: currentScreen === 'home',
+    },
+    {
+      id: 'favorites',
+      icon: 'heart-outline',
+      onPress: () => {
+        console.log('❤️ Navegando a favoritos');
+        router.push('/(tabs)/FavoritesScreen');
+      },
+      isActive: currentScreen === 'favorites',
+    },
+    {
+      id: 'reviews',
+      icon: 'chatbubbles-outline',
+      onPress: () => {
+        console.log('💬 Navegando a opiniones');
+        router.push('/(tabs)/ReviewsScreen');
+      },
+      isActive: currentScreen === 'reviews',
+    },
+    {
+      id: 'profile',
+      icon: 'person-outline',
+      onPress: () => {
+        console.log('👤 Navegando al perfil');
+        router.push('/(tabs)/ProfileScreen');
+      },
+      isActive: currentScreen === 'profile',
+    },
+  ];
+};
