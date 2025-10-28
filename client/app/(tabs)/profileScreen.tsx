@@ -1,107 +1,139 @@
 // app/(tabs)/ProfileScreen.tsx
 
-import React, { useState } from "react";
+import React from 'react';
 import {
   View,
   Text,
   Image,
   TouchableOpacity,
   ScrollView,
-  Alert,
   ActivityIndicator,
-} from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
-import { BottomNavigation } from "@/components/ui/BottomNavigation";
-import { useAuth } from "@/context/AuthContext";
-import { createNavItems } from "@/utils/navigationHelpers";
-import { profileStyles as styles } from "@/styles/ProfileScreens.styles";
+} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import { BottomNavigation } from '@/components/ui/BottomNavigation';
+import { useAuth } from '@/context/AuthContext';
+import { createNavItems } from '@/utils/navigationHelpers';
+import { profileStyles as styles } from '@/styles/ProfileScreens.styles';
+import { useProfileImage } from '@/hooks/useProfileImage';
+import { ProfileAlertService } from '@/services/profileAlertService';
+import { PROFILE_TEXT, PROFILE_ICONS } from '@/constants/profile.constants';
 
 /**
  * ProfileScreen
  * 
- * Displays the authenticated user's profile information with dynamic profile picture
- * Allows navigation to Edit Profile screen or logout
+ * Displays authenticated user's profile information with dynamic profile picture.
+ * Allows navigation to Edit Profile screen or logout.
+ * 
+ * @responsibilities
+ * - Display user information
+ * - Navigate to edit profile
+ * - Handle logout flow
+ * - Show profile image with fallback
  */
 export default function ProfileScreen(): React.ReactElement {
+  // ============================================================================
+  // Hooks
+  // ============================================================================
+  
   const router = useRouter();
   const { user, logout } = useAuth();
-  const navItems = createNavItems("profile", router);
+  const navItems = createNavItems('profile', router);
 
-  // Track image loading state
-  const [imageLoading, setImageLoading] = useState(true);
-  const [imageError, setImageError] = useState(false);
+  const {
+    isLoading: imageLoading,
+    hasError: imageError,
+    getImageSource,
+    getUserInitials,
+    handleImageError,
+    handleImageLoadStart,
+    handleImageLoadEnd,
+  } = useProfileImage(user);
 
-  /**
-   * Get profile image URL from user data
-   * Falls back to placeholder if not available
-   */
-  const getProfileImageSource = () => {
-    // Verificar si el usuario tiene una imagen de perfil
-    if (user?.profileImage && user.profileImage.trim() !== '' && !imageError) {
-      console.log('📸 Loading profile image:', user.profileImage);
-      return { uri: user.profileImage };
-    }
-
-    console.log('📸 Using default profile image');
-    // Fallback a la imagen por defecto
-    return require("@/assets/img/profile.png");
-  };
+  // ============================================================================
+  // Handlers
+  // ============================================================================
 
   /**
-   * Get user initials for avatar fallback
+   * Handles logout with confirmation
    */
-  const getUserInitials = (): string => {
-    if (!user?.name) return "U";
-    
-    const names = user.name.split(" ");
-    if (names.length >= 2) {
-      return `${names[0][0]}${names[1][0]}`.toUpperCase();
-    }
-    return user.name.substring(0, 2).toUpperCase();
-  };
-
-  /**
-   * Handle image load error
-   */
-  const handleImageError = () => {
-    console.error('❌ Error loading profile image');
-    setImageError(true);
-    setImageLoading(false);
-  };
-
-  /**
-   * Logs out the current user and navigates to login screen
-   */
-  const handleLogout = async (): Promise<void> => {
-    Alert.alert(
-      "Cerrar Sesión",
-      "¿Estás seguro que deseas cerrar sesión?",
-      [
-        { text: "Cancelar", style: "cancel" },
-        {
-          text: "Cerrar Sesión",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              await logout();
-              // Navigation is handled by AuthContext
-            } catch (error) {
-              console.error("❌ Logout error:", error);
-              Alert.alert("Error", "No se pudo cerrar sesión. Intenta de nuevo.");
-            }
-          },
-        },
-      ]
-    );
+  const handleLogout = (): void => {
+    ProfileAlertService.showLogoutConfirmation(async () => {
+      try {
+        await logout();
+        // Navigation is handled by AuthContext
+      } catch (error) {
+        console.error('❌ Logout error:', error);
+        ProfileAlertService.showLogoutError();
+      }
+    });
   };
 
   /**
    * Navigates to Edit Profile screen
    */
   const handleEditProfile = (): void => {
-    router.push("/(tabs)/EditProfileScreen");
+    router.push('/(tabs)/EditProfileScreen');
   };
+
+  /**
+   * Navigates back
+   */
+  const handleGoBack = (): void => {
+    router.back();
+  };
+
+  // ============================================================================
+  // Render Helpers
+  // ============================================================================
+
+  /**
+   * Renders profile image or initials fallback
+   */
+  const renderProfileImage = (): React.ReactElement => {
+    if (imageError) {
+      // Fallback: Show initials if image fails to load
+      return (
+        <View style={[styles.profileImage, styles.initialsContainer]}>
+          <Text style={styles.initialsText}>{getUserInitials()}</Text>
+        </View>
+      );
+    }
+
+    return (
+      <>
+        <Image
+          source={getImageSource()}
+          style={styles.profileImage}
+          onLoadStart={handleImageLoadStart}
+          onLoadEnd={handleImageLoadEnd}
+          onError={handleImageError}
+        />
+        {imageLoading && user?.profileImage && (
+          <View style={styles.imageLoadingOverlay}>
+            <ActivityIndicator color={PROFILE_ICONS.COLOR.SUCCESS} size="small" />
+          </View>
+        )}
+      </>
+    );
+  };
+
+  /**
+   * Renders user info section
+   */
+  const renderUserInfo = (): React.ReactElement => (
+    <>
+      <Text style={styles.name}>
+        {user?.name ?? PROFILE_TEXT.PROFILE.DEFAULT_USER_NAME}
+      </Text>
+      {user?.email && <Text style={styles.email}>{user.email}</Text>}
+      {user?.phone && <Text style={styles.phone}>{user.phone}</Text>}
+    </>
+  );
+
+  // ============================================================================
+  // Render
+  // ============================================================================
 
   return (
     <View style={styles.container}>
@@ -111,13 +143,18 @@ export default function ProfileScreen(): React.ReactElement {
       >
         {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()}>
-            <Ionicons name="arrow-back" size={24} color="#000" />
+          <TouchableOpacity onPress={handleGoBack}>
+            <Ionicons 
+              name={PROFILE_ICONS.BACK_ARROW} 
+              size={PROFILE_ICONS.SIZE.EXTRA_LARGE} 
+              color={PROFILE_ICONS.COLOR.PRIMARY} 
+            />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>
-            Mi <Text style={styles.yummi}>YUMMI</Text>
+            {PROFILE_TEXT.HEADER.TITLE_PREFIX}{' '}
+            <Text style={styles.yummi}>{PROFILE_TEXT.HEADER.TITLE_HIGHLIGHT}</Text>
           </Text>
-          <View style={{ width: 24 }} />
+          <View style={{ width: PROFILE_ICONS.SIZE.EXTRA_LARGE }} />
         </View>
 
         {/* Divider */}
@@ -126,72 +163,74 @@ export default function ProfileScreen(): React.ReactElement {
         {/* Profile Picture */}
         <View style={styles.profileSection}>
           <View style={styles.profileImageContainer}>
-            {/* Background circle */}
-
-            {/* Profile Image */}
-            {!imageError ? (
-              <Image
-                source={getProfileImageSource()}
-                style={styles.profileImage}
-                onLoadStart={() => setImageLoading(true)}
-                onLoadEnd={() => setImageLoading(false)}
-                onError={handleImageError}
-              />
-            ) : (
-              // Fallback: Show initials if image fails to load
-              <View style={[styles.profileImage, styles.initialsContainer]}>
-                <Text style={styles.initialsText}>{getUserInitials()}</Text>
-              </View>
-            )}
-
-            {/* Loading indicator */}
-            {imageLoading && !imageError && user?.profileImage && (
-              <View style={styles.imageLoadingOverlay}>
-                <ActivityIndicator color="#27AE60" size="small" />
-              </View>
-            )}
+            {renderProfileImage()}
 
             {/* Decorative stars */}
-            <Ionicons name="add" size={20} color="#E8E8E8" style={styles.star1} />
-            <Ionicons name="add" size={16} color="#E8E8E8" style={styles.star2} />
-            <Ionicons name="add" size={12} color="#E8E8E8" style={styles.star3} />
+            <Ionicons 
+              name={PROFILE_ICONS.DECORATIVE_ADD} 
+              size={PROFILE_ICONS.SIZE.LARGE} 
+              color={PROFILE_ICONS.COLOR.DECORATIVE} 
+              style={styles.star1} 
+            />
+            <Ionicons 
+              name={PROFILE_ICONS.DECORATIVE_ADD} 
+              size={PROFILE_ICONS.SIZE.MEDIUM} 
+              color={PROFILE_ICONS.COLOR.DECORATIVE} 
+              style={styles.star2} 
+            />
+            <Ionicons 
+              name={PROFILE_ICONS.DECORATIVE_ADD} 
+              size={PROFILE_ICONS.SIZE.SMALL} 
+              color={PROFILE_ICONS.COLOR.DECORATIVE} 
+              style={styles.star3} 
+            />
 
             {/* Edit Button */}
             <TouchableOpacity style={styles.editButton} onPress={handleEditProfile}>
-              <Ionicons name="pencil" size={30} color="#000" />
+              <Ionicons 
+                name={PROFILE_ICONS.EDIT_PENCIL} 
+                size={PROFILE_ICONS.SIZE.BUTTON} 
+                color={PROFILE_ICONS.COLOR.PRIMARY} 
+              />
             </TouchableOpacity>
           </View>
 
           {/* User Info */}
-          <Text style={styles.name}>{user?.name ?? "Usuario"}</Text>
-          {user?.email && <Text style={styles.email}>{user.email}</Text>}
-          {user?.phone && <Text style={styles.phone}>{user.phone}</Text>}
-          
-          
+          {renderUserInfo()}
         </View>
 
         {/* Last Purchase Card */}
         <View style={styles.purchaseCard}>
           <View style={styles.foodImageContainer}>
             <Image
-              source={require("@/assets/img/food.png")}
+              source={require('@/assets/img/food.png')}
               style={styles.foodImage}
             />
-            <Text style={styles.lastPurchaseLabel}>Última compra</Text>
+            <Text style={styles.lastPurchaseLabel}>
+              {PROFILE_TEXT.PROFILE.LAST_PURCHASE}
+            </Text>
           </View>
 
           <View style={styles.commentSection}>
-            <Text style={styles.commentTitle}>Comentario:</Text>
+            <Text style={styles.commentTitle}>
+              {PROFILE_TEXT.PROFILE.COMMENT_TITLE}
+            </Text>
             <Text style={styles.commentText}>
-              "Lorem ipsum dolor sit amet, consectetur adipiscing elit..."
+              {PROFILE_TEXT.PROFILE.COMMENT_PLACEHOLDER}
             </Text>
           </View>
         </View>
 
         {/* Logout Button */}
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-          <Ionicons name="log-out-outline" size={20} color="#FFF" />
-          <Text style={styles.logoutButtonText}>Cerrar Sesión</Text>
+          <Ionicons 
+            name={PROFILE_ICONS.LOGOUT} 
+            size={PROFILE_ICONS.SIZE.LARGE} 
+            color={PROFILE_ICONS.COLOR.SECONDARY} 
+          />
+          <Text style={styles.logoutButtonText}>
+            {PROFILE_TEXT.PROFILE.LOGOUT_BUTTON}
+          </Text>
         </TouchableOpacity>
       </ScrollView>
 

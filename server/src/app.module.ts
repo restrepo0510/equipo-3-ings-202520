@@ -5,7 +5,6 @@ import { ConfigModule } from '@nestjs/config';
 import { UsersModule } from './users/users.module';
 import { RestaurantsModule } from './restaurants/restaurants.module';
 import { ProductsModule } from './products/products.module';
-import { UploadService } from './upload/upload.service';
 
 @Module({
   imports: [
@@ -27,6 +26,5 @@ import { UploadService } from './upload/upload.service';
     RestaurantsModule,
     ProductsModule
   ],
-  providers: [UploadService],
 })
 export class AppModule {}

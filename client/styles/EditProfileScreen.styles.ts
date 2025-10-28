@@ -133,37 +133,87 @@ export const editProfileStyles = StyleSheet.create({
     shadowRadius: 5, 
     elevation: 5, 
   },
-  // Añade esto a los estilos existentes
-imageHint: {
-  fontSize: 12,
-  color: '#7F8C8D',
-  textAlign: 'center',
-  marginTop: 8,
-  fontStyle: 'italic',
-},
-// Save Button
-saveButton: {
-  backgroundColor: "#1B5E20",
-  borderRadius: 25,
-  paddingVertical: 14,
-  paddingHorizontal: 40,
-  alignItems: "center",
-  justifyContent: "center",
-  marginTop: 20,
-  alignSelf: "center",
-  shadowColor: "#000",
-  shadowOffset: { width: 0, height: 3 },
-  shadowOpacity: 0.25,
-  shadowRadius: 4,
-  elevation: 5,
-},
 
-saveButtonText: {
-  color: "#FFFFFF",
-  fontSize: 18,
-  fontWeight: "bold",
-  letterSpacing: 1,
-},
+  // Input Error State
+  inputError: {
+    borderColor: "#E74C3C",
+    borderWidth: 2,
+    backgroundColor: "#FDEDEC",
+    shadowColor: "#E74C3C",
+    shadowOffset: {
+        width: 0,
+        height: 2,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+
+  // Error Text
+  errorText: {
+    color: "#E74C3C",
+    fontSize: 14,
+    fontWeight: "600",
+    marginTop: 6,
+    marginLeft: 12,
+  },
+
+  // Image Hint
+  imageHint: {
+    fontSize: 12,
+    color: '#7F8C8D',
+    textAlign: 'center',
+    marginTop: 8,
+    fontStyle: 'italic',
+  },
+
+  // Save Button
+  saveButton: {
+    backgroundColor: "#1B5E20",
+    borderRadius: 25,
+    paddingVertical: 14,
+    paddingHorizontal: 40,
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 20,
+    alignSelf: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+
+  // Save Button Disabled State
+  saveButtonDisabled: {
+    backgroundColor: "#95A5A6",
+    borderRadius: 25,
+    paddingVertical: 14,
+    paddingHorizontal: 40,
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 20,
+    alignSelf: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+
+  saveButtonText: {
+    color: "#FFFFFF",
+    fontSize: 18,
+    fontWeight: "bold",
+    letterSpacing: 1,
+  },
+
+  // Save Button Text Disabled State
+  saveButtonTextDisabled: {
+    color: "#ECF0F1",
+    fontSize: 18,
+    fontWeight: "600",
+    letterSpacing: 1,
+  },
 
 });
-
