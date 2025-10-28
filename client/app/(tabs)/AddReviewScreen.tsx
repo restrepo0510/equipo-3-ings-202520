@@ -1,226 +1,253 @@
-import React, { useState } from 'react';
-import { ChevronDown, ArrowLeft, Home, Heart, FileText, User, Send } from 'lucide-react';
+// app/(tabs)/AddReviewScreen.tsx
+
+import React, { useState, useEffect, useCallback } from "react";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  TextInput,
+  ScrollView,
+  StyleSheet,
+  Image,
+  ActivityIndicator,
+  Alert,
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 import { BottomNavigation } from "@/components/ui/BottomNavigation";
 import { createReviewsNavItems } from "@/utils/navigationHelpers";
-import { useRouter } from "expo-router";
+import { restaurantService } from "@/services/restaurantService";
+import { productService } from "@/services/productService";
+import { useLocation } from "@/hooks/useLocation";
+import { useAuth } from "@/context/AuthContext";
+import { useReviews } from "@/context/ReviewsContext";
+import { useRestaurants } from "@/context/RestaurantsContext";
+import { profileStyles as styles } from "@/styles/AddReviewScreen.styles";
 
-const YummiOpiniones = () => {
-  const [rating, setRating] = useState(3);
-  const [review, setReview] = useState('');
+const AddReviewScreen = () => {
   const router = useRouter();
+  const { token } = useAuth();
+  const { location } = useLocation();
+  const { addReview } = useReviews();
+  const { restaurants: globalRestaurants, setRestaurants: setGlobalRestaurants } = useRestaurants();
 
-  const navItems = createReviewsNavItems('reviews', router);
+  // --- Local states for component data ---
+  const [localRestaurants, setLocalRestaurants] = useState<any[]>([]);
+  const [products, setProducts] = useState<any[]>([]);
+  const [selectedRestaurant, setSelectedRestaurant] = useState<any | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<any | null>(null);
+  const [rating, setRating] = useState(0);
+  const [review, setReview] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [loadingProducts, setLoadingProducts] = useState(false);
 
-  const renderStars = () => (
-    <div style={{ display: 'flex', gap: '4px' }}>
-      {[1, 2, 3, 4, 5].map((star) => (
-        <button
-          key={star}
-          onClick={() => setRating(star)}
-          style={{
-            background: 'none',
-            border: 'none',
-            cursor: 'pointer',
-            padding: '0'
-          }}
-        >
-          <span style={{
-            fontSize: '32px',
-            color: '#000',
-            display: 'block',
-            lineHeight: '1'
-          }}>
-            {star <= rating ? '★' : '☆'}
-          </span>
-        </button>
-      ))}
-    </div>
-  );
+  const navItems = createReviewsNavItems("reviews", router);
 
+  // =============================================================
+  // 🔹 Load nearby restaurants using the user's location
+  // =============================================================
+  const loadRestaurants = useCallback(async () => {
+    if (!location) return;
+    setLoading(true);
+    try {
+      // Fetch nearby restaurants using the restaurant service
+      const nearby = await restaurantService.getNearby({
+        latitude: location.latitude,
+        longitude: location.longitude,
+        radius: 5, // search radius in km
+      });
+      setLocalRestaurants(nearby);
+      setGlobalRestaurants(nearby); // 🔹 Update global restaurants context
+    } catch (error) {
+      console.error("❌ Error loading restaurants:", error);
+      Alert.alert("Error", "No se pudieron cargar los restaurantes cercanos.");
+    } finally {
+      setLoading(false);
+    }
+  }, [location, setGlobalRestaurants]);
+
+  // --- Load restaurants if not already present in global context ---
+  useEffect(() => {
+    if (globalRestaurants.length > 0) {
+      setLocalRestaurants(globalRestaurants);
+    } else {
+      loadRestaurants();
+    }
+  }, [globalRestaurants, loadRestaurants]);
+
+  // =============================================================
+  // 🔹 Load products for the selected restaurant
+  // =============================================================
+  const loadProducts = useCallback(async () => {
+    if (!selectedRestaurant || !token) return;
+    setLoadingProducts(true);
+    try {
+      const data = await productService.getByRestaurant(selectedRestaurant.id, token);
+      setProducts(data);
+    } catch (error) {
+      console.error("❌ Error loading products:", error);
+      Alert.alert("Error", "No se pudieron cargar los productos del restaurante.");
+    } finally {
+      setLoadingProducts(false);
+    }
+  }, [selectedRestaurant, token]);
+
+  // --- Fetch products whenever the selected restaurant changes ---
+  useEffect(() => {
+    loadProducts();
+  }, [selectedRestaurant]);
+
+  // =============================================================
+  // 🔹 Handle review submission
+  // =============================================================
+  const handleSubmit = () => {
+    // Validate required fields
+    if (!selectedRestaurant || !selectedProduct || !review || rating === 0) {
+      Alert.alert("Atención", "Completa todos los campos antes de enviar.");
+      return;
+    }
+
+    // Add review to global context
+    addReview({
+      id: Date.now().toString(),
+      restaurant: selectedRestaurant.name,
+      product: selectedProduct.name,
+      rating,
+      text: review,
+      image: selectedProduct.imageUrl ? { uri: selectedProduct.imageUrl } : null,
+    });
+
+    Alert.alert("✅ Reseña enviada", "Tu opinión ha sido publicada.");
+    // Reset form fields
+    setReview("");
+    setRating(0);
+    setSelectedRestaurant(null);
+    setSelectedProduct(null);
+    router.push("/(tabs)/ReviewsScreen");
+  };
+
+  // =============================================================
+  // 🔹 Main render
+  // =============================================================
   return (
-    <div style={{
-      width: '390px',
-      height: '844px',
-      backgroundColor: '#F5F1E8',
-      display: 'flex',
-      flexDirection: 'column',
-      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-      position: 'relative',
-      margin: '0 auto',
-      boxShadow: '0 0 20px rgba(0,0,0,0.1)'
-    }}>
+    <View style={styles.container}>
       {/* Header */}
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        padding: '50px 16px 16px 16px',
-        backgroundColor: '#F5F1E8',
-        borderBottom: '1px solid #000',
-      }}>
-        <button
-          onClick={() => router.back()}
-          style={{
-            background: 'none',
-            border: 'none',
-            marginRight: '12px',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center'
-          }}>
-          <ArrowLeft size={24} color="#000" />
-        </button>
-        <h1 style={{
-          fontSize: '20px',
-          fontWeight: '400',
-          color: '#000',
-          margin: 0
-        }}>
-          <span style={{ fontWeight: '700', letterSpacing: '2px' }}>YUMMI</span> Opiniones
-        </h1>
-      </div>
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+          <Ionicons name="arrow-back" size={24} color="#000" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>
+          <Text style={styles.yummi}>YUMMI </Text>Opiniones
+        </Text>
+      </View>
 
-      {/* Content */}
-      <div style={{
-        flex: 1,
-        padding: '20px 16px',
-        overflowY: 'auto'
-      }}>
-        {/* Selecciona un restaurante */}
-        <div style={{ marginBottom: '24px' }}>
-          <h2 style={{
-            fontSize: '16px',
-            fontWeight: '600',
-            color: '#000',
-            marginBottom: '12px'
-          }}>
-            Selecciona un restaurante
-          </h2>
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            backgroundColor: '#FFF',
-            border: '1.5px solid #000',
-            borderRadius: '8px',
-            padding: '10px 12px',
-            cursor: 'pointer'
-          }}>
-            <span style={{ fontSize: '14px', color: '#000' }}>Capitulos-poblado</span>
-            <ChevronDown size={24} color="#000" />
-          </div>
-        </div>
+      {/* Scrollable main content */}
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        {/* ================== Select Restaurant ================== */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Selecciona un restaurante</Text>
+          {loading ? (
+            <ActivityIndicator size="small" color="#27AE60" />
+          ) : localRestaurants.length > 0 ? (
+            localRestaurants.map((r) => (
+              <TouchableOpacity
+                key={r.id}
+                style={[
+                  styles.dropdown,
+                  selectedRestaurant?.id === r.id && { borderColor: "#27AE60" },
+                ]}
+                onPress={() => {
+                  setSelectedRestaurant(r);
+                  setSelectedProduct(null);
+                }}
+              >
+                <Text style={styles.dropdownText}>{r.name}</Text>
+              </TouchableOpacity>
+            ))
+          ) : (
+            <Text style={styles.emptyText}>No hay restaurantes cercanos.</Text>
+          )}
+        </View>
 
-        {/* Selecciona un producto */}
-        <div style={{ marginBottom: '24px' }}>
-          <h2 style={{
-            fontSize: '16px',
-            fontWeight: '600',
-            color: '#000',
-            marginBottom: '12px'
-          }}>
-            Selecciona un producto
-          </h2>
-          <div style={{
-            display: 'flex',
-            backgroundColor: '#FFF',
-            borderRadius: '12px',
-            padding: '12px',
-            boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-          }}>
-            <img
-              src="https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&h=400&fit=crop"
-              alt="Pizza"
-              style={{
-                width: '80px',
-                height: '80px',
-                borderRadius: '8px',
-                objectFit: 'cover'
-              }}
-            />
-            <div style={{
-              flex: 1,
-              marginLeft: '12px',
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'center'
-            }}>
-              <h3 style={{
-                fontSize: '16px',
-                fontWeight: '600',
-                color: '#000',
-                margin: '0 0 4px 0'
-              }}>
-                Producto 2
-              </h3>
-              <p style={{
-                fontSize: '12px',
-                color: '#666',
-                margin: 0,
-                lineHeight: '16px'
-              }}>
-                Detalles del producto...<br />lorem ipsum
-              </p>
-            </div>
-          </div>
-        </div>
+        {/* ================== Select Product ================== */}
+        {selectedRestaurant && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Selecciona un producto</Text>
+            {loadingProducts ? (
+              <ActivityIndicator size="small" color="#27AE60" />
+            ) : products.length > 0 ? (
+              products.map((p) => (
+                <TouchableOpacity
+                  key={p.id}
+                  style={[
+                    styles.productCard,
+                    selectedProduct?.id === p.id && {
+                      borderColor: "#27AE60",
+                      backgroundColor: "#F8FFF8",
+                    },
+                  ]}
+                  onPress={() => setSelectedProduct(p)}
+                >
+                  <Image
+                    source={{ uri: p.imageUrl || "https://via.placeholder.com/100" }}
+                    style={styles.productImage}
+                  />
+                  <View style={styles.productInfo}>
+                    <Text style={styles.productName}>{p.name}</Text>
+                    <Text numberOfLines={2} style={styles.productDescription}>
+                      {p.description || "Detalles del producto... lorem ipsum"}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              ))
+            ) : (
+              <Text style={styles.emptyText}>
+                No hay productos disponibles para este restaurante.
+              </Text>
+            )}
+          </View>
+        )}
 
-        {/* Puntua y opina */}
-        <div style={{ marginBottom: '24px' }}>
-          <h2 style={{
-            fontSize: '16px',
-            fontWeight: '600',
-            color: '#000',
-            marginBottom: '12px'
-          }}>
-            Puntua y opina
-          </h2>
-          {renderStars()}
-        </div>
+        {/* ================== Rate and Write Review ================== */}
+        {selectedProduct && (
+          <>
+            {/* Rating section */}
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Puntúa y opina</Text>
+              <View style={styles.starRow}>
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <TouchableOpacity key={star} onPress={() => setRating(star)}>
+                    <Ionicons
+                      name={star <= rating ? "star" : "star-outline"}
+                      size={28}
+                      color="#000"
+                    />
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
 
-        {/* Escribe tu reseña */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'flex-end',
-          marginBottom: '20px'
-        }}>
-          <input
-            type="text"
-            placeholder="Escribe tu reseña..."
-            value={review}
-            onChange={(e) => setReview(e.target.value)}
-            style={{
-              flex: 1,
-              backgroundColor: '#FFF',
-              border: '1.5px solid #000',
-              borderRadius: '25px',
-              padding: '12px 16px',
-              fontSize: '14px',
-              color: '#000',
-              marginRight: '8px',
-              outline: 'none'
-            }}
-          />
-          <button style={{
-            backgroundColor: '#000',
-            width: '50px',
-            height: '50px',
-            borderRadius: '25px',
-            border: 'none',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            cursor: 'pointer',
-            flexShrink: 0
-          }}>
-            <Send size={20} color="#FFF" />
-          </button>
-        </div>
-      </div>
+            {/* Text input for the review */}
+            <View style={styles.inputContainer}>
+              <TextInput
+                placeholder="Escribe tu reseña..."
+                placeholderTextColor="#666"
+                value={review}
+                onChangeText={setReview}
+                style={styles.input}
+              />
+              <TouchableOpacity style={styles.sendButton} onPress={handleSubmit}>
+                <Ionicons name="send" size={20} color="#FFF" />
+              </TouchableOpacity>
+            </View>
+          </>
+        )}
+      </ScrollView>
 
-      {/* Bottom Navigation */}
+      {/* Bottom navigation bar */}
       <BottomNavigation items={navItems} />
-    </div>
+    </View>
   );
 };
 
-export default YummiOpiniones;
+export default AddReviewScreen;

@@ -32,7 +32,7 @@ export default function ReviewsScreen(): React.ReactElement {
   const navItems = createReviewsNavItems("reviews", router);
 
   // =============================================================
-  // 🔹 Default sample reviews to display when no user reviews exist
+  //  Default sample reviews to display when no user reviews exist
   // =============================================================
   const baseReviews = [
     {
@@ -80,7 +80,7 @@ export default function ReviewsScreen(): React.ReactElement {
   ];
 
   // =============================================================
-  // 🔹 Generate random sample reviews from base list
+  //  Generate random sample reviews from base list
   // =============================================================
   const getRandomReviews = () => {
     const shuffled = [...baseReviews].sort(() => 0.5 - Math.random());
@@ -88,7 +88,7 @@ export default function ReviewsScreen(): React.ReactElement {
   };
 
   // =============================================================
-  // 🔹 Display reviews only when a restaurant is selected
+  //  Display reviews only when a restaurant is selected
   // =============================================================
   useEffect(() => {
     if (selectedRestaurant !== "Seleccione un Restaurante") {
@@ -245,7 +245,7 @@ export default function ReviewsScreen(): React.ReactElement {
 }
 
 // =============================================================
-// 🔹 Local styles for dropdown and input bar
+// Local styles for dropdown and input bar
 // =============================================================
 const localDropdown = StyleSheet.create({
   dropdownList: {
