@@ -9,9 +9,11 @@ import {
   ScrollView,
   Alert,
   ActivityIndicator,
+  Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import * as ImagePicker from 'expo-image-picker';
 import { BottomNavigation } from '@/components/ui/BottomNavigation';
 import { createBusinessNavItems } from '@/utils/navigationHelpers';
 import { useAuth } from '@/context/AuthContext';
@@ -22,6 +24,7 @@ import { styles } from '@/styles/EditBusinessProfileScreen.styles';
  * EditBusinessProfileScreen
  * 
  * Allows business users to edit their restaurant/business information
+ * Includes image picker for logo/profile picture
  */
 export default function EditBusinessProfileScreen() {
   const router = useRouter();
@@ -37,10 +40,12 @@ export default function EditBusinessProfileScreen() {
     category: '',
     openingTime: '',
     closingTime: '',
+    imageUrl: '', // ✅ Agregado para imagen
   });
 
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
 
   /**
    * Load restaurant data on mount
@@ -65,6 +70,7 @@ export default function EditBusinessProfileScreen() {
         category: restaurant.category || '',
         openingTime: restaurant.openingTime || '',
         closingTime: restaurant.closingTime || '',
+        imageUrl: restaurant.imageUrl || '', // ✅ Cargar imagen existente
       });
     } catch (error) {
       console.error('Error loading restaurant data:', error);
@@ -79,6 +85,134 @@ export default function EditBusinessProfileScreen() {
    */
   const handleFieldChange = (field: keyof typeof formData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  /**
+   * Request camera permissions
+   */
+  const requestCameraPermission = async (): Promise<boolean> => {
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert(
+        'Permiso Requerido',
+        'Se necesita acceso a la cámara para tomar fotos'
+      );
+      return false;
+    }
+    return true;
+  };
+
+  /**
+   * Request media library permissions
+   */
+  const requestMediaLibraryPermission = async (): Promise<boolean> => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert(
+        'Permiso Requerido',
+        'Se necesita acceso a la galería para seleccionar fotos'
+      );
+      return false;
+    }
+    return true;
+  };
+
+  /**
+   * Pick image from gallery
+   */
+  const pickImageFromGallery = async () => {
+    const hasPermission = await requestMediaLibraryPermission();
+    if (!hasPermission) return;
+
+    try {
+      setIsUploadingImage(true);
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1], // Square for profile picture
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets[0]) {
+        handleFieldChange('imageUrl', result.assets[0].uri);
+      }
+    } catch (error) {
+      console.error('Error picking image:', error);
+      Alert.alert('Error', 'No se pudo seleccionar la imagen');
+    } finally {
+      setIsUploadingImage(false);
+    }
+  };
+
+  /**
+   * Take photo with camera
+   */
+  const takePhoto = async () => {
+    const hasPermission = await requestCameraPermission();
+    if (!hasPermission) return;
+
+    try {
+      setIsUploadingImage(true);
+
+      const result = await ImagePicker.launchCameraAsync({
+        allowsEditing: true,
+        aspect: [1, 1], // Square for profile picture
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets[0]) {
+        handleFieldChange('imageUrl', result.assets[0].uri);
+      }
+    } catch (error) {
+      console.error('Error taking photo:', error);
+      Alert.alert('Error', 'No se pudo tomar la foto');
+    } finally {
+      setIsUploadingImage(false);
+    }
+  };
+
+  /**
+   * Show image picker options
+   */
+  const showImagePickerOptions = () => {
+    Alert.alert(
+      'Foto del Negocio',
+      'Elige una opción',
+      [
+        {
+          text: 'Tomar Foto',
+          onPress: takePhoto,
+        },
+        {
+          text: 'Elegir de Galería',
+          onPress: pickImageFromGallery,
+        },
+        {
+          text: 'Cancelar',
+          style: 'cancel',
+        },
+      ],
+      { cancelable: true }
+    );
+  };
+
+  /**
+   * Remove selected image
+   */
+  const removeImage = () => {
+    Alert.alert(
+      'Eliminar Foto',
+      '¿Estás seguro de eliminar la foto del negocio?',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Eliminar',
+          style: 'destructive',
+          onPress: () => handleFieldChange('imageUrl', ''),
+        },
+      ]
+    );
   };
 
   /**
@@ -107,7 +241,6 @@ export default function EditBusinessProfileScreen() {
     try {
       setIsSaving(true);
 
-      // ✅ Asegurar que user.id es string
       await restaurantService.update(
         String(user.id),
         {
@@ -119,6 +252,7 @@ export default function EditBusinessProfileScreen() {
           category: formData.category.trim(),
           openingTime: formData.openingTime.trim(),
           closingTime: formData.closingTime.trim(),
+          imageUrl: formData.imageUrl.trim(), // ✅ Incluir imagen
         },
         token
       );
@@ -164,6 +298,50 @@ export default function EditBusinessProfileScreen() {
 
         {/* Form */}
         <View style={styles.form}>
+          {/* ✅ Profile Picture Section */}
+          <View style={styles.profilePictureSection}>
+            <Text style={styles.label}>Foto del Negocio</Text>
+            
+            <View style={styles.profilePictureContainer}>
+              {formData.imageUrl ? (
+                <View style={styles.profileImageWrapper}>
+                  <Image
+                    source={{ uri: formData.imageUrl }}
+                    style={styles.profileImage}
+                    resizeMode="cover"
+                  />
+                  <TouchableOpacity
+                    style={styles.removeProfileImageButton}
+                    onPress={removeImage}
+                  >
+                    <Ionicons name="close-circle" size={28} color="#E74C3C" />
+                  </TouchableOpacity>
+                </View>
+              ) : (
+                <View style={styles.profileImagePlaceholder}>
+                  <Ionicons name="business" size={48} color="#9CA3AF" />
+                </View>
+              )}
+
+              <TouchableOpacity
+                style={styles.changeProfileImageButton}
+                onPress={showImagePickerOptions}
+                disabled={isUploadingImage}
+              >
+                {isUploadingImage ? (
+                  <ActivityIndicator color="#FFF" size="small" />
+                ) : (
+                  <>
+                    <Ionicons name="camera" size={20} color="#FFF" />
+                    <Text style={styles.changeProfileImageText}>
+                      {formData.imageUrl ? 'Cambiar Foto' : 'Agregar Foto'}
+                    </Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+
           {/* Business Name */}
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Nombre del Negocio *</Text>

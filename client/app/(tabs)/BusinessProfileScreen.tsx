@@ -15,6 +15,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { BottomNavigation } from "@/components/ui/BottomNavigation";
 import { createBusinessNavItems } from "@/utils/navigationHelpers";
 import { productService, Product } from "@/services/productService";
+import { restaurantService } from "@/services/restaurantService";
 import { useAuth } from "@/context/AuthContext";
 import { styles } from "@/styles/BusinessProfileScreen.styles";
 
@@ -31,11 +32,28 @@ export default function BusinessProfileScreen(): React.ReactElement {
 
   // State
   const [products, setProducts] = useState<Product[]>([]);
+  const [restaurantImage, setRestaurantImage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   // Get restaurant ID from user (user.id is already a string UUID)
   const restaurantId = user?.id;
+
+  /**
+   * Load restaurant data to get the image
+   */
+  const loadRestaurantData = useCallback(async () => {
+    if (!restaurantId) return;
+
+    try {
+      const restaurant = await restaurantService.getById(restaurantId);
+      setRestaurantImage(restaurant.imageUrl || null);
+      console.log("🏪 Restaurant image loaded:", restaurant.imageUrl);
+    } catch (error: any) {
+      console.error("❌ Error loading restaurant data:", error);
+      // Don't show error for image loading failure
+    }
+  }, [restaurantId]);
 
   /**
    * Fetch products for this business from backend
@@ -57,16 +75,21 @@ export default function BusinessProfileScreen(): React.ReactElement {
       setIsLoading(true);
       setError(null);
 
-      const data = await productService.getByRestaurant(restaurantId, token);
-      console.log("📦 Business products loaded:", data.length);
-      setProducts(data);
+      // Load both restaurant data and products
+      await Promise.all([
+        loadRestaurantData(),
+        productService.getByRestaurant(restaurantId, token).then((data) => {
+          console.log("📦 Business products loaded:", data.length);
+          setProducts(data);
+        }),
+      ]);
     } catch (error: any) {
       console.error("❌ Error loading products:", error);
       setError(error.message || "Could not load products");
     } finally {
       setIsLoading(false);
     }
-  }, [token, restaurantId]);
+  }, [token, restaurantId, loadRestaurantData]);
 
   // Load products on mount
   useEffect(() => {
@@ -215,7 +238,19 @@ export default function BusinessProfileScreen(): React.ReactElement {
         <View style={styles.companySection}>
           <View style={styles.companyImageContainer}>
             <View style={styles.companyImage}>
-              <Text style={styles.companyEmoji}>😊</Text>
+              {restaurantImage ? (
+                <Image
+                  source={{ uri: restaurantImage }}
+                  style={{
+                    width: 100,
+                    height: 100,
+                    borderRadius: 100,
+                  }}
+                  resizeMode="cover"
+                />
+              ) : (
+                <Text style={styles.companyEmoji}>🏪</Text>
+              )}
             </View>
             {/* ✅ BOTÓN DE EDITAR PERFIL ENLAZADO */}
             <TouchableOpacity 
@@ -298,15 +333,6 @@ export default function BusinessProfileScreen(): React.ReactElement {
                     </TouchableOpacity>
                   </View>
                 </View>
-
-                {/* Delete Button (Hold to delete) */}
-                <TouchableOpacity
-                  style={styles.deleteButton}
-                  onLongPress={() => handleDeleteProduct(product)}
-                  delayLongPress={1000}
-                >
-                  <Ionicons name="trash-outline" size={16} color="#E74C3C" />
-                </TouchableOpacity>
               </View>
             ))}
           </View>
@@ -322,4 +348,4 @@ export default function BusinessProfileScreen(): React.ReactElement {
       <BottomNavigation items={navItems} />
     </View>
   );
-} 
+}
