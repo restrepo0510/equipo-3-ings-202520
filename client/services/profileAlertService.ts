@@ -1,7 +1,7 @@
 // services/profileAlertService.ts
 
-import { Alert } from 'react-native';
 import { PROFILE_TEXT, ProfileImageError } from '@/constants/profile.constants';
+import { CustomAlertHelper } from '@/components/ui/CustomAlert';
 
 /**
  * ProfileAlertService
@@ -14,34 +14,24 @@ export class ProfileAlertService {
    * Shows generic error alert
    */
   static showError(message: string): void {
-    Alert.alert(PROFILE_TEXT.ALERTS.ERROR_TITLE, message);
+    CustomAlertHelper.error(PROFILE_TEXT.ALERTS.ERROR_TITLE, message);
   }
 
   /**
    * Shows generic success alert
    */
   static showSuccess(message: string): void {
-    Alert.alert(PROFILE_TEXT.ALERTS.SUCCESS_TITLE, message);
+    CustomAlertHelper.success(PROFILE_TEXT.ALERTS.SUCCESS_TITLE, message);
   }
 
   /**
    * Shows logout confirmation dialog
    */
   static showLogoutConfirmation(onConfirm: () => void): void {
-    Alert.alert(
+    CustomAlertHelper.confirm(
       PROFILE_TEXT.ALERTS.LOGOUT_TITLE,
       PROFILE_TEXT.ALERTS.LOGOUT_MESSAGE,
-      [
-        {
-          text: PROFILE_TEXT.ALERTS.LOGOUT_CANCEL,
-          style: 'cancel',
-        },
-        {
-          text: PROFILE_TEXT.ALERTS.LOGOUT_CONFIRM,
-          style: 'destructive',
-          onPress: onConfirm,
-        },
-      ]
+      onConfirm
     );
   }
 
@@ -49,7 +39,7 @@ export class ProfileAlertService {
    * Shows permission request alert
    */
   static showPermissionRequired(): void {
-    Alert.alert(
+    CustomAlertHelper.warning(
       PROFILE_TEXT.ALERTS.PERMISSION_TITLE,
       PROFILE_TEXT.ALERTS.PERMISSION_MESSAGE
     );
@@ -107,7 +97,7 @@ export class ProfileAlertService {
    * Shows validation errors
    */
   static showValidationError(errorMessage: string): void {
-    Alert.alert(
+    CustomAlertHelper.warning(
       PROFILE_TEXT.ALERTS.VALIDATION_ERROR_TITLE,
       errorMessage
     );
@@ -117,7 +107,7 @@ export class ProfileAlertService {
    * Shows missing fields error
    */
   static showMissingFieldsError(): void {
-    Alert.alert(
+    CustomAlertHelper.warning(
       PROFILE_TEXT.ALERTS.VALIDATION_ERROR_TITLE,
       PROFILE_TEXT.ALERTS.ERROR_MISSING_FIELDS
     );
