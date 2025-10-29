@@ -289,9 +289,14 @@ export default function EditBusinessProfileScreen() {
           <TouchableOpacity onPress={() => router.back()}>
             <Ionicons name="arrow-back" size={24} color="#000" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Editar Perfil</Text>
-          <View style={{ width: 24 }} />
+          <View style={styles.headerTitleContainer}>
+            <Text style={styles.headerTitle}>
+              Mi <Text style={styles.yummi}>YUMMI</Text>
+            </Text>
+            <Text style={styles.headerSubtitle}>Enterprise</Text>
+          </View>
         </View>
+
 
         {/* Divider */}
         <View style={styles.divider} />
@@ -300,7 +305,7 @@ export default function EditBusinessProfileScreen() {
         <View style={styles.form}>
           {/* ✅ Profile Picture Section */}
           <View style={styles.profilePictureSection}>
-            <Text style={styles.label}>Foto del Negocio</Text>
+            <Text style={styles.label}>Editar Perfil</Text>
             
             <View style={styles.profilePictureContainer}>
               {formData.imageUrl ? (
@@ -332,11 +337,8 @@ export default function EditBusinessProfileScreen() {
                   <ActivityIndicator color="#FFF" size="small" />
                 ) : (
                   <>
-                    <Ionicons name="camera" size={20} color="#FFF" />
-                    <Text style={styles.changeProfileImageText}>
-                      {formData.imageUrl ? 'Cambiar Foto' : 'Agregar Foto'}
-                    </Text>
-                  </>
+                    <Ionicons name="folder-open" size={40} color="#000" />
+                    </>
                 )}
               </TouchableOpacity>
             </View>
@@ -344,7 +346,7 @@ export default function EditBusinessProfileScreen() {
 
           {/* Business Name */}
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Nombre del Negocio *</Text>
+            <Text style={styles.label}>Nombre del Negocio</Text>
             <TextInput
               style={styles.input}
               value={formData.name}
@@ -369,7 +371,7 @@ export default function EditBusinessProfileScreen() {
 
           {/* Email */}
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Email</Text>
+            <Text style={styles.label}>Correo Eléctronico</Text>
             <TextInput
               style={styles.input}
               value={formData.email}
@@ -383,7 +385,7 @@ export default function EditBusinessProfileScreen() {
 
           {/* Address */}
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Dirección *</Text>
+            <Text style={styles.label}>Dirección </Text>
             <TextInput
               style={[styles.input, styles.textArea]}
               value={formData.address}
@@ -393,9 +395,6 @@ export default function EditBusinessProfileScreen() {
               multiline
               numberOfLines={2}
             />
-            <Text style={styles.hint}>
-              💡 Actualizar la dirección recalculará las coordenadas en el mapa
-            </Text>
           </View>
 
           {/* Description */}
@@ -427,7 +426,7 @@ export default function EditBusinessProfileScreen() {
           {/* Opening Hours */}
           <View style={styles.row}>
             <View style={[styles.inputGroup, styles.halfWidth]}>
-              <Text style={styles.label}>Hora Apertura</Text>
+              <Text style={styles.label}>Hora Inicio</Text>
               <TextInput
                 style={styles.input}
                 value={formData.openingTime}

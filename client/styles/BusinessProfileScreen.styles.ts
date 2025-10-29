@@ -23,7 +23,7 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
   },
   headerTitle: {
-    fontSize: 24,
+    fontSize: 30,
     fontWeight: 'bold',
     color: '#000',
   },
@@ -32,7 +32,7 @@ export const styles = StyleSheet.create({
     fontWeight: '400',
   },
   headerSubtitle: {
-    fontSize: 24,
+    fontSize: 30,
     fontWeight: 'bold',
     color: '#000',
     marginTop: -4,
@@ -55,6 +55,7 @@ export const styles = StyleSheet.create({
   },
   companyImageContainer: {
     position: 'relative',
+    marginRight: 12,
   },
   companyImage: {
     width: 100,
@@ -63,6 +64,8 @@ export const styles = StyleSheet.create({
     borderRadius: 100,
     justifyContent: 'center',
     alignItems: 'center',
+    boxShadow: '0px 8px 10px rgba(0, 0, 0, 0.3)',
+    
   },
   companyEmoji: {
     fontSize: 32,
@@ -70,13 +73,15 @@ export const styles = StyleSheet.create({
   editCompanyButton: {
     position: 'absolute',
     bottom: -4,
-    right: -4,
-    width: 28,
-    height: 28,
+    right: -15,
+    width: 34,
+    height: 34,
     backgroundColor: '#DCE4D0',
-    borderRadius: 14,
+    borderRadius: 100,
     justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#ffffff',
   },
   companyName: {
     fontSize: 30,
@@ -98,20 +103,22 @@ export const styles = StyleSheet.create({
   quantityBadge: {
     position: 'absolute',
     left: -12,
-    top: 8,
-    width: 32,
-    height: 32,
+    top: -10,
+    width: 40,
+    height: 40,
     backgroundColor: '#E5E7EB',
-    borderRadius: 16,
+    borderRadius: 100,
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 10,
-    borderWidth: 4,
+    borderWidth: 2,
     borderColor: '#FFF',
+    boxShadow: '0px 6px 6px rgba(0, 0, 0, 0.3)',
+
   },
   quantityText: {
-    fontSize: 14,
-    fontWeight: 'bold',
+    fontSize: 18,
+    fontWeight: '800',
     color: '#374151',
   },
   editButton: {
@@ -120,18 +127,14 @@ export const styles = StyleSheet.create({
     top: -15,
     width: 46,
     height: 46,
-    backgroundColor: '#FFF',
+    backgroundColor: '#DCE4D0',
     borderRadius: 100,
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    boxShadow: '0px 6px 6px rgba(0, 0, 0, 0.1)',
     borderWidth: 2,
-    borderColor: '#E5E7EB',
+    borderColor: '#ffff',
   },
   
   productCardInner: {
@@ -141,12 +144,15 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    borderWidth: 4,
+    borderWidth: 2,
     borderColor: '#145625',
+    boxShadow: '0px 6px 6px rgba(0, 0, 0, 0.2)',
+
   },
   productImageContainer: {
-    width: 84,
-    height: 84,
+    width: 100,
+    height: 100,
+    margin: -4,
     backgroundColor: '#FFF',
     borderRadius: 12,
     justifyContent: 'center',
@@ -161,40 +167,44 @@ export const styles = StyleSheet.create({
     flex: 1,
   },
   productName: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: 'bold',
     color: '#FFF',
-    marginBottom: 2,
+    marginBottom: 10,
   },
   productDescription: {
-    fontSize: 12,
+    fontSize: 14,
     color: '#FFF',
     opacity: 0.9,
-    marginBottom: 2,
+    marginBottom: 10,
   },
   productPrice: {
     fontSize:18,
     color: '#FFF',
-    fontStyle: 'italic',
-    opacity: 0.8,
+    fontWeight: 'semibold',
   },
 
   // Quantity Controls
   quantityControls: {
     flexDirection: 'row',
     gap: 8,
+    position: 'absolute',
+    bottom: 5,
+    right:5,
   },
   quantityButton: {
     width: 46,
     height: 46,
     backgroundColor: '#FCA5A5',
     borderRadius: 100,
+    borderWidth: 2,
+    borderColor: '#242a33ff',
     justifyContent: 'center',
     alignItems: 'center',
 
   },
   quantityButtonAdd: {
-    backgroundColor: '#FFF',
+    backgroundColor: '#DCE4D0',
   },
 
   // Loading/Error States
@@ -256,16 +266,16 @@ export const styles = StyleSheet.create({
   },
   // Logout Button
     logoutButton: {
-        backgroundColor: '#E74C3C',
+        position: 'relative',
+        alignSelf: 'center',
+        width: '30%',
+        backgroundColor: '#d35446ff',
         marginHorizontal: 20,
         marginTop: 20,
         paddingVertical: 14,
         borderRadius: 12,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 3,
+        boxShadow: '0px 6px 6px rgba(0, 0, 0, 0.1)',
+
     },
     logoutButtonText: {
         color: '#FFFFFF',

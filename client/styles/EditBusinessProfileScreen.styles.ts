@@ -23,30 +23,43 @@ export const styles = StyleSheet.create({
     color: '#7F8C8D',
   },
 
-  // Header
+   // Header
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingTop: 60,
-    paddingBottom: 20,
-    backgroundColor: '#FFF',
+    marginBottom: 10,
+    marginTop: 40,
   },
-
+  headerTitleContainer: {
+    flex: 1,
+    alignItems: 'center',
+  },
   headerTitle: {
-    fontSize: 20,
-    fontWeight: '700',
+    fontSize: 30,
+    fontWeight: 'bold',
     color: '#000',
   },
-
+  yummi: {
+    fontStyle: 'italic',
+    fontWeight: '400',
+  },
+  headerSubtitle: {
+    fontSize: 30,
+    fontWeight: 'bold',
+    color: '#000',
+    marginTop: -4,
+  },
   divider: {
-    height: 1,
-    backgroundColor: '#E0E0E0',
-    marginHorizontal: 20,
-    marginBottom: 30,
+    width: '80%',
+    height: 2,
+    backgroundColor: '#000',
+    alignSelf: 'center',
+    marginBottom: 20,
   },
 
+ 
   // Form
   form: {
     paddingHorizontal: 20,
@@ -57,21 +70,24 @@ export const styles = StyleSheet.create({
   },
 
   label: {
-    fontSize: 14,
+    fontSize: 22,
     fontWeight: '600',
-    color: '#2C3E50',
-    marginBottom: 8,
+    color: '#004226',
+    marginBottom: 10,
+    marginLeft: 5,
   },
 
   input: {
     backgroundColor: '#FFF',
     borderWidth: 1.5,
-    borderColor: '#E0E0E0',
-    borderRadius: 12,
+    borderColor: '#161616ff',
+    borderRadius: 100,
     paddingHorizontal: 16,
     paddingVertical: 14,
     fontSize: 16,
     color: '#000',
+    boxShadow: '0px 6px 6px rgba(0, 0, 0, 0.1)',
+
   },
 
   textArea: {
@@ -104,13 +120,8 @@ export const styles = StyleSheet.create({
     borderRadius: 75,
     overflow: 'hidden',
     backgroundColor: '#F3F4F6',
-    borderWidth: 4,
-    borderColor: '#FFF',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 5,
+    boxShadow: '0px 6px 6px rgba(0, 0, 0, 0.2)',
+
   },
 
   profileImage: {
@@ -144,19 +155,16 @@ export const styles = StyleSheet.create({
   },
 
   changeProfileImageButton: {
-    flexDirection: 'row',
+    position: 'absolute',
+    bottom: -10,
+    right: -40,
     alignItems: 'center',
-    backgroundColor: '#27AE60',
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderRadius: 25,
     marginTop: 15,
     gap: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.5,
-    elevation: 5,
+   
   },
 
   changeProfileImageText: {
@@ -177,11 +185,13 @@ export const styles = StyleSheet.create({
   // Buttons
   saveButton: {
     flexDirection: 'row',
+    width: '55%',
+    alignSelf: 'center',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#27AE60',
+    backgroundColor: '#004226',
     paddingVertical: 16,
-    borderRadius: 12,
+    borderRadius: 60,
     marginTop: 20,
     gap: 8,
   },
@@ -197,13 +207,18 @@ export const styles = StyleSheet.create({
   },
 
   cancelButton: {
+    width: '30%',
+    backgroundColor: '#bd4545ff',
+    borderRadius: 60,
+    justifyContent: 'center',
+    alignSelf: 'center',
     alignItems: 'center',
     paddingVertical: 16,
     marginTop: 12,
   },
 
   cancelButtonText: {
-    color: '#7F8C8D',
+    color: '#ffffffff',
     fontSize: 16,
     fontWeight: '600',
   },

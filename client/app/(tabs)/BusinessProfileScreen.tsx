@@ -259,7 +259,7 @@ export default function BusinessProfileScreen(): React.ReactElement {
               accessibilityLabel="Edit business profile"
               accessibilityHint="Tap to edit your business information"
             >
-              <Ionicons name="pencil" size={16} color="#FFF" />
+              <Ionicons name="pencil" size={25} color="#000" />
             </TouchableOpacity>
           </View>
           <Text style={styles.companyName}>{user?.name || "Company Name"}</Text>
@@ -288,7 +288,7 @@ export default function BusinessProfileScreen(): React.ReactElement {
                   style={styles.editButton}
                   onPress={() => handleEditProduct(product)}
                 >
-                  <Ionicons name="pencil" size={16} color="#000" />
+                  <Ionicons name="pencil" size={24} color="#000" />
                 </TouchableOpacity>
 
                 {/* Product Card Content */}
@@ -323,13 +323,13 @@ export default function BusinessProfileScreen(): React.ReactElement {
                       style={styles.quantityButton}
                       onPress={() => handleUpdateQuantity(product, -1)}
                     >
-                      <Ionicons name="remove" size={20} color="#000" />
+                      <Ionicons name="remove" size={40} color="#000" />
                     </TouchableOpacity>
                     <TouchableOpacity
                       style={[styles.quantityButton, styles.quantityButtonAdd]}
                       onPress={() => handleUpdateQuantity(product, 1)}
                     >
-                      <Ionicons name="add" size={20} color="#000" />
+                      <Ionicons name="add" size={40} color="#000" />
                     </TouchableOpacity>
                   </View>
                 </View>
