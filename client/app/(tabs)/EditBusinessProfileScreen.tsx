@@ -7,25 +7,18 @@ import {
   TextInput,
   TouchableOpacity,
   ScrollView,
-  Alert,
   ActivityIndicator,
   Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
-import { BottomNavigation } from '@/components/ui/BottomNavigation';
 import { createBusinessNavItems } from '@/utils/navigationHelpers';
 import { useAuth } from '@/context/AuthContext';
 import { restaurantService } from '@/services/restaurantService';
 import { styles } from '@/styles/EditBusinessProfileScreen.styles';
+import { CustomAlertHelper } from '@/components/ui/CustomAlert';
 
-/**
- * EditBusinessProfileScreen
- * 
- * Allows business users to edit their restaurant/business information
- * Includes image picker for logo/profile picture
- */
 export default function EditBusinessProfileScreen() {
   const router = useRouter();
   const { user, token } = useAuth();
@@ -40,16 +33,13 @@ export default function EditBusinessProfileScreen() {
     category: '',
     openingTime: '',
     closingTime: '',
-    imageUrl: '', // ✅ Agregado para imagen
+    imageUrl: '',
   });
 
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
 
-  /**
-   * Load restaurant data on mount
-   */
   useEffect(() => {
     loadRestaurantData();
   }, []);
@@ -70,30 +60,24 @@ export default function EditBusinessProfileScreen() {
         category: restaurant.category || '',
         openingTime: restaurant.openingTime || '',
         closingTime: restaurant.closingTime || '',
-        imageUrl: restaurant.imageUrl || '', // ✅ Cargar imagen existente
+        imageUrl: restaurant.imageUrl || '', 
       });
     } catch (error) {
       console.error('Error loading restaurant data:', error);
-      Alert.alert('Error', 'No se pudo cargar la información del negocio');
+      CustomAlertHelper.error('Error', 'No se pudo cargar la información del negocio');
     } finally {
       setIsLoading(false);
     }
   };
 
-  /**
-   * Update form field
-   */
   const handleFieldChange = (field: keyof typeof formData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  /**
-   * Request camera permissions
-   */
   const requestCameraPermission = async (): Promise<boolean> => {
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
     if (status !== 'granted') {
-      Alert.alert(
+      CustomAlertHelper.warning(
         'Permiso Requerido',
         'Se necesita acceso a la cámara para tomar fotos'
       );
@@ -102,13 +86,10 @@ export default function EditBusinessProfileScreen() {
     return true;
   };
 
-  /**
-   * Request media library permissions
-   */
   const requestMediaLibraryPermission = async (): Promise<boolean> => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
-      Alert.alert(
+      CustomAlertHelper.warning(
         'Permiso Requerido',
         'Se necesita acceso a la galería para seleccionar fotos'
       );
@@ -117,9 +98,6 @@ export default function EditBusinessProfileScreen() {
     return true;
   };
 
-  /**
-   * Pick image from gallery
-   */
   const pickImageFromGallery = async () => {
     const hasPermission = await requestMediaLibraryPermission();
     if (!hasPermission) return;
@@ -130,7 +108,7 @@ export default function EditBusinessProfileScreen() {
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
-        aspect: [1, 1], // Square for profile picture
+        aspect: [1, 1],
         quality: 0.8,
       });
 
@@ -139,15 +117,12 @@ export default function EditBusinessProfileScreen() {
       }
     } catch (error) {
       console.error('Error picking image:', error);
-      Alert.alert('Error', 'No se pudo seleccionar la imagen');
+      CustomAlertHelper.error('Error', 'No se pudo seleccionar la imagen');
     } finally {
       setIsUploadingImage(false);
     }
   };
 
-  /**
-   * Take photo with camera
-   */
   const takePhoto = async () => {
     const hasPermission = await requestCameraPermission();
     if (!hasPermission) return;
@@ -157,7 +132,7 @@ export default function EditBusinessProfileScreen() {
 
       const result = await ImagePicker.launchCameraAsync({
         allowsEditing: true,
-        aspect: [1, 1], // Square for profile picture
+        aspect: [1, 1],
         quality: 0.8,
       });
 
@@ -166,17 +141,14 @@ export default function EditBusinessProfileScreen() {
       }
     } catch (error) {
       console.error('Error taking photo:', error);
-      Alert.alert('Error', 'No se pudo tomar la foto');
+      CustomAlertHelper.error('Error', 'No se pudo tomar la foto');
     } finally {
       setIsUploadingImage(false);
     }
   };
 
-  /**
-   * Show image picker options
-   */
   const showImagePickerOptions = () => {
-    Alert.alert(
+    CustomAlertHelper.alert(
       'Foto del Negocio',
       'Elige una opción',
       [
@@ -193,48 +165,77 @@ export default function EditBusinessProfileScreen() {
           style: 'cancel',
         },
       ],
-      { cancelable: true }
+      'info'
     );
   };
 
-  /**
-   * Remove selected image
-   */
   const removeImage = () => {
-    Alert.alert(
+    CustomAlertHelper.confirm(
       'Eliminar Foto',
       '¿Estás seguro de eliminar la foto del negocio?',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Eliminar',
-          style: 'destructive',
-          onPress: () => handleFieldChange('imageUrl', ''),
-        },
-      ]
+      () => handleFieldChange('imageUrl', ''),
+      undefined
     );
   };
 
-  /**
-   * Validate form
-   */
   const validateForm = (): boolean => {
     if (!formData.name.trim()) {
-      Alert.alert('Error', 'El nombre del negocio es requerido');
+      CustomAlertHelper.error('Error', 'El nombre del negocio es requerido');
+      return false;
+    }
+
+    if (!formData.phone.trim()) {
+      CustomAlertHelper.error('Error', 'El teléfono es requerido');
+      return false;
+    }
+
+    if (!formData.email.trim()) {
+      CustomAlertHelper.error('Error', 'El correo electrónico es requerido');
+      return false;
+    }
+
+    // Validar formato de email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email.trim())) {
+      CustomAlertHelper.error('Error', 'El correo electrónico no es válido');
       return false;
     }
 
     if (!formData.address.trim()) {
-      Alert.alert('Error', 'La dirección es requerida');
+      CustomAlertHelper.error('Error', 'La dirección es requerida');
+      return false;
+    }
+
+    if (!formData.category.trim()) {
+      CustomAlertHelper.error('Error', 'La categoría es requerida');
+      return false;
+    }
+
+    if (!formData.openingTime.trim()) {
+      CustomAlertHelper.error('Error', 'La hora de apertura es requerida');
+      return false;
+    }
+
+    if (!formData.closingTime.trim()) {
+      CustomAlertHelper.error('Error', 'La hora de cierre es requerida');
+      return false;
+    }
+
+    // Validar formato de hora (HH:MM)
+    const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
+    if (!timeRegex.test(formData.openingTime.trim())) {
+      CustomAlertHelper.error('Error', 'Formato de hora de apertura inválido (use HH:MM)');
+      return false;
+    }
+
+    if (!timeRegex.test(formData.closingTime.trim())) {
+      CustomAlertHelper.error('Error', 'Formato de hora de cierre inválido (use HH:MM)');
       return false;
     }
 
     return true;
   };
 
-  /**
-   * Save changes
-   */
   const handleSave = async () => {
     if (!validateForm() || !user?.id || !token) return;
 
@@ -252,16 +253,17 @@ export default function EditBusinessProfileScreen() {
           category: formData.category.trim(),
           openingTime: formData.openingTime.trim(),
           closingTime: formData.closingTime.trim(),
-          imageUrl: formData.imageUrl.trim(), // ✅ Incluir imagen
+          imageUrl: formData.imageUrl.trim(),
         },
         token
       );
 
-      Alert.alert('Éxito', 'Información actualizada correctamente');
-      router.back();
+      CustomAlertHelper.success('Éxito', 'Información actualizada correctamente', () => {
+        router.back();
+      });
     } catch (error) {
       console.error('Error saving:', error);
-      Alert.alert('Error', 'No se pudo actualizar la información');
+      CustomAlertHelper.error('Error', 'No se pudo actualizar la información');
     } finally {
       setIsSaving(false);
     }
@@ -284,7 +286,6 @@ export default function EditBusinessProfileScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.back()}>
             <Ionicons name="arrow-back" size={24} color="#000" />
@@ -297,13 +298,9 @@ export default function EditBusinessProfileScreen() {
           </View>
         </View>
 
-
-        {/* Divider */}
         <View style={styles.divider} />
 
-        {/* Form */}
         <View style={styles.form}>
-          {/* ✅ Profile Picture Section */}
           <View style={styles.profilePictureSection}>
             <Text style={styles.label}>Editar Perfil</Text>
             
@@ -336,15 +333,12 @@ export default function EditBusinessProfileScreen() {
                 {isUploadingImage ? (
                   <ActivityIndicator color="#FFF" size="small" />
                 ) : (
-                  <>
-                    <Ionicons name="folder-open" size={40} color="#000" />
-                    </>
+                  <Ionicons name="folder-open" size={40} color="#000" />
                 )}
               </TouchableOpacity>
             </View>
           </View>
 
-          {/* Business Name */}
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Nombre del Negocio</Text>
             <TextInput
@@ -356,7 +350,6 @@ export default function EditBusinessProfileScreen() {
             />
           </View>
 
-          {/* Phone */}
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Teléfono</Text>
             <TextInput
@@ -369,7 +362,6 @@ export default function EditBusinessProfileScreen() {
             />
           </View>
 
-          {/* Email */}
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Correo Eléctronico</Text>
             <TextInput
@@ -383,9 +375,8 @@ export default function EditBusinessProfileScreen() {
             />
           </View>
 
-          {/* Address */}
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Dirección </Text>
+            <Text style={styles.label}>Dirección</Text>
             <TextInput
               style={[styles.input, styles.textArea]}
               value={formData.address}
@@ -397,7 +388,6 @@ export default function EditBusinessProfileScreen() {
             />
           </View>
 
-          {/* Description */}
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Descripción</Text>
             <TextInput
@@ -411,7 +401,6 @@ export default function EditBusinessProfileScreen() {
             />
           </View>
 
-          {/* Category */}
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Categoría</Text>
             <TextInput
@@ -423,7 +412,6 @@ export default function EditBusinessProfileScreen() {
             />
           </View>
 
-          {/* Opening Hours */}
           <View style={styles.row}>
             <View style={[styles.inputGroup, styles.halfWidth]}>
               <Text style={styles.label}>Hora Inicio</Text>
@@ -448,7 +436,6 @@ export default function EditBusinessProfileScreen() {
             </View>
           </View>
 
-          {/* Save Button */}
           <TouchableOpacity
             style={[styles.saveButton, isSaving && styles.saveButtonDisabled]}
             onPress={handleSave}
@@ -474,8 +461,6 @@ export default function EditBusinessProfileScreen() {
         </View>
       </ScrollView>
 
-      {/* Bottom Navigation */}
-      <BottomNavigation items={navItems} />
     </View>
   );
 }

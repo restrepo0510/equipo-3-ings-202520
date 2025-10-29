@@ -144,7 +144,7 @@ export const styles = StyleSheet.create({
   removeProfileImageButton: {
     position: 'absolute',
     top: 5,
-    right: 5,
+    right: -10,
     backgroundColor: '#FFF',
     borderRadius: 20,
     shadowColor: '#000',
@@ -152,6 +152,7 @@ export const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.5,
     elevation: 5,
+    
   },
 
   changeProfileImageButton: {
