@@ -1,4 +1,3 @@
-// app/(tabs)/ReviewScreen.tsx
 import React, { useState, useEffect } from "react";
 import {
   View,
@@ -8,6 +7,7 @@ import {
   TextInput,
   ScrollView,
   StyleSheet,
+  ActivityIndicator,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
@@ -15,99 +15,154 @@ import { BottomNavigation } from "@/components/ui/BottomNavigation";
 import { createReviewsNavItems } from "@/utils/navigationHelpers";
 import { profileStyles as styles } from "@/styles/ReviewsScreen.styles";
 import { useAuth } from "@/context/AuthContext";
-import { useReviews } from "@/context/ReviewsContext";
 import { useRestaurants } from "@/context/RestaurantsContext";
+import { reviewService } from "@/services/reviewService";
+import { restaurantService } from "@/services/restaurantService";
+import { useLocation } from "@/hooks/useLocation";
 
 export default function ReviewsScreen(): React.ReactElement {
   const router = useRouter();
-  const { reviews: contextReviews } = useReviews();
-  const { restaurants } = useRestaurants();
-  const { user, logout } = useAuth();
+  const { restaurants: globalRestaurants, setRestaurants: setGlobalRestaurants } = useRestaurants();
+  const { user, token } = useAuth();
+  const { location } = useLocation();
 
-  // --- Local states ---
+  const [localRestaurants, setLocalRestaurants] = useState<any[]>([]);
   const [selectedRestaurant, setSelectedRestaurant] = useState<string>("Seleccione un Restaurante");
   const [dropdownVisible, setDropdownVisible] = useState(false);
   const [displayedReviews, setDisplayedReviews] = useState<any[]>([]);
-  
+  const [loadingReviews, setLoadingReviews] = useState(false);
+  const [loadingRestaurants, setLoadingRestaurants] = useState(false);
+
   const navItems = createReviewsNavItems("reviews", router);
 
-  // =============================================================
-  //  Default sample reviews to display when no user reviews exist
-  // =============================================================
-  const baseReviews = [
-    {
-      id: 1,
-      namep: "Juan P.",
-      text: "La comida estaba fresca y a buen precio.",
-      rating: 5,
-      image: require("../../assets/img/spaghetti.avif"),
-    },
-    {
-      id: 2,
-      namep: "María S.",
-      text: "No me gustó la textura después de un rato, pero el sabor era bueno.",
-      rating: 3,
-      image: require("../../assets/img/pizza.jpg"),
-    },
-    {
-      id: 3,
-      namep: "Carlos G.",
-      text: "Excelente servicio y ambiente agradable. Muy recomendado.",
-      rating: 5,
-      image: require("../../assets/img/pizza.jpg"),
-    },
-    {
-      id: 4,
-      namep: "Laura T.",
-      text: "Las porciones son pequeñas, pero la presentación es impecable.",
-      rating: 4,
-      image: require("../../assets/img/spaghetti.avif"),
-    },
-    {
-      id: 5,
-      namep: "Andrés M.",
-      text: "Pedí una pizza y llegó un poco fría, aunque el sabor compensó.",
-      rating: 3,
-      image: require("../../assets/img/pizza.jpg"),
-    },
-    {
-      id: 6,
-      namep: "Camila R.",
-      text: "Muy buena atención, aunque el pedido tardó un poco.",
-      rating: 4,
-      image: require("../../assets/img/spaghetti.avif"),
-    },
-  ];
+  console.log('🔍 [ReviewsScreen] Estado inicial:');
+  console.log('  - globalRestaurants.length:', globalRestaurants.length);
+  console.log('  - localRestaurants.length:', localRestaurants.length);
+  console.log('  - location:', location);
+  console.log('  - token exists:', !!token);
 
-  // =============================================================
-  //  Generate random sample reviews from base list
-  // =============================================================
-  const getRandomReviews = () => {
-    const shuffled = [...baseReviews].sort(() => 0.5 - Math.random());
-    return shuffled.slice(0, Math.floor(Math.random() * 4) + 2);
+  // Cargar restaurantes
+  useEffect(() => {
+    console.log('📍 [useEffect] Verificando restaurantes...');
+    
+    if (globalRestaurants.length > 0) {
+      console.log('✅ Usando restaurantes del contexto global:', globalRestaurants.length);
+      setLocalRestaurants(globalRestaurants);
+      return;
+    }
+
+    if (!location) {
+      console.log('⚠️ No hay ubicación disponible');
+      return;
+    }
+
+    const loadRestaurants = async () => {
+      console.log('🔄 Cargando restaurantes cercanos...');
+      setLoadingRestaurants(true);
+      
+      try {
+        const nearby = await restaurantService.getNearby({
+          latitude: location.latitude,
+          longitude: location.longitude,
+          radius: 5,
+        });
+        
+        console.log('✅ Restaurantes cargados:', nearby.length);
+        console.log('📋 Restaurantes:', nearby.map(r => r.name));
+        
+        setLocalRestaurants(nearby);
+        setGlobalRestaurants(nearby);
+      } catch (error) {
+        console.error("❌ Error loading restaurants:", error);
+      } finally {
+        setLoadingRestaurants(false);
+      }
+    };
+
+    loadRestaurants();
+  }, [location, globalRestaurants.length]);
+
+  // Cargar reviews
+  useEffect(() => {
+    const loadReviews = async () => {
+      console.log('🔍 [loadReviews] Iniciando...');
+      console.log('  - selectedRestaurant:', selectedRestaurant);
+      
+      if (!selectedRestaurant || selectedRestaurant === "Seleccione un Restaurante") {
+        console.log('⚠️ No hay restaurante seleccionado');
+        setDisplayedReviews([]);
+        return;
+      }
+
+      const restaurant = localRestaurants.find(r => r.name === selectedRestaurant);
+      console.log('🔍 Restaurante encontrado:', restaurant);
+      
+      if (!restaurant) {
+        console.log('❌ Restaurante no encontrado en la lista');
+        return;
+      }
+      
+      if (!token) {
+        console.log('❌ No hay token disponible');
+        return;
+      }
+
+      console.log('🔄 Cargando reviews para restaurante:', restaurant.id);
+      setLoadingReviews(true);
+      
+      try {
+        const data = await reviewService.getByRestaurant(restaurant.id, token);
+        console.log('✅ Reviews recibidas:', data.length);
+        console.log('📊 Datos:', data);
+        
+        const formattedReviews = data.map((r: any) => {
+          console.log('  - Review:', {
+            id: r.id,
+            user: r.user?.name,
+            rating: r.rating,
+            text: r.text.substring(0, 30)
+          });
+          
+          return {
+            id: r.id,
+            namep: r.user?.name || 'Usuario',
+            text: r.text,
+            rating: r.rating,
+            image: r.product?.imageUrl ? { uri: r.product.imageUrl } : null,
+          };
+        });
+        
+        console.log('✅ Reviews formateadas:', formattedReviews.length);
+        setDisplayedReviews(formattedReviews);
+      } catch (error) {
+        console.error("❌ Error cargando reviews:", error);
+        setDisplayedReviews([]);
+      } finally {
+        setLoadingReviews(false);
+      }
+    };
+
+    loadReviews();
+  }, [selectedRestaurant, localRestaurants, token]);
+
+  const handleSelectRestaurant = (restaurant: any) => {
+    console.log('🎯 Restaurante seleccionado:', restaurant.name);
+    setSelectedRestaurant(restaurant.name);
+    setDropdownVisible(false);
   };
 
-  // =============================================================
-  //  Display reviews only when a restaurant is selected
-  // =============================================================
-  useEffect(() => {
-    if (selectedRestaurant !== "Seleccione un Restaurante") {
-      const randomSet = getRandomReviews();
-      // Combine sample reviews with user-added context reviews
-      setDisplayedReviews([...randomSet, ...contextReviews]);
-    } else {
-      setDisplayedReviews([]); // Clear list when no restaurant is selected
-    }
-  }, [selectedRestaurant, contextReviews]);
+  console.log('🎨 [Render] Mostrando:');
+  console.log('  - localRestaurants:', localRestaurants.length);
+  console.log('  - displayedReviews:', displayedReviews.length);
+  console.log('  - loadingRestaurants:', loadingRestaurants);
+  console.log('  - loadingReviews:', loadingReviews);
 
   return (
     <View style={styles.container}>
-      {/* Scrollable content */}
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 130 }}
       >
-        {/* Header section */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.back()}>
             <Ionicons name="arrow-back" size={24} color="#000" />
@@ -117,13 +172,14 @@ export default function ReviewsScreen(): React.ReactElement {
           </Text>
         </View>
 
-        {/* Divider line */}
         <View style={styles.divider} />
 
-        {/* Restaurant dropdown */}
         <TouchableOpacity
           style={styles.dropdown}
-          onPress={() => setDropdownVisible(!dropdownVisible)}
+          onPress={() => {
+            console.log('🔽 Toggling dropdown. Current:', dropdownVisible);
+            setDropdownVisible(!dropdownVisible);
+          }}
         >
           <Text style={styles.dropdownText}>{selectedRestaurant}</Text>
           <Ionicons
@@ -133,35 +189,33 @@ export default function ReviewsScreen(): React.ReactElement {
           />
         </TouchableOpacity>
 
-        {/* Dropdown list with restaurants */}
         {dropdownVisible && (
           <View style={localDropdown.dropdownList}>
-            {restaurants.length > 0 ? (
-              restaurants.map((r) => (
+            {loadingRestaurants ? (
+              <ActivityIndicator size="small" color="#27AE60" style={{ padding: 10 }} />
+            ) : localRestaurants.length > 0 ? (
+              localRestaurants.map((r) => (
                 <TouchableOpacity
                   key={r.id}
                   style={localDropdown.dropdownItem}
-                  onPress={() => {
-                    setSelectedRestaurant(r.name);
-                    setDropdownVisible(false);
-                  }}
+                  onPress={() => handleSelectRestaurant(r)}
                 >
                   <Text style={localDropdown.dropdownItemText}>{r.name}</Text>
                 </TouchableOpacity>
               ))
             ) : (
               <Text style={{ textAlign: "center", color: "#666", padding: 10 }}>
-                No hay restaurantes disponibles en tu zona.
+                No hay restaurantes disponibles ({localRestaurants.length})
               </Text>
             )}
           </View>
         )}
 
-        {/* Review list (displayed only if a restaurant is selected) */}
-        {displayedReviews.length > 0 ? (
+        {loadingReviews ? (
+          <ActivityIndicator size="large" color="#27AE60" style={{ marginTop: 20 }} />
+        ) : displayedReviews.length > 0 ? (
           displayedReviews.map((item) => (
             <View key={item.id} style={styles.reviewCard}>
-              {/* Rating stars */}
               <View style={styles.starsRow}>
                 {[...Array(5)].map((_, i) => (
                   <Ionicons
@@ -173,29 +227,15 @@ export default function ReviewsScreen(): React.ReactElement {
                 ))}
               </View>
 
-              {/* Review content block */}
               <View style={styles.reviewContent}>
-                {/* Optional image (either local require() or remote URL) */}
                 {item.image && (
-                  <Image
-                    source={
-                      typeof item.image === "string"
-                        ? { uri: item.image }
-                        : item.image
-                    }
-                    style={styles.foodImage}
-                  />
+                  <Image source={{ uri: item.image }} style={styles.foodImage} />
                 )}
                 <View style={styles.textContainer}>
-                  {/* Reviewer name (defaults to user name if available) */}
-                  <Text style={styles.reviewerName}>
-                    {item.namep ? item.namep : user?.name ?? "User"}
-                  </Text>
-                  {/* Review text (visible to user) */}
+                  <Text style={styles.reviewerName}>{item.namep}</Text>
                   <Text style={styles.reviewText}>{item.text}</Text>
                 </View>
 
-                {/* Button to navigate and read full review */}
                 <TouchableOpacity
                   style={styles.reviewButton}
                   onPress={() =>
@@ -217,12 +257,13 @@ export default function ReviewsScreen(): React.ReactElement {
           ))
         ) : (
           <Text style={styles.noReviewsText}>
-            Selecciona un restaurante para ver las opiniones.
+            {selectedRestaurant === "Seleccione un Restaurante"
+              ? "Selecciona un restaurante para ver las opiniones."
+              : "No hay opiniones para este restaurante aún."}
           </Text>
         )}
       </ScrollView>
 
-      {/* Fixed input bar above BottomNavigation */}
       <View style={fixedStyles.inputContainerFixed}>
         <TouchableOpacity
           style={{ flex: 1 }}
@@ -238,15 +279,11 @@ export default function ReviewsScreen(): React.ReactElement {
         <Ionicons name="send" size={20} color="#000000ff" />
       </View>
 
-      {/* Bottom navigation bar */}
       <BottomNavigation items={navItems} />
     </View>
   );
 }
 
-// =============================================================
-// Local styles for dropdown and input bar
-// =============================================================
 const localDropdown = StyleSheet.create({
   dropdownList: {
     backgroundColor: "#FFF",
@@ -273,7 +310,7 @@ const fixedStyles = StyleSheet.create({
     position: "absolute",
     left: 0,
     right: 0,
-    bottom: 90, // Positioned just above BottomNavigation
+    bottom: 90,
     backgroundColor: "#FFF",
     flexDirection: "row",
     alignItems: "center",

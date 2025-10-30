@@ -5,6 +5,7 @@ import { ConfigModule } from '@nestjs/config';
 import { UsersModule } from './users/users.module';
 import { RestaurantsModule } from './restaurants/restaurants.module';
 import { ProductsModule } from './products/products.module';
+import { ReviewsModule } from './reviews/reviews.module';
 
 @Module({
   imports: [
@@ -21,10 +22,12 @@ import { ProductsModule } from './products/products.module';
       autoLoadEntities: true,
       synchronize: true,
     }),
+    
     UsersModule,
     AuthModule,
     RestaurantsModule,
-    ProductsModule
+    ProductsModule,
+    ReviewsModule
   ],
 })
 export class AppModule {}
