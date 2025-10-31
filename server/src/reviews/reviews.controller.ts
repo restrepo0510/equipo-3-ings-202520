@@ -10,7 +10,6 @@ export class ReviewsController {
   @Post()
   @UseGuards(JwtAuthGuard)
   create(@Body() createReviewDto: CreateReviewDto, @Request() req) {
-    console.log('🔍 User from JWT:', req.user);
     return this.reviewsService.create(createReviewDto, req.user.id);
   }
 

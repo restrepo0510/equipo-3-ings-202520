@@ -8,6 +8,7 @@ import {
   ScrollView,
   Image,
   ActivityIndicator,
+  StyleSheet,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
@@ -35,6 +36,7 @@ const AddReviewScreen = () => {
   const [loading, setLoading] = useState(false);
   const [loadingProducts, setLoadingProducts] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [dropdownVisible, setDropdownVisible] = useState(false);
 
   const navItems = createReviewsNavItems("reviews", router);
 
@@ -75,57 +77,76 @@ const AddReviewScreen = () => {
   }, [selectedRestaurant, token]);
 
   useEffect(() => {
-    loadProducts();
+    if (selectedRestaurant) {
+      loadProducts();
+    }
   }, [selectedRestaurant]);
 
-  const handleSubmit = async () => {
-    if (!selectedRestaurant || !selectedProduct || !review.trim() || rating === 0) {
-      CustomAlertHelper.warning("Atención", "Completa todos los campos antes de enviar");
-      return;
-    }
+  const handleSelectRestaurant = (restaurant: any) => {
+    setSelectedRestaurant(restaurant);
+    setSelectedProduct(null);
+    setDropdownVisible(false);
+  };
 
-    if (!token) {
-      CustomAlertHelper.error("Error", "Debes iniciar sesión para enviar una reseña");
-      return;
-    }
+const handleSubmit = async () => {
+  if (!selectedRestaurant) {
+    CustomAlertHelper.warning("Atención", "Selecciona un restaurante");
+    return;
+  }
 
-    console.log('🔑 Token antes de enviar:', token.substring(0, 20) + '...');
-    console.log('📦 Review data:', {
-      restaurantId: selectedRestaurant.id,
-      productId: selectedProduct.id,
-      rating,
-      text: review.trim().substring(0, 50),
-    });
+  if (!selectedProduct) {
+    CustomAlertHelper.warning("Atención", "Selecciona un producto");
+    return;
+  }
 
-    try {
-      setSubmitting(true);
-      const result = await reviewService.create(
-        {
-          restaurantId: selectedRestaurant.id,
-          productId: selectedProduct.id,
-          rating,
-          text: review.trim(),
-        },
-        token
-      );
+  if (rating === 0) {
+    CustomAlertHelper.warning("Atención", "Selecciona una calificación");
+    return;
+  }
 
-      console.log('✅ Review created:', result);
+  if (!review.trim()) {
+    CustomAlertHelper.warning("Atención", "Escribe tu opinión");
+    return;
+  }
 
-      CustomAlertHelper.success("Reseña enviada", "Tu opinión ha sido publicada", () => {
+  if (!token) {
+    CustomAlertHelper.error("Error", "Debes iniciar sesión para enviar una reseña");
+    return;
+  }
+
+  try {
+    setSubmitting(true);
+    
+    await reviewService.create(
+      {
+        restaurantId: selectedRestaurant.id,
+        productId: selectedProduct.id,
+        rating,
+        text: review.trim(),
+      },
+      token
+    );
+
+    CustomAlertHelper.success(
+      "¡Reseña enviada!", 
+      "Tu opinión ha sido publicada correctamente",
+      () => {
         setReview("");
         setRating(0);
         setSelectedRestaurant(null);
         setSelectedProduct(null);
         router.push("/(tabs)/ReviewsScreen");
-      });
-    } catch (error: any) {
-      console.error("❌ Error submitting review:", error);
-      console.error("❌ Error message:", error.message);
-      CustomAlertHelper.error("Error", error.message || "No se pudo enviar la reseña");
-    } finally {
-      setSubmitting(false);
-    }
-  };
+      }
+    );
+  } catch (error: any) {
+    CustomAlertHelper.error(
+      "Error", 
+      error.message || "No se pudo enviar la reseña. Intenta de nuevo"
+    );
+  } finally {
+    setSubmitting(false);
+  }
+};
 
   return (
     <View style={styles.container}>
@@ -139,36 +160,52 @@ const AddReviewScreen = () => {
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
+        {/* Seleccionar Restaurante */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Selecciona un restaurante</Text>
-          {loading ? (
-            <ActivityIndicator size="small" color="#27AE60" />
-          ) : restaurants.length > 0 ? (
-            restaurants.map((r) => (
-              <TouchableOpacity
-                key={r.id}
-                style={[
-                  styles.dropdown,
-                  selectedRestaurant?.id === r.id && { borderColor: "#27AE60" },
-                ]}
-                onPress={() => {
-                  setSelectedRestaurant(r);
-                  setSelectedProduct(null);
-                }}
-              >
-                <Text style={styles.dropdownText}>{r.name}</Text>
-              </TouchableOpacity>
-            ))
-          ) : (
-            <Text style={styles.emptyText}>No hay restaurantes cercanos</Text>
-          )}
+          
+          <TouchableOpacity
+            style={styles.dropdownList}
+            onPress={() => setDropdownVisible(!dropdownVisible)}
+            disabled={loading}
+          >
+            <Text style={styles.dropdownItemText}>
+              {selectedRestaurant ? selectedRestaurant.name : "Seleccione un restaurante"}
+            </Text>
+            <Ionicons
+              name={dropdownVisible ? "chevron-up" : "chevron-down"}
+              size={20}
+              color="#333"
+            />
+          </TouchableOpacity>
+
+          {dropdownVisible && (
+  <ScrollView style={localStyles.dropdownList} nestedScrollEnabled>
+    {loading ? (
+      <ActivityIndicator size="small" color="#000" style={{ padding: 10 }} />
+    ) : restaurants.length > 0 ? (
+      restaurants.map((r) => (
+        <TouchableOpacity
+          key={r.id}
+          style={localStyles.dropdownItem}
+          onPress={() => handleSelectRestaurant(r)}
+        >
+          <Text style={localStyles.dropdownItemText}>{r.name}</Text>
+        </TouchableOpacity>
+      ))
+    ) : (
+      <Text style={styles.emptyText}>No hay restaurantes cercanos</Text>
+    )}
+  </ScrollView>
+)}
         </View>
 
+        {/* Seleccionar Producto */}
         {selectedRestaurant && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Selecciona un producto</Text>
             {loadingProducts ? (
-              <ActivityIndicator size="small" color="#27AE60" />
+              <ActivityIndicator size="small" color="#000" />
             ) : products.length > 0 ? (
               products.map((p) => (
                 <TouchableOpacity
@@ -176,8 +213,8 @@ const AddReviewScreen = () => {
                   style={[
                     styles.productCard,
                     selectedProduct?.id === p.id && {
-                      borderColor: "#27AE60",
-                      backgroundColor: "#F8FFF8",
+                      borderColor: "#000",
+                      backgroundColor: "#F8F8F8",
                     },
                   ]}
                   onPress={() => setSelectedProduct(p)}
@@ -189,7 +226,7 @@ const AddReviewScreen = () => {
                   <View style={styles.productInfo}>
                     <Text style={styles.productName}>{p.name}</Text>
                     <Text numberOfLines={2} style={styles.productDescription}>
-                      {p.description || "Sin descripción"}
+                      {p.description || "Detalles del producto..."}
                     </Text>
                   </View>
                 </TouchableOpacity>
@@ -200,6 +237,7 @@ const AddReviewScreen = () => {
           </View>
         )}
 
+        {/* Puntuar y Opinar */}
         {selectedProduct && (
           <>
             <View style={styles.section}>
@@ -209,7 +247,7 @@ const AddReviewScreen = () => {
                   <TouchableOpacity key={star} onPress={() => setRating(star)}>
                     <Ionicons
                       name={star <= rating ? "star" : "star-outline"}
-                      size={28}
+                      size={32}
                       color="#000"
                     />
                   </TouchableOpacity>
@@ -220,11 +258,12 @@ const AddReviewScreen = () => {
             <View style={styles.inputContainer}>
               <TextInput
                 placeholder="Escribe tu reseña..."
-                placeholderTextColor="#666"
+                placeholderTextColor="#999"
                 value={review}
                 onChangeText={setReview}
                 style={styles.input}
                 editable={!submitting}
+                multiline
               />
               <TouchableOpacity
                 style={styles.sendButton}
@@ -246,5 +285,31 @@ const AddReviewScreen = () => {
     </View>
   );
 };
+
+const localStyles = StyleSheet.create({
+  dropdownList: {
+    backgroundColor: "#FFF",
+    borderWidth: 2,
+    borderColor: "#E0E0E0",
+    borderRadius: 12,
+    marginTop: 8,
+    maxHeight: 200,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  dropdownItem: {
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F0F0F0",
+  },
+  dropdownItemText: {
+    fontSize: 15,
+    color: "#333",
+  },
+});
 
 export default AddReviewScreen;

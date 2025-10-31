@@ -1,4 +1,3 @@
-// services/reviewService.ts
 import { API_URL } from '@/config/api';
 
 export interface Review {
@@ -31,9 +30,6 @@ export interface CreateReviewDto {
 
 class ReviewService {
   async create(data: CreateReviewDto, token: string): Promise<Review> {
-    console.log('📤 Creating review with token:', token ? 'exists' : 'missing');
-    console.log('📤 API URL:', `${API_URL}/reviews`);
-    
     const response = await fetch(`${API_URL}/reviews`, {
       method: 'POST',
       headers: {
@@ -44,8 +40,6 @@ class ReviewService {
     });
 
     const responseData = await response.json();
-    console.log('📥 Response status:', response.status);
-    console.log('📥 Response data:', responseData);
 
     if (!response.ok) {
       throw new Error(responseData.message || 'Error creating review');

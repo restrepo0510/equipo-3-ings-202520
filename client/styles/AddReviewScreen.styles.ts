@@ -1,80 +1,155 @@
 import { StyleSheet } from "react-native";
+
 export const profileStyles = StyleSheet.create({
- container: { flex: 1, backgroundColor: "#fff" },
+  container: { 
+    flex: 1, 
+    backgroundColor: "#F5F5F5" 
+  },
   header: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 16,
+    paddingTop: 50,
+    paddingHorizontal: 20,
+    paddingBottom: 16,
+    backgroundColor: "#FFF",
+    borderBottomWidth: 2,
+    borderBottomColor: "#000",
+  },
+  backButton: { 
+    marginRight: 12 
+  },
+  headerTitle: { 
+    fontSize: 20, 
+    fontWeight: "600", 
+    color: "#000",
+    letterSpacing: 1,
+  },
+  yummi: { 
+    color: "#000",
+    fontWeight: "700",
+    fontStyle: "italic",
+  },
+  scrollContent: { 
+    padding: 20,
+    paddingBottom: 100,
+  },
+  section: { 
+    marginBottom: 24 
+  },
+  sectionTitle: { 
+    fontSize: 18, 
+    fontWeight: "700", 
+    marginBottom: 12,
+    color: "#000",
+  },
+  
+  // Dropdown de restaurante
+   dropdownList: {
+  backgroundColor: "#FFF",
+  borderWidth: 2,
+  borderColor: "#E0E0E0",
+  borderRadius: 12,
+  marginTop: 8,
+  maxHeight: 250, // ← Altura fija con scroll
+  shadowColor: "#000",
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.1,
+  shadowRadius: 4,
+  elevation: 3,
+},
+  dropdownItem: {
+    paddingVertical: 12,
+    paddingHorizontal: 16,
     borderBottomWidth: 1,
-    borderColor: "#eee",
+    borderBottomColor: "#F0F0F0",
+    backgroundColor: "#FFF",
   },
-    backButton: { marginRight: 10 },
-  headerTitle: { fontSize: 18, fontWeight: "bold", color: "#000" },
-  yummi: { color: "#27AE60" },
-  scrollContent: { padding: 16 },
-  section: { marginBottom: 20 },
-  sectionTitle: { fontSize: 16, fontWeight: "bold", marginBottom: 10 },
-  dropdown: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 8,
+  dropdownItemText: {
+    fontSize: 15,
+    color: "#333",
   },
-   dropdownText: { fontSize: 14, color: "#333" },
+  // Card de producto
   productCard: {
     flexDirection: "row",
     alignItems: "center",
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 8,
-    padding: 8,
-    marginBottom: 8,
+    backgroundColor: "#FFF",
+    borderWidth: 2,
+    borderColor: "#E0E0E0",
+    borderRadius: 16,
+    padding: 12,
+    marginBottom: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 2,
   },
- 
-input: { flex: 1, height: 40 },
-  sendButton: {
-    backgroundColor: "#27AE60",
-    padding: 10,
-    borderRadius: 8,
-    marginLeft: 8,
-  },
-  emptyText: { color: "#777", fontStyle: "italic" },
- 
-   productImage: {
-    width: 50,
-    height: 50,
-    borderRadius: 10,
+  productImage: {
+    width: 60,
+    height: 60,
+    borderRadius: 12,
     marginRight: 12,
+    backgroundColor: "#F0F0F0",
   },
   productInfo: {
     flex: 1,
   },
+  productName: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#000",
+    marginBottom: 4,
+  },
   productDescription: {
     fontSize: 13,
-    color: "#555",
-  },
-  productName: {
-    fontSize: 15,
-    fontWeight: "bold",
-    color: "#000",
-    marginBottom: 2,
+    color: "#666",
+    lineHeight: 18,
   },
   
+  // Estrellas
   starRow: {
     flexDirection: "row",
+    gap: 8,
     marginTop: 8,
   },
+  
+  // Input de reseña
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#FFF",
-    borderWidth: 1.5,
+    borderWidth: 2,
     borderColor: "#000",
     borderRadius: 25,
     paddingHorizontal: 16,
     paddingVertical: 10,
-    marginBottom: 30,
+    marginTop: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
- 
+  input: { 
+    flex: 1, 
+    height: 40,
+    fontSize: 15,
+    color: "#333",
+  },
+  sendButton: {
+    backgroundColor: "#000",
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: "center",
+    alignItems: "center",
+    marginLeft: 8,
+  },
+  
+  emptyText: { 
+    color: "#999", 
+    fontStyle: "italic",
+    textAlign: "center",
+    marginTop: 8,
+  },
 });

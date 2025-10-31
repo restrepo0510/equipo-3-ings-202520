@@ -19,8 +19,6 @@ export class ReviewsService {
   ) {}
 
   async create(createReviewDto: CreateReviewDto, userId: string): Promise<Review> {
-    console.log('🔍 Creating review for user ID:', userId); // ← LOG
-    
     const restaurant = await this.restaurantsRepository.findOne({
       where: { id: createReviewDto.restaurantId },
     });
@@ -39,18 +37,14 @@ export class ReviewsService {
       text: createReviewDto.text,
     });
 
-    console.log('💾 Saving review:', review); // ← LOG
-    const saved = await this.reviewsRepository.save(review);
-    console.log('✅ Review saved:', saved); // ← LOG
-    
-    return saved;
+    return this.reviewsRepository.save(review);
   }
 
   async findByRestaurant(restaurantId: string): Promise<Review[]> {
     return this.reviewsRepository.find({
       where: { restaurant: { id: restaurantId } },
-    relations: ['user', 'product', 'restaurant'], // ← ASEGURAR ESTO      
-    order: { createdAt: 'DESC' },
+      relations: ['user', 'product', 'restaurant'],
+      order: { createdAt: 'DESC' },
     });
   }
 
