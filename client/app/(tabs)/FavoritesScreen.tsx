@@ -81,11 +81,7 @@ export default function FavoritesScreen() {
         </TouchableOpacity>
 
         <View style={styles.headerCenter}>
-          <Image 
-            source={require('../../assets/img/logo.png')}
-            style={styles.logo}
-            resizeMode="contain"
-          />
+          <Text style={styles.yummi}>YUMMI</Text>
           <Text style={styles.headerTitle}>Favs</Text>
         </View>
 
@@ -150,7 +146,7 @@ export default function FavoritesScreen() {
                 onPress={() => handleRemoveFavorite(fav.product.id)}
                 hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
               >
-                <Ionicons name="heart" size={20} color="#FF6B6B" />
+                <Ionicons name="heart" size={25} color="#FF6B6B" />
               </TouchableOpacity>
             </TouchableOpacity>
           ))
