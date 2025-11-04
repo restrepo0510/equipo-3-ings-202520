@@ -3,175 +3,113 @@
 import { PROFILE_CONSTANTS, PROFILE_TEXT } from '@/constants/profile.constants';
 import type { UpdateProfileData } from '@/types/auth.types';
 
-/**
- * Validation result structure
- */
 export interface ValidationResult {
   isValid: boolean;
   error?: string;
 }
 
-/**
- * Form validation result with field-specific errors
- */
 export interface FormValidationResult {
   isValid: boolean;
   errors: Partial<Record<keyof UpdateProfileData, string>>;
 }
 
-/**
- * ProfileValidator
- * 
- * Handles all validation logic for profile data
- * Single Responsibility: Validation only
- */
 export class ProfileValidator {
-  /**
-   * Validates email format
-   */
   static validateEmail(email: string): ValidationResult {
     const trimmedEmail = email.trim();
     
     if (trimmedEmail.length === 0) {
-      return { isValid: false, error: 'Email is required.' };
+      return { isValid: false, error: 'Email es requerido' };
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(trimmedEmail)) {
-      return { 
-        isValid: false, 
-        error: PROFILE_TEXT.ALERTS.ERROR_INVALID_EMAIL 
-      };
+      return { isValid: false, error: PROFILE_TEXT.ALERTS.ERROR_INVALID_EMAIL };
     }
 
     return { isValid: true };
   }
 
-  /**
-   * Validates name format and length
-   */
   static validateName(name: string): ValidationResult {
     const trimmedName = name.trim();
     
     if (trimmedName.length === 0) {
-      return { isValid: false, error: 'Name is required.' };
+      return { isValid: false, error: 'Nombre es requerido' };
     }
 
-    if (trimmedName.length < PROFILE_CONSTANTS.VALIDATION.MIN_NAME_LENGTH) {
-      return { 
-        isValid: false, 
-        error: `Name must be at least ${PROFILE_CONSTANTS.VALIDATION.MIN_NAME_LENGTH} characters.` 
-      };
+    if (trimmedName.length < 2) {
+      return { isValid: false, error: 'El nombre debe tener al menos 2 caracteres' };
     }
 
-    if (trimmedName.length > PROFILE_CONSTANTS.VALIDATION.MAX_NAME_LENGTH) {
-      return { 
-        isValid: false, 
-        error: `Name must be less than ${PROFILE_CONSTANTS.VALIDATION.MAX_NAME_LENGTH} characters.` 
-      };
+    // Solo letras, espacios y tildes
+    const nameRegex = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/;
+    if (!nameRegex.test(trimmedName)) {
+      return { isValid: false, error: 'El nombre solo puede contener letras' };
+    }
+
+    if (trimmedName.length > 10) {
+      return { isValid: false, error: 'El nombre no puede superar 30 caracteres' };
     }
 
     return { isValid: true };
   }
 
-  /**
-   * Validates phone number format
-   */
   static validatePhone(phone: string): ValidationResult {
     const trimmedPhone = phone.trim();
     
-    // Phone is optional
     if (trimmedPhone.length === 0) {
-      return { isValid: true };
+      return { isValid: false, error: 'Teléfono es requerido' };
     }
 
-    if (!PROFILE_CONSTANTS.VALIDATION.PHONE_REGEX.test(trimmedPhone)) {
-      return { 
-        isValid: false, 
-        error: PROFILE_TEXT.ALERTS.ERROR_INVALID_PHONE 
-      };
+    // Solo números
+    const digitsOnly = trimmedPhone.replace(/\D/g, '');
+    
+    if (digitsOnly.length !== 10 ) {
+      return { isValid: false, error: 'El teléfono debe tener 10 dígitos' };
     }
+
+   
 
     return { isValid: true };
   }
 
-  /**
-   * Validates password strength
-   */
   static validatePassword(password: string): ValidationResult {
-    // Password is optional for updates
     if (password.length === 0) {
-      return { isValid: true };
+      return { isValid: true }; // Opcional
     }
 
-    if (password.length < PROFILE_CONSTANTS.VALIDATION.MIN_PASSWORD_LENGTH) {
-      return { 
-        isValid: false, 
-        error: PROFILE_TEXT.ALERTS.ERROR_PASSWORD_TOO_SHORT 
-      };
+    if (password.length < 6) {
+      return { isValid: false, error: PROFILE_TEXT.ALERTS.ERROR_PASSWORD_TOO_SHORT };
     }
 
     return { isValid: true };
   }
 
-  /**
-   * Validates entire profile form
-   */
   static validateProfileForm(data: UpdateProfileData): FormValidationResult {
     const errors: Partial<Record<keyof UpdateProfileData, string>> = {};
 
-    // Validate name
     if (data.name !== undefined) {
       const nameResult = this.validateName(data.name);
-      if (!nameResult.isValid) {
-        errors.name = nameResult.error;
-      }
+      if (!nameResult.isValid) errors.name = nameResult.error;
     }
 
-    // Validate email
     if (data.email !== undefined) {
       const emailResult = this.validateEmail(data.email);
-      if (!emailResult.isValid) {
-        errors.email = emailResult.error;
-      }
+      if (!emailResult.isValid) errors.email = emailResult.error;
     }
 
-    // Validate phone
     if (data.phone !== undefined) {
       const phoneResult = this.validatePhone(data.phone);
-      if (!phoneResult.isValid) {
-        errors.phone = phoneResult.error;
-      }
+      if (!phoneResult.isValid) errors.phone = phoneResult.error;
     }
 
-    // Validate password
     if (data.password !== undefined) {
       const passwordResult = this.validatePassword(data.password);
-      if (!passwordResult.isValid) {
-        errors.password = passwordResult.error;
-      }
+      if (!passwordResult.isValid) errors.password = passwordResult.error;
     }
 
     return {
       isValid: Object.keys(errors).length === 0,
       errors,
     };
-  }
-
-  /**
-   * Validates image URI format
-   */
-  static validateImageUri(uri: string | null | undefined): ValidationResult {
-    if (!uri || uri.trim().length === 0) {
-      return { isValid: true }; // Image is optional
-    }
-
-    // Basic URI validation
-    const trimmedUri = uri.trim();
-    if (!trimmedUri.startsWith('file://') && !trimmedUri.startsWith('http')) {
-      return { isValid: false, error: 'Invalid image URI format.' };
-    }
-
-    return { isValid: true };
   }
 }
