@@ -10,12 +10,12 @@ export class FavoritesService {
     private favoritesRepository: Repository<Favorite>,
   ) {}
 
-  async addFavorite(userId: string, productId: string): Promise<Favorite> {
+  async addFavorite(userId: number, productId: string): Promise<Favorite> {
     // Check if already exists
     const existing = await this.favoritesRepository.findOne({
       where: { 
-        user: { id: userId },
-        product: { id: productId }
+        userId: userId,
+        productId: productId
       },
     });
 
@@ -24,17 +24,17 @@ export class FavoritesService {
     }
 
     const favorite = this.favoritesRepository.create({
-      user: { id: userId },
-      product: { id: productId },
+      userId,
+      productId,
     });
 
     return this.favoritesRepository.save(favorite);
   }
 
-  async removeFavorite(userId: string, productId: string): Promise<void> {
+  async removeFavorite(userId: number, productId: string): Promise<void> {
     const result = await this.favoritesRepository.delete({
-      user: { id: userId },
-      product: { id: productId },
+      userId: userId,
+      productId: productId,
     });
 
     if (result.affected === 0) {
@@ -42,19 +42,19 @@ export class FavoritesService {
     }
   }
 
-  async getUserFavorites(userId: string): Promise<Favorite[]> {
+  async getUserFavorites(userId: number): Promise<Favorite[]> {
     return this.favoritesRepository.find({
-      where: { user: { id: userId } },
+      where: { userId: userId },
       relations: ['product', 'product.restaurant'],
       order: { createdAt: 'DESC' },
     });
   }
 
-  async isFavorite(userId: string, productId: string): Promise<boolean> {
+  async isFavorite(userId: number, productId: string): Promise<boolean> {
     const count = await this.favoritesRepository.count({
       where: {
-        user: { id: userId },
-        product: { id: productId },
+        userId: userId,
+        productId: productId,
       },
     });
     return count > 0;
