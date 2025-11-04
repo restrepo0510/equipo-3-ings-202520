@@ -18,7 +18,7 @@ export interface Product {
   discount?: number;
 }
 
-export interface CreateProductDto {
+export interface CreateProductData {
   name: string;
   description?: string;
   price: number;
@@ -127,7 +127,7 @@ class ProductService {
   /**
    * Create a new product
    */
-  async create(productData: CreateProductDto, token: string): Promise<Product> {
+  async create(productData: CreateProductData, token: string): Promise<Product> {
     try {
       const response = await fetch(`${API_URL}/products`, {
         method: 'POST',
