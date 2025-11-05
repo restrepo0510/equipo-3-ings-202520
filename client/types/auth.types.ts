@@ -64,6 +64,16 @@ export interface RegistrationData {
 }
 
 /**
+ * Update profile data
+ */
+export interface UpdateProfileData {
+  name?: string;
+  email?: string;
+  phone?: string;
+  password?: string;
+}
+
+/**
  * Validation errors for a form
  * Generic type allows errors for any form structure
  */
