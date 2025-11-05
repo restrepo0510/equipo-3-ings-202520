@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from "react";
+// app/(tabs)/EditProfileScreen.tsx
+
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -6,94 +8,198 @@ import {
   Image,
   TouchableOpacity,
   ScrollView,
-  Alert,
-} from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
-import { BottomNavigation } from "../../components/ui/BottomNavigation";
-import { createNavItems } from "../../utils/navigationHelpers";
-import { useAuth } from "@/context/AuthContext";
-import { editProfileStyles as styles } from "../../styles/EditProfileScreen.styles";
-import type { User } from "@/types/auth.types";
+} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import { BottomNavigation } from '@/components/ui/BottomNavigation';
+import { createNavItems } from '@/utils/navigationHelpers';
+import { useAuth } from '@/context/AuthContext';
+import { editProfileStyles as styles } from '@/styles/EditProfileScreen.styles';
+import { useProfileForm } from '@/hooks/useProfileForm';
+import { useProfileImage } from '@/hooks/useProfileImage';
+import { ProfileAlertService } from '@/services/profileAlertService';
+import { 
+  PROFILE_TEXT, 
+  PROFILE_CONSTANTS, 
+  PROFILE_ICONS,
+  KEYBOARD_TYPES,
+  type ProfileFormField 
+} from '@/constants/profile.constants';
+
+/**
+ * Form field configuration
+ */
+interface FormFieldConfig {
+  label: string;
+  field: ProfileFormField;
+  keyboardType: 'default' | 'phone-pad' | 'email-address';
+  secure?: boolean;
+}
 
 /**
  * EditProfileScreen
  * 
- * Screen that allows the authenticated user to edit their profile information.
- * Supports updating local user data stored in the AuthContext.
+ * Screen that allows authenticated user to edit their profile information.
+ * Supports updating user data both locally and on the server.
+ * 
+ * @responsibilities
+ * - Manage form state and validation
+ * - Handle image selection
+ * - Submit profile updates
+ * - Show user feedback
  */
 export default function EditProfileScreen(): React.ReactElement {
+  // ============================================================================
+  // Hooks
+  // ============================================================================
+  
   const router = useRouter();
-  const { user, updateUser } = useAuth();
+  const { user, updateProfile } = useAuth();
+  const navItems = createNavItems('profile', router);
 
-  const [formData, setFormData] = useState({
-    name: user?.name ?? "",
-    phone: user?.phone ?? "",
-    email: user?.email ?? "",
-    password: "",
-  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const navItems = createNavItems("profile", router);
+  const {
+    formData,
+    errors,
+    updateField,
+    validate,
+    getUpdateData,
+  } = useProfileForm(user);
 
-  // ---------------------------------------------------------------------------
+  const {
+    imageUri,
+    pickImage,
+    getImageSource,
+  } = useProfileImage(user);
+
+  // ============================================================================
   // Handlers
-  // ---------------------------------------------------------------------------
+  // ============================================================================
 
   /**
-   * Opens image picker (to be implemented with Expo Image Picker)
-   */
-  const handleImagePicker = (): void => {
-    console.log("🖼️ Open image picker");
-    // TODO: Implement image picker
-  };
-
-  /**
-   * Updates a single field in the form
-   */
-  const handleInputChange = (field: keyof typeof formData, value: string): void => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-  };
-
-  /**
-   * Validates form input before saving
-   */
-  const validateForm = (): boolean => {
-    if (!formData.name.trim() || !formData.email.trim()) {
-      Alert.alert("Missing fields", "Name and email are required.");
-      return false;
-    }
-    return true;
-  };
-
-  /**
-   * Saves updated user data using the AuthContext
+   * Handles profile save with validation
    */
   const handleSaveProfile = async (): Promise<void> => {
-    if (!validateForm() || !user) return;
+    if (!user) {
+      ProfileAlertService.showNotAuthenticatedError();
+      return;
+    }
+
+    // Validate form
+    if (!validate()) {
+      return;
+    }
 
     try {
-      const updatedUser: User = {
-        ...user,
-        name: formData.name.trim(),
-        phone: formData.phone.trim(),
-        email: formData.email.trim(),
-        ...(formData.password ? { password: formData.password } : {}),
-      };
+      setIsSubmitting(true);
 
-      await updateUser(updatedUser);
+      // Get update data
+      const updateData = getUpdateData();
 
-      Alert.alert("Success", "Profile updated successfully.");
-      console.log("✅ Updated user:", updatedUser);
+      // Add image if changed
+      if (imageUri) {
+        updateData.profileImage = imageUri;
+      }
+
+      // Call update service
+      await updateProfile(updateData);
+
+      // Show success and navigate back
+      ProfileAlertService.showProfileUpdateSuccess();
+      console.log('✅ Profile updated:', updateData);
       router.back();
     } catch (error) {
-      console.error("❌ Error updating profile:", error);
-      Alert.alert("Error", "Could not update profile. Please try again.");
+      console.error('❌ Error updating profile:', error);
+      ProfileAlertService.showProfileUpdateError(
+        error instanceof Error ? error : undefined
+      );
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  // ---------------------------------------------------------------------------
+  /**
+   * Handles text input change
+   */
+  const handleInputChange = (field: ProfileFormField, value: string): void => {
+    updateField(field, value);
+  };
+
+  /**
+   * Navigates back
+   */
+  const handleGoBack = (): void => {
+    router.back();
+  };
+
+  // ============================================================================
+  // Configuration
+  // ============================================================================
+
+  /**
+   * Form fields configuration
+   */
+  const formFields: FormFieldConfig[] = [
+    {
+      label: PROFILE_TEXT.EDIT_PROFILE.FIELDS.NAME,
+      field: 'name',
+      keyboardType: KEYBOARD_TYPES.name,
+    },
+    {
+      label: PROFILE_TEXT.EDIT_PROFILE.FIELDS.PHONE,
+      field: 'phone',
+      keyboardType: KEYBOARD_TYPES.phone,
+    },
+    {
+      label: PROFILE_TEXT.EDIT_PROFILE.FIELDS.EMAIL,
+      field: 'email',
+      keyboardType: KEYBOARD_TYPES.email,
+    },
+    {
+      label: PROFILE_TEXT.EDIT_PROFILE.FIELDS.PASSWORD,
+      field: 'password',
+      keyboardType: KEYBOARD_TYPES.password,
+      secure: true,
+    },
+  ];
+
+  // ============================================================================
+  // Render Helpers
+  // ============================================================================
+
+  /**
+   * Renders form field
+   */
+  const renderFormField = (config: FormFieldConfig): React.ReactElement => {
+    const { label, field, keyboardType, secure } = config;
+    const hasError = Boolean(errors[field]);
+
+    return (
+      <View key={field} style={styles.inputGroup}>
+        <Text style={styles.label}>{label}</Text>
+        <TextInput
+          style={[styles.input, hasError && styles.inputError]}
+          value={formData[field]}
+          onChangeText={(value) => handleInputChange(field, value)}
+          placeholder=""
+          placeholderTextColor="#95A5A6"
+          keyboardType={keyboardType}
+          secureTextEntry={secure}
+          autoCapitalize="none"
+          editable={!isSubmitting}
+        />
+        {hasError && (
+          <Text style={styles.errorText}>{errors[field]}</Text>
+        )}
+      </View>
+    );
+  };
+
+  // ============================================================================
   // Render
-  // ---------------------------------------------------------------------------
+  // ============================================================================
+
   return (
     <View style={styles.container}>
       <ScrollView
@@ -102,70 +208,81 @@ export default function EditProfileScreen(): React.ReactElement {
       >
         {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()}>
-            <Ionicons name="arrow-back" size={24} color="#000" />
+          <TouchableOpacity onPress={handleGoBack} disabled={isSubmitting}>
+            <Ionicons 
+              name={PROFILE_ICONS.BACK_ARROW} 
+              size={PROFILE_ICONS.SIZE.EXTRA_LARGE} 
+              color={PROFILE_ICONS.COLOR.PRIMARY} 
+            />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>
-            MI <Text style={styles.yummi}>YUMMI</Text>
+            {PROFILE_TEXT.HEADER.TITLE_PREFIX}{' '}
+            <Text style={styles.yummi}>{PROFILE_TEXT.HEADER.TITLE_HIGHLIGHT}</Text>
           </Text>
-          <View style={{ width: 24 }} />
+          <View style={{ width: PROFILE_ICONS.SIZE.EXTRA_LARGE }} />
         </View>
 
         {/* Divider */}
         <View style={styles.divider} />
 
         {/* Title */}
-        <Text style={styles.editTitle}>Edit Profile</Text>
+        <Text style={styles.editTitle}>{PROFILE_TEXT.EDIT_PROFILE.TITLE}</Text>
 
         {/* Profile Picture */}
         <View style={styles.profileSection}>
           <View style={styles.profileImageContainer}>
-            <View style={styles.profileBackground} />
-            <Image
-              source={require("../../assets/img/profile.png")}
-              style={styles.profileImage}
-            />
+            {/* Profile Image - Touch to change */}
+            <TouchableOpacity onPress={pickImage} disabled={isSubmitting}>
+              <Image
+                source={getImageSource()}
+                style={styles.profileImage}
+              />
+            </TouchableOpacity>
 
             {/* Decorative stars */}
-            <Ionicons name="add" size={20} color="#E8E8E8" style={styles.star1} />
-            <Ionicons name="add" size={16} color="#E8E8E8" style={styles.star2} />
+            <Ionicons 
+              name={PROFILE_ICONS.DECORATIVE_ADD} 
+              size={PROFILE_ICONS.SIZE.LARGE} 
+              color={PROFILE_ICONS.COLOR.DECORATIVE} 
+              style={styles.star1} 
+            />
+            <Ionicons 
+              name={PROFILE_ICONS.DECORATIVE_ADD} 
+              size={PROFILE_ICONS.SIZE.MEDIUM} 
+              color={PROFILE_ICONS.COLOR.DECORATIVE} 
+              style={styles.star2} 
+            />
 
             {/* Folder Button */}
             <TouchableOpacity
               style={styles.folderButton}
-              onPress={handleImagePicker}
+              onPress={pickImage}
+              disabled={isSubmitting}
             >
-              <Ionicons name="folder-open" size={20} color="#000" />
+              <Ionicons 
+                name={PROFILE_ICONS.FOLDER} 
+                size={PROFILE_ICONS.SIZE.FOLDER} 
+                color={PROFILE_ICONS.COLOR.PRIMARY} 
+              />
             </TouchableOpacity>
           </View>
         </View>
 
         {/* Form */}
         <View style={styles.form}>
-          {[
-            { label: "Name", field: "name", keyboard: "default" },
-            { label: "Phone number", field: "phone", keyboard: "phone-pad" },
-            { label: "e-mail", field: "email", keyboard: "email-address" },
-            { label: "Password", field: "password", keyboard: "default", secure: true },
-          ].map(({ label, field, keyboard, secure }) => (
-            <View key={field} style={styles.inputGroup}>
-              <Text style={styles.label}>{label}</Text>
-              <TextInput
-                style={styles.input}
-                value={formData[field as keyof typeof formData]}
-                onChangeText={(value) => handleInputChange(field as keyof typeof formData, value)}
-                placeholder=""
-                placeholderTextColor="#95A5A6"
-                keyboardType={keyboard as any}
-                secureTextEntry={secure}
-                autoCapitalize="none"
-              />
-            </View>
-          ))}
+          {formFields.map(renderFormField)}
 
           {/* Save Button */}
-          <TouchableOpacity style={styles.saveButton} onPress={handleSaveProfile}>
-            <Text style={styles.saveButtonText}>Save Changes</Text>
+          <TouchableOpacity
+            style={[styles.saveButton, isSubmitting && styles.saveButtonDisabled]}
+            onPress={handleSaveProfile}
+            disabled={isSubmitting}
+          >
+            <Text style={styles.saveButtonText}>
+              {isSubmitting 
+                ? PROFILE_TEXT.EDIT_PROFILE.SAVE_BUTTON_LOADING 
+                : PROFILE_TEXT.EDIT_PROFILE.SAVE_BUTTON}
+            </Text>
           </TouchableOpacity>
         </View>
       </ScrollView>

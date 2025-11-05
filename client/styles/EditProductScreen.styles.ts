@@ -11,36 +11,53 @@ export const styles = StyleSheet.create({
     paddingBottom: 40,
   },
 
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F5F5F5',
+  },
+
+  loadingText: {
+    marginTop: 12,
+    fontSize: 16,
+    color: '#7F8C8D',
+    fontWeight: '500',
+  },
+
   // Header
   header: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingTop: 60,
-    paddingBottom: 20,
-    backgroundColor: '#FFF',
+    marginBottom: 10,
+    marginTop: 40,
   },
 
-  backButton: {
-    marginRight: 20,
+  headerTitleContainer: {
+    flex: 1,
+    alignItems: 'center',
   },
 
   headerTitle: {
-    fontSize: 24,
-    fontWeight: '700',
+    fontSize: 30,
+    fontWeight: 'bold',
     color: '#000',
   },
 
   divider: {
-    height: 1,
-    backgroundColor: '#E0E0E0',
-    marginHorizontal: 20,
-    marginBottom: 30,
+    width: '80%',
+    height: 2,
+    backgroundColor: '#000',
+    alignSelf: 'center',
+    marginBottom: 20,
   },
 
   // Form
   formTitle: {
-    fontSize: 28,
+    alignSelf: 'center',
+    fontSize: 30,
     fontWeight: '700',
     color: '#000',
     marginHorizontal: 20,
@@ -53,27 +70,37 @@ export const styles = StyleSheet.create({
   },
 
   label: {
-    fontSize: 16,
+    fontSize: 22,
     fontWeight: '600',
-    color: '#2C3E50',
-    marginBottom: 8,
+    color: '#004226',
+    marginBottom: 10,
+    marginLeft: 5,
   },
 
   input: {
     backgroundColor: '#FFF',
-    borderWidth: 2,
-    borderColor: '#000',
-    borderRadius: 25,
-    paddingHorizontal: 20,
-    paddingVertical: 15,
+    borderWidth: 1.5,
+    borderColor: '#161616',
+    borderRadius: 100,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
     fontSize: 16,
     color: '#000',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 6,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 3,
   },
 
   textArea: {
     borderRadius: 20,
     minHeight: 100,
     paddingTop: 15,
+    textAlignVertical: 'top',
   },
 
   // Image and Price Row
@@ -88,9 +115,19 @@ export const styles = StyleSheet.create({
     flex: 1,
   },
 
+  imageText: {
+    alignSelf: 'center',
+    fontSize: 22,
+    fontWeight: '600',
+    color: '#004226',
+    marginBottom: 10,
+    marginLeft: 5,
+    textAlign: 'center',
+  },
+
   imageContainer: {
-    width: 100,
-    height: 100,
+    width: 170,
+    height: 170,
     borderRadius: 15,
     backgroundColor: '#FFF',
     justifyContent: 'center',
@@ -98,6 +135,14 @@ export const styles = StyleSheet.create({
     overflow: 'hidden',
     borderWidth: 2,
     borderColor: '#E0E0E0',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 6,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 3,
   },
 
   productImage: {
@@ -111,12 +156,21 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
   },
 
+  imagePlaceholderText: {
+    marginTop: 8,
+    fontSize: 12,
+    color: '#BDC3C7',
+    textAlign: 'center',
+  },
+
   galleryButton: {
+    position: 'absolute',
+    right: -40,
+    bottom: -28,
     marginTop: 15,
-    width: 50,
-    height: 50,
+    width: 80,
+    height: 80,
     borderRadius: 12,
-    backgroundColor: '#000',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -137,6 +191,14 @@ export const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#000',
     textAlign: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 6,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 3,
   },
 
   // Action Buttons
@@ -147,30 +209,44 @@ export const styles = StyleSheet.create({
   },
 
   deleteButtonCircle: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    width: 70,
+    height: 70,
+    borderWidth: 2,
+    borderRadius: 60,
+    borderColor: '#C0392B',
     backgroundColor: '#E74C3C',
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {
+      width: 0,
+      height: 6,
+    },
     shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 4,
+    shadowRadius: 6,
+    elevation: 5,
   },
 
   saveButtonCircle: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: '#000',
+    width: 70,
+    height: 70,
+    borderWidth: 2,
+    borderRadius: 60,
+    borderColor: '#145625',
+    backgroundColor: '#DCE4D0',
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 4,
+    shadowOffset: {
+      width: 0,
+      height: 6,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 5,
+  },
+
+  saveButtonDisabled: {
+    opacity: 0.6,
   },
 });
