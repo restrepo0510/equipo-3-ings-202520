@@ -1,5 +1,6 @@
 // app/(tabs)/AddReviewScreen.tsx
-import React, { useState, useEffect, useCallback } from "react";
+
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,308 +9,369 @@ import {
   ScrollView,
   Image,
   ActivityIndicator,
-  StyleSheet,
-} from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
-import { BottomNavigation } from "@/components/ui/BottomNavigation";
-import { createReviewsNavItems } from "@/utils/navigationHelpers";
-import { restaurantService } from "@/services/restaurantService";
-import { productService } from "@/services/productService";
-import { reviewService } from "@/services/reviewService";
-import { useLocation } from "@/hooks/useLocation";
-import { useAuth } from "@/context/AuthContext";
-import { profileStyles as styles } from "@/styles/AddReviewScreen.styles";
-import { CustomAlertHelper } from "@/components/ui/customAlert";
+} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import { BottomNavigation } from '@/components/ui/BottomNavigation';
+import { createReviewsNavItems } from '@/utils/navigationHelpers';
+import { useAuth } from '@/context/AuthContext';
+import { useLocation } from '@/hooks/useLocation';
+import { useReviewForm } from '@/hooks/useReviewForm';
+import { useRestaurantProducts } from '@/hooks/useRestaurantProducts';
+import { ReviewsUtils } from '@/utils/reviews.utils';
+import { 
+  REVIEWS_TEXT, 
+  REVIEWS_ICONS, 
+  REVIEWS_CONSTANTS 
+} from '@/constants/reviews.constants';
+import { profileStyles as styles } from '@/styles/AddReviewScreen.styles';
+import type { RestaurantSummary, ProductSummary } from '@/types/reviews.types';
 
-const AddReviewScreen = () => {
+/**
+ * AddReviewScreen Component
+ * 
+ * Allows users to create and submit reviews for products
+ * 
+ * @responsibilities
+ * - Render review creation form
+ * - Handle restaurant and product selection
+ * - Collect rating and review text
+ * - Submit review
+ */
+export default function AddReviewScreen(): React.ReactElement {
+  // ============================================================================
+  // Hooks
+  // ============================================================================
+  
   const router = useRouter();
   const { token } = useAuth();
   const { location } = useLocation();
+  const navItems = createReviewsNavItems('reviews', router);
 
-  const [restaurants, setRestaurants] = useState<any[]>([]);
-  const [products, setProducts] = useState<any[]>([]);
-  const [selectedRestaurant, setSelectedRestaurant] = useState<any | null>(null);
-  const [selectedProduct, setSelectedProduct] = useState<any | null>(null);
-  const [rating, setRating] = useState(0);
-  const [review, setReview] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [loadingProducts, setLoadingProducts] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
+  // Form state management
+  const {
+    selectedRestaurant,
+    selectedProduct,
+    rating,
+    reviewText,
+    isSubmitting,
+    setSelectedRestaurant,
+    setSelectedProduct,
+    setRating,
+    setReviewText,
+    validateAndSubmit,
+    resetForm,
+  } = useReviewForm();
+
+  // Restaurant and products loading
+  const {
+    restaurants,
+    products,
+    isLoadingRestaurants,
+    isLoadingProducts,
+    loadProducts,
+  } = useRestaurantProducts(location, token);
+
+  // Local UI state
   const [dropdownVisible, setDropdownVisible] = useState(false);
 
-  const navItems = createReviewsNavItems("reviews", router);
+  // ============================================================================
+  // Effects
+  // ============================================================================
 
-  const loadRestaurants = useCallback(async () => {
-    if (!location) return;
-    setLoading(true);
-    try {
-      const nearby = await restaurantService.getNearby({
-        latitude: location.latitude,
-        longitude: location.longitude,
-        radius: 5,
-      });
-      setRestaurants(nearby);
-    } catch (error) {
-      console.error("Error loading restaurants:", error);
-      CustomAlertHelper.error("Error", "No se pudieron cargar los restaurantes cercanos");
-    } finally {
-      setLoading(false);
-    }
-  }, [location]);
-
-  useEffect(() => {
-    loadRestaurants();
-  }, [loadRestaurants]);
-
-  const loadProducts = useCallback(async () => {
-    if (!selectedRestaurant || !token) return;
-    setLoadingProducts(true);
-    try {
-      const data = await productService.getByRestaurant(selectedRestaurant.id, token);
-      setProducts(data);
-    } catch (error) {
-      console.error("Error loading products:", error);
-      CustomAlertHelper.error("Error", "No se pudieron cargar los productos del restaurante");
-    } finally {
-      setLoadingProducts(false);
-    }
-  }, [selectedRestaurant, token]);
-
+  /**
+   * Load products when restaurant is selected
+   */
   useEffect(() => {
     if (selectedRestaurant) {
-      loadProducts();
+      loadProducts(selectedRestaurant.id);
     }
-  }, [selectedRestaurant]);
+  }, [selectedRestaurant, loadProducts]);
 
-  const handleSelectRestaurant = (restaurant: any) => {
+  // ============================================================================
+  // Handlers
+  // ============================================================================
+
+  /**
+   * Handles restaurant selection
+   */
+  const handleSelectRestaurant = (restaurant: RestaurantSummary): void => {
     setSelectedRestaurant(restaurant);
     setSelectedProduct(null);
     setDropdownVisible(false);
   };
 
-const handleSubmit = async () => {
-  if (!selectedRestaurant) {
-    CustomAlertHelper.warning("Atención", "Selecciona un restaurante");
-    return;
-  }
+  /**
+   * Handles product selection
+   */
+  const handleSelectProduct = (product: ProductSummary): void => {
+    setSelectedProduct(product);
+  };
 
-  if (!selectedProduct) {
-    CustomAlertHelper.warning("Atención", "Selecciona un producto");
-    return;
-  }
+  /**
+   * Handles star rating selection
+   */
+  const handleSelectRating = (star: number): void => {
+    setRating(star);
+  };
 
-  if (rating === 0) {
-    CustomAlertHelper.warning("Atención", "Selecciona una calificación");
-    return;
-  }
+  /**
+   * Handles review submission
+   */
+  const handleSubmit = async (): Promise<void> => {
+    await validateAndSubmit(token!, () => {
+      resetForm();
+      router.push('/(tabs)/ReviewsScreen');
+    });
+  };
 
-  if (!review.trim()) {
-    CustomAlertHelper.warning("Atención", "Escribe tu opinión");
-    return;
-  }
+  /**
+   * Navigates back
+   */
+  const handleGoBack = (): void => {
+    router.back();
+  };
 
-  if (!token) {
-    CustomAlertHelper.error("Error", "Debes iniciar sesión para enviar una reseña");
-    return;
-  }
+  /**
+   * Toggles dropdown visibility
+   */
+  const toggleDropdown = (): void => {
+    if (!isLoadingRestaurants) {
+      setDropdownVisible(!dropdownVisible);
+    }
+  };
 
-  try {
-    setSubmitting(true);
-    
-    await reviewService.create(
-      {
-        restaurantId: selectedRestaurant.id,
-        productId: selectedProduct.id,
-        rating,
-        text: review.trim(),
-      },
-      token
+  // ============================================================================
+  // Render Helpers
+  // ============================================================================
+
+  /**
+   * Renders star rating selector
+   */
+  const renderStarRating = (): React.ReactElement => (
+    <View style={styles.starRow}>
+      {ReviewsUtils.getStarIndices().map((star) => (
+        <TouchableOpacity 
+          key={star} 
+          onPress={() => handleSelectRating(star)}
+          disabled={isSubmitting}
+          accessibilityLabel={`${star} ${REVIEWS_TEXT.ACCESSIBILITY.STAR_RATING}`}
+          accessibilityRole="button"
+        >
+          <Ionicons
+            name={ReviewsUtils.isStarFilled(star, rating) 
+              ? REVIEWS_ICONS.STAR_FILLED 
+              : REVIEWS_ICONS.STAR_OUTLINE}
+            size={REVIEWS_CONSTANTS.UI.STAR_SIZE}
+            color={REVIEWS_ICONS.COLOR.STAR}
+          />
+        </TouchableOpacity>
+      ))}
+    </View>
+  );
+
+  /**
+   * Renders restaurant dropdown
+   */
+  const renderRestaurantDropdown = (): React.ReactElement => (
+    <>
+      <TouchableOpacity
+        style={styles.dropdownList}
+        onPress={toggleDropdown}
+        disabled={isLoadingRestaurants}
+        accessibilityLabel={REVIEWS_TEXT.ACCESSIBILITY.SELECT_RESTAURANT}
+        accessibilityRole="button"
+      >
+        <Text style={styles.dropdownItemText}>
+          {selectedRestaurant 
+            ? selectedRestaurant.name 
+            : REVIEWS_TEXT.ADD_REVIEW.RESTAURANT_PLACEHOLDER}
+        </Text>
+        <Ionicons
+          name={dropdownVisible ? REVIEWS_ICONS.CHEVRON_UP : REVIEWS_ICONS.CHEVRON_DOWN}
+          size={REVIEWS_ICONS.SIZE.MEDIUM}
+          color={REVIEWS_ICONS.COLOR.SECONDARY}
+        />
+      </TouchableOpacity>
+
+      {dropdownVisible && (
+        <ScrollView style={styles.dropdownList} nestedScrollEnabled>
+          {isLoadingRestaurants ? (
+            <ActivityIndicator 
+              size="small" 
+              color={REVIEWS_ICONS.COLOR.PRIMARY} 
+              style={{ padding: 10 }} 
+            />
+          ) : restaurants.length > 0 ? (
+            restaurants.map((restaurant) => (
+              <TouchableOpacity
+                key={restaurant.id}
+                style={styles.dropdownItem}
+                onPress={() => handleSelectRestaurant(restaurant)}
+              >
+                <Text style={styles.dropdownItemText}>{restaurant.name}</Text>
+              </TouchableOpacity>
+            ))
+          ) : (
+            <Text style={styles.emptyText}>
+              {REVIEWS_TEXT.EMPTY.NO_RESTAURANTS}
+            </Text>
+          )}
+        </ScrollView>
+      )}
+    </>
+  );
+
+  /**
+   * Renders product selection
+   */
+  const renderProductSelection = (): React.ReactElement | null => {
+    if (!selectedRestaurant) return null;
+
+    return (
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>
+          {REVIEWS_TEXT.ADD_REVIEW.SELECT_PRODUCT}
+        </Text>
+        
+        {isLoadingProducts ? (
+          <ActivityIndicator 
+            size="small" 
+            color={REVIEWS_ICONS.COLOR.PRIMARY} 
+          />
+        ) : products.length > 0 ? (
+          products.map((product) => (
+            <TouchableOpacity
+              key={product.id}
+              style={[
+                styles.productCard,
+                selectedProduct?.id === product.id && {
+                  borderColor: REVIEWS_ICONS.COLOR.PRIMARY,
+                  backgroundColor: '#F8F8F8',
+                },
+              ]}
+              onPress={() => handleSelectProduct(product)}
+              accessibilityLabel={REVIEWS_TEXT.ACCESSIBILITY.SELECT_PRODUCT}
+              accessibilityRole="button"
+            >
+              <Image
+                source={{ 
+                  uri: ReviewsUtils.getProductImageSource(product.imageUrl) 
+                }}
+                style={styles.productImage}
+              />
+              <View style={styles.productInfo}>
+                <Text style={styles.productName}>{product.name}</Text>
+                <Text numberOfLines={2} style={styles.productDescription}>
+                  {product.description || REVIEWS_TEXT.READ_REVIEW.PRODUCT_DETAILS}
+                </Text>
+              </View>
+            </TouchableOpacity>
+          ))
+        ) : (
+          <Text style={styles.emptyText}>
+            {REVIEWS_TEXT.EMPTY.NO_PRODUCTS}
+          </Text>
+        )}
+      </View>
     );
+  };
 
-    CustomAlertHelper.success(
-      "¡Reseña enviada!", 
-      "Tu opinión ha sido publicada correctamente",
-      () => {
-        setReview("");
-        setRating(0);
-        setSelectedRestaurant(null);
-        setSelectedProduct(null);
-        router.push("/(tabs)/ReviewsScreen");
-      }
+  /**
+   * Renders review input section
+   */
+  const renderReviewInput = (): React.ReactElement | null => {
+    if (!selectedProduct) return null;
+
+    return (
+      <>
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>
+            {REVIEWS_TEXT.ADD_REVIEW.RATE_AND_REVIEW}
+          </Text>
+          {renderStarRating()}
+        </View>
+
+        <View style={styles.inputContainer}>
+          <TextInput
+            placeholder={REVIEWS_TEXT.ADD_REVIEW.WRITE_REVIEW}
+            placeholderTextColor="#999"
+            value={reviewText}
+            onChangeText={setReviewText}
+            style={styles.input}
+            editable={!isSubmitting}
+            multiline
+            maxLength={REVIEWS_CONSTANTS.VALIDATION.MAX_REVIEW_LENGTH}
+          />
+          <TouchableOpacity
+            style={styles.sendButton}
+            onPress={handleSubmit}
+            disabled={isSubmitting}
+            accessibilityLabel={REVIEWS_TEXT.ACCESSIBILITY.SUBMIT_REVIEW}
+            accessibilityRole="button"
+          >
+            {isSubmitting ? (
+              <ActivityIndicator 
+                color={REVIEWS_ICONS.COLOR.WHITE} 
+                size="small" 
+              />
+            ) : (
+              <Ionicons 
+                name={REVIEWS_ICONS.SEND} 
+                size={REVIEWS_ICONS.SIZE.MEDIUM} 
+                color={REVIEWS_ICONS.COLOR.WHITE} 
+              />
+            )}
+          </TouchableOpacity>
+        </View>
+      </>
     );
-  } catch (error: any) {
-    CustomAlertHelper.error(
-      "Error", 
-      error.message || "No se pudo enviar la reseña. Intenta de nuevo"
-    );
-  } finally {
-    setSubmitting(false);
-  }
-};
+  };
+
+  // ============================================================================
+  // Render
+  // ============================================================================
 
   return (
     <View style={styles.container}>
+      {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color="#000" />
+        <TouchableOpacity 
+          onPress={handleGoBack} 
+          style={styles.backButton}
+          accessibilityLabel={REVIEWS_TEXT.ACCESSIBILITY.BACK_BUTTON}
+          accessibilityRole="button"
+        >
+          <Ionicons 
+            name={REVIEWS_ICONS.BACK} 
+            size={REVIEWS_ICONS.SIZE.LARGE} 
+            color={REVIEWS_ICONS.COLOR.PRIMARY} 
+          />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>
-          <Text style={styles.yummi}>YUMMI </Text>Opiniones
+          <Text style={styles.yummi}>{REVIEWS_TEXT.HEADER.TITLE} </Text>
+          {REVIEWS_TEXT.HEADER.SUBTITLE}
         </Text>
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* Seleccionar Restaurante */}
+        {/* Select Restaurant */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Selecciona un restaurante</Text>
-          
-          <TouchableOpacity
-            style={styles.dropdownList}
-            onPress={() => setDropdownVisible(!dropdownVisible)}
-            disabled={loading}
-          >
-            <Text style={styles.dropdownItemText}>
-              {selectedRestaurant ? selectedRestaurant.name : "Seleccione un restaurante"}
-            </Text>
-            <Ionicons
-              name={dropdownVisible ? "chevron-up" : "chevron-down"}
-              size={20}
-              color="#333"
-            />
-          </TouchableOpacity>
-
-          {dropdownVisible && (
-  <ScrollView style={localStyles.dropdownList} nestedScrollEnabled>
-    {loading ? (
-      <ActivityIndicator size="small" color="#000" style={{ padding: 10 }} />
-    ) : restaurants.length > 0 ? (
-      restaurants.map((r) => (
-        <TouchableOpacity
-          key={r.id}
-          style={localStyles.dropdownItem}
-          onPress={() => handleSelectRestaurant(r)}
-        >
-          <Text style={localStyles.dropdownItemText}>{r.name}</Text>
-        </TouchableOpacity>
-      ))
-    ) : (
-      <Text style={styles.emptyText}>No hay restaurantes cercanos</Text>
-    )}
-  </ScrollView>
-)}
+          <Text style={styles.sectionTitle}>
+            {REVIEWS_TEXT.ADD_REVIEW.SELECT_RESTAURANT}
+          </Text>
+          {renderRestaurantDropdown()}
         </View>
 
-        {/* Seleccionar Producto */}
-        {selectedRestaurant && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Selecciona un producto</Text>
-            {loadingProducts ? (
-              <ActivityIndicator size="small" color="#000" />
-            ) : products.length > 0 ? (
-              products.map((p) => (
-                <TouchableOpacity
-                  key={p.id}
-                  style={[
-                    styles.productCard,
-                    selectedProduct?.id === p.id && {
-                      borderColor: "#000",
-                      backgroundColor: "#F8F8F8",
-                    },
-                  ]}
-                  onPress={() => setSelectedProduct(p)}
-                >
-                  <Image
-                    source={{ uri: p.imageUrl || "https://via.placeholder.com/100" }}
-                    style={styles.productImage}
-                  />
-                  <View style={styles.productInfo}>
-                    <Text style={styles.productName}>{p.name}</Text>
-                    <Text numberOfLines={2} style={styles.productDescription}>
-                      {p.description || "Detalles del producto..."}
-                    </Text>
-                  </View>
-                </TouchableOpacity>
-              ))
-            ) : (
-              <Text style={styles.emptyText}>No hay productos disponibles</Text>
-            )}
-          </View>
-        )}
+        {/* Select Product */}
+        {renderProductSelection()}
 
-        {/* Puntuar y Opinar */}
-        {selectedProduct && (
-          <>
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Puntúa y opina</Text>
-              <View style={styles.starRow}>
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <TouchableOpacity key={star} onPress={() => setRating(star)}>
-                    <Ionicons
-                      name={star <= rating ? "star" : "star-outline"}
-                      size={32}
-                      color="#000"
-                    />
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </View>
-
-            <View style={styles.inputContainer}>
-              <TextInput
-                placeholder="Escribe tu reseña..."
-                placeholderTextColor="#999"
-                value={review}
-                onChangeText={setReview}
-                style={styles.input}
-                editable={!submitting}
-                multiline
-              />
-              <TouchableOpacity
-                style={styles.sendButton}
-                onPress={handleSubmit}
-                disabled={submitting}
-              >
-                {submitting ? (
-                  <ActivityIndicator color="#FFF" size="small" />
-                ) : (
-                  <Ionicons name="send" size={20} color="#FFF" />
-                )}
-              </TouchableOpacity>
-            </View>
-          </>
-        )}
+        {/* Rate and Review */}
+        {renderReviewInput()}
       </ScrollView>
 
+      {/* Bottom Navigation */}
       <BottomNavigation items={navItems} />
     </View>
   );
-};
-
-const localStyles = StyleSheet.create({
-  dropdownList: {
-    backgroundColor: "#FFF",
-    borderWidth: 2,
-    borderColor: "#E0E0E0",
-    borderRadius: 12,
-    marginTop: 8,
-    maxHeight: 200,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  dropdownItem: {
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "#F0F0F0",
-  },
-  dropdownItemText: {
-    fontSize: 15,
-    color: "#333",
-  },
-});
-
-export default AddReviewScreen;
+}

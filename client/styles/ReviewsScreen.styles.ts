@@ -129,3 +129,50 @@ export const profileStyles = StyleSheet.create({
     color: "#333",
   },
 });
+
+export const reviewsAdditionalStyles = StyleSheet.create({
+  // Fixed input container at bottom
+  inputContainerFixed: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    bottom: 90,
+    backgroundColor: "#FFF",
+    flexDirection: "row",
+    alignItems: "center",
+    borderTopWidth: 1,
+    borderColor: "#ccc",
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+  },
+  
+  // Dropdown list styles
+  dropdownList: {
+    backgroundColor: "#FFF",
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 8,
+    marginBottom: 10,
+    marginHorizontal: 16,
+    maxHeight: 200,
+  },
+  
+  dropdownItem: {
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderBottomWidth: 1,
+    borderColor: "#eee",
+    backgroundColor: "#FFF",
+  },
+  
+  dropdownItemText: {
+    fontSize: 14,
+    color: "#333",
+  },
+  
+  // Star row container
+  starsRow: {
+    flexDirection: "row",
+    marginBottom: 8,
+  },
+});

@@ -1,5 +1,6 @@
-// ReviewsScreen.tsx
-import React, { useState, useEffect } from "react";
+// app/(tabs)/ReviewsScreen.tsx
+
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,164 +8,316 @@ import {
   TouchableOpacity,
   TextInput,
   ScrollView,
-  StyleSheet,
   ActivityIndicator,
-} from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
-import { BottomNavigation } from "@/components/ui/BottomNavigation";
-import { createReviewsNavItems } from "@/utils/navigationHelpers";
-import { profileStyles as styles } from "@/styles/ReviewsScreen.styles";
-import { useAuth } from "@/context/AuthContext";
-import { useRestaurants } from "@/context/RestaurantsContext";
-import { reviewService } from "@/services/reviewService";
-import { restaurantService } from "@/services/restaurantService";
-import { useLocation } from "@/hooks/useLocation";
+} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import { BottomNavigation } from '@/components/ui/BottomNavigation';
+import { createReviewsNavItems } from '@/utils/navigationHelpers';
+import { useAuth } from '@/context/AuthContext';
+import { useRestaurants } from '@/context/RestaurantsContext';
+import { useLocation } from '@/hooks/useLocation';
+import { useReviewsList } from '@/hooks/useReviewsList';
+import { useRestaurantProducts } from '@/hooks/useRestaurantProducts';
+import { ReviewsUtils } from '@/utils/reviews.utils';
+import { 
+  REVIEWS_TEXT, 
+  REVIEWS_ICONS, 
+  REVIEWS_CONSTANTS 
+} from '@/constants/reviews.constants';
+import { profileStyles as styles } from '@/styles/ReviewsScreen.styles';
+import type { RestaurantSummary, FormattedReview } from '@/types/reviews.types';
 
+/**
+ * ReviewsScreen Component
+ * 
+ * Displays list of reviews with restaurant filtering
+ * 
+ * @responsibilities
+ * - Display reviews list
+ * - Filter by restaurant
+ * - Navigate to review details
+ * - Navigate to add review
+ */
 export default function ReviewsScreen(): React.ReactElement {
-  const router = useRouter();
-  const { restaurants: globalRestaurants, setRestaurants: setGlobalRestaurants } = useRestaurants();
-  const { user, token } = useAuth();
-  const { location } = useLocation();
-
-  const [localRestaurants, setLocalRestaurants] = useState<any[]>([]);
-  const [selectedRestaurant, setSelectedRestaurant] = useState<string>("Seleccione un Restaurante");
-  const [dropdownVisible, setDropdownVisible] = useState(false);
-  const [displayedReviews, setDisplayedReviews] = useState<any[]>([]);
-  const [allReviews, setAllReviews] = useState<any[]>([]); // Todas las reviews
-  const [loadingReviews, setLoadingReviews] = useState(false);
-  const [loadingRestaurants, setLoadingRestaurants] = useState(false);
-
-  const navItems = createReviewsNavItems("reviews", router);
-
-  // Formatear review
- const formatReview = (r: any) => {
-  let imageUri = null;
-  if (r.product?.imageUrl) {
-    const url = r.product.imageUrl;
-    if (url.startsWith('http://') || url.startsWith('https://')) {
-      try {
-        new URL(url);
-        imageUri = url;
-      } catch {}
-    }
-  }
+  // ============================================================================
+  // Hooks
+  // ============================================================================
   
-  return {
-    id: r.id,
-    namep: r.user?.name || 'Usuario',
-    text: r.text,
-    rating: r.rating,
-    image: imageUri ? { uri: imageUri } : null,
-    productName: r.product?.name || 'Producto',
-    productDescription: r.product?.description || '',
-    restaurantId: r.restaurant?.id || '',
-    restaurantName: r.restaurant?.name || '',
-  };
-};
+  const router = useRouter();
+  const { token } = useAuth();
+  const { location } = useLocation();
+  const { restaurants: globalRestaurants, setRestaurants: setGlobalRestaurants } = useRestaurants();
+  const navItems = createReviewsNavItems('reviews', router);
 
-  // Obtener reviews aleatorias
-  const getRandomReviews = (reviews: any[], count: number = 4) => {
-    const shuffled = [...reviews].sort(() => 0.5 - Math.random());
-    return shuffled.slice(0, count);
-  };
+  // Restaurant loading
+  const {
+    restaurants: localRestaurants,
+    isLoadingRestaurants,
+  } = useRestaurantProducts(location, token);
 
-  // Cargar restaurantes
+  // Reviews loading and filtering
+  const {
+    displayedReviews,
+    allReviews,
+    isLoading: loadingReviews,
+    loadAllReviews,
+    loadReviewsByRestaurant,
+    showRandomReviews,
+  } = useReviewsList(token);
+
+  // Local UI state
+  const [selectedRestaurant, setSelectedRestaurant] = useState<string>(
+    REVIEWS_TEXT.LIST.SELECT_RESTAURANT
+  );
+  const [dropdownVisible, setDropdownVisible] = useState(false);
+
+  // ============================================================================
+  // Effects
+  // ============================================================================
+
+  /**
+   * Sync local restaurants with global context
+   */
   useEffect(() => {
     if (globalRestaurants.length > 0) {
-      setLocalRestaurants(globalRestaurants);
+      // Use global restaurants if available
       return;
     }
 
-    if (!location) return;
+    if (localRestaurants.length > 0) {
+      setGlobalRestaurants(localRestaurants);
+    }
+  }, [localRestaurants, globalRestaurants.length, setGlobalRestaurants]);
 
-    const loadRestaurants = async () => {
-      setLoadingRestaurants(true);
-      
-      try {
-        const nearby = await restaurantService.getNearby({
-          latitude: location.latitude,
-          longitude: location.longitude,
-          radius: 5,
-        });
-        
-        setLocalRestaurants(nearby);
-        setGlobalRestaurants(nearby);
-      } catch (error) {
-        // Error silencioso
-      } finally {
-        setLoadingRestaurants(false);
-      }
-    };
-
-    loadRestaurants();
-  }, [location, globalRestaurants.length]);
-
-  // Cargar TODAS las reviews al inicio
+  /**
+   * Load all reviews when restaurants are available
+   */
   useEffect(() => {
-    const loadAllReviews = async () => {
-      if (!token || localRestaurants.length === 0) return;
+    const restaurants = globalRestaurants.length > 0 
+      ? globalRestaurants 
+      : localRestaurants;
 
-      setLoadingReviews(true);
-      
-      try {
-        const allReviewsPromises = localRestaurants.map(restaurant =>
-          reviewService.getByRestaurant(restaurant.id, token)
-            .catch(() => []) // Si falla uno, continuar
-        );
+    if (restaurants.length > 0 && token) {
+      loadAllReviews(restaurants);
+    }
+  }, [localRestaurants, globalRestaurants, token, loadAllReviews]);
 
-        const results = await Promise.all(allReviewsPromises);
-        const allReviewsFlat = results.flat();
-        const formatted = allReviewsFlat.map(formatReview);
-        
-        setAllReviews(formatted);
-        setDisplayedReviews(getRandomReviews(formatted, 10));
-      } catch (error) {
-        // Error silencioso
-      } finally {
-        setLoadingReviews(false);
-      }
-    };
-
-    loadAllReviews();
-  }, [localRestaurants, token]);
-
-  // Cargar reviews del restaurante seleccionado
+  /**
+   * Filter reviews when restaurant selection changes
+   */
   useEffect(() => {
-    if (selectedRestaurant === "Seleccione un Restaurante") {
-      setDisplayedReviews(getRandomReviews(allReviews, 4));
+    if (selectedRestaurant === REVIEWS_TEXT.LIST.SELECT_RESTAURANT) {
+      showRandomReviews(REVIEWS_CONSTANTS.UI.DEFAULT_VISIBLE_REVIEWS);
       return;
     }
 
-    const restaurant = localRestaurants.find(r => r.name === selectedRestaurant);
-    if (!restaurant) return;
+    const restaurants = globalRestaurants.length > 0 
+      ? globalRestaurants 
+      : localRestaurants;
+    
+    const restaurant = restaurants.find(r => r.name === selectedRestaurant);
+    
+    if (restaurant) {
+      loadReviewsByRestaurant(restaurant.id);
+    }
+  }, [selectedRestaurant, globalRestaurants, localRestaurants]);
 
-    const restaurantReviews = allReviews.filter(
-      review => localRestaurants.some(r => r.id === restaurant.id)
-    );
+  // ============================================================================
+  // Handlers
+  // ============================================================================
 
-    // Filtrar reviews del restaurante seleccionado
-    const loadReviews = async () => {
-      setLoadingReviews(true);
-      
-      try {
-        const data = await reviewService.getByRestaurant(restaurant.id, token!);
-        const formatted = data.map(formatReview);
-        setDisplayedReviews(formatted);
-      } catch (error) {
-        setDisplayedReviews([]);
-      } finally {
-        setLoadingReviews(false);
-      }
-    };
-
-    loadReviews();
-  }, [selectedRestaurant]);
-
-  const handleSelectRestaurant = (restaurant: any) => {
+  /**
+   * Handles restaurant selection
+   */
+  const handleSelectRestaurant = (restaurant: RestaurantSummary): void => {
     setSelectedRestaurant(restaurant.name);
     setDropdownVisible(false);
   };
+
+  /**
+   * Navigates to review details
+   */
+  const handleViewReview = (review: FormattedReview): void => {
+    router.push({
+      pathname: '/(tabs)/ReadReviews',
+      params: {
+        id: review.id,
+        namep: review.namep,
+        text: review.text,
+        rating: review.rating,
+        productName: review.productName,
+        productDescription: review.productDescription,
+        productImage: review.image?.uri || '',
+        restaurantId: review.restaurantId,
+        restaurantName: review.restaurantName,
+      },
+    });
+  };
+
+  /**
+   * Navigates to add review screen
+   */
+  const handleAddReview = (): void => {
+    router.push('/(tabs)/AddReviewScreen');
+  };
+
+  /**
+   * Navigates back
+   */
+  const handleGoBack = (): void => {
+    router.back();
+  };
+
+  /**
+   * Toggles dropdown visibility
+   */
+  const toggleDropdown = (): void => {
+    setDropdownVisible(!dropdownVisible);
+  };
+
+  // ============================================================================
+  // Render Helpers
+  // ============================================================================
+
+  /**
+   * Renders star rating display
+   */
+  const renderStars = (rating: number): React.ReactElement => (
+    <View style={styles.starsRow}>
+      {ReviewsUtils.getStarIndices().map((star) => (
+        <Ionicons
+          key={star}
+          name={ReviewsUtils.isStarFilled(star, rating) 
+            ? REVIEWS_ICONS.STAR_FILLED 
+            : REVIEWS_ICONS.STAR_OUTLINE}
+          size={REVIEWS_CONSTANTS.UI.STAR_SIZE_MEDIUM}
+          color={REVIEWS_ICONS.COLOR.STAR}
+        />
+      ))}
+    </View>
+  );
+
+  /**
+   * Renders a single review card
+   */
+  const renderReviewCard = (review: FormattedReview): React.ReactElement => (
+    <View key={review.id} style={styles.reviewCard}>
+      {renderStars(review.rating)}
+
+      <View style={styles.reviewContent}>
+        {review.image && (
+          <Image 
+            source={{ uri: review.image.uri }}
+            style={styles.foodImage}
+            onError={() => console.log('Image load error')}
+          />
+        )}
+        
+        <View style={styles.textContainer}>
+          <Text style={styles.reviewerName}>{review.namep}</Text>
+          <Text style={styles.reviewText} numberOfLines={2}>
+            {review.text}
+          </Text>
+        </View>
+
+        <TouchableOpacity
+          style={styles.reviewButton}
+          onPress={() => handleViewReview(review)}
+          accessibilityLabel={REVIEWS_TEXT.ACCESSIBILITY.VIEW_REVIEW}
+          accessibilityRole="button"
+        >
+          <Text style={styles.reviewButtonText}>
+            {REVIEWS_TEXT.LIST.VIEW_REVIEW}
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+
+  /**
+   * Renders restaurant dropdown
+   */
+  const renderRestaurantDropdown = (): React.ReactElement => {
+    const restaurants = globalRestaurants.length > 0 
+      ? globalRestaurants 
+      : localRestaurants;
+
+    return (
+      <>
+        <TouchableOpacity
+          style={styles.dropdown}
+          onPress={toggleDropdown}
+          accessibilityLabel={REVIEWS_TEXT.ACCESSIBILITY.SELECT_RESTAURANT}
+          accessibilityRole="button"
+        >
+          <Text style={styles.dropdownText}>{selectedRestaurant}</Text>
+          <Ionicons
+            name={dropdownVisible ? REVIEWS_ICONS.CHEVRON_UP : REVIEWS_ICONS.CHEVRON_DOWN}
+            size={REVIEWS_ICONS.SIZE.SMALL}
+            color={REVIEWS_ICONS.COLOR.SECONDARY}
+          />
+        </TouchableOpacity>
+
+        {dropdownVisible && (
+          <View style={styles.dropdownList}>
+            {isLoadingRestaurants ? (
+              <ActivityIndicator 
+                size="small" 
+                color={REVIEWS_ICONS.COLOR.SUCCESS} 
+                style={{ padding: 10 }} 
+              />
+            ) : restaurants.length > 0 ? (
+              restaurants.map((restaurant) => (
+                <TouchableOpacity
+                  key={restaurant.id}
+                  style={styles.dropdownItem}
+                  onPress={() => handleSelectRestaurant(restaurant)}
+                >
+                  <Text style={styles.dropdownItemText}>{restaurant.name}</Text>
+                </TouchableOpacity>
+              ))
+            ) : (
+              <Text style={styles.noReviewsText}>
+                {REVIEWS_TEXT.EMPTY.NO_RESTAURANTS_AVAILABLE}
+              </Text>
+            )}
+          </View>
+        )}
+      </>
+    );
+  };
+
+  /**
+   * Renders reviews list or empty state
+   */
+  const renderReviewsList = (): React.ReactElement => {
+    if (loadingReviews) {
+      return (
+        <ActivityIndicator 
+          size="large" 
+          color={REVIEWS_ICONS.COLOR.SUCCESS} 
+          style={{ marginTop: 20 }} 
+        />
+      );
+    }
+
+    if (displayedReviews.length === 0) {
+      return (
+        <Text style={styles.noReviewsText}>
+          {selectedRestaurant === REVIEWS_TEXT.LIST.SELECT_RESTAURANT
+            ? REVIEWS_TEXT.LIST.NO_REVIEWS
+            : REVIEWS_TEXT.LIST.NO_RESTAURANT_REVIEWS}
+        </Text>
+      );
+    }
+
+    return <>{displayedReviews.map(renderReviewCard)}</>;
+  };
+
+  // ============================================================================
+  // Render
+  // ============================================================================
 
   return (
     <View style={styles.container}>
@@ -172,170 +325,56 @@ export default function ReviewsScreen(): React.ReactElement {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 130 }}
       >
+        {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()}>
-            <Ionicons name="arrow-back" size={24} color="#000" />
+          <TouchableOpacity 
+            onPress={handleGoBack}
+            accessibilityLabel={REVIEWS_TEXT.ACCESSIBILITY.BACK_BUTTON}
+            accessibilityRole="button"
+          >
+            <Ionicons 
+              name={REVIEWS_ICONS.BACK} 
+              size={REVIEWS_ICONS.SIZE.LARGE} 
+              color={REVIEWS_ICONS.COLOR.PRIMARY} 
+            />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>
-            <Text style={styles.yummi}>YUMMI </Text>Opiniones
+            <Text style={styles.yummi}>{REVIEWS_TEXT.HEADER.TITLE} </Text>
+            {REVIEWS_TEXT.HEADER.SUBTITLE}
           </Text>
         </View>
 
         <View style={styles.divider} />
 
-        <TouchableOpacity
-          style={styles.dropdown}
-          onPress={() => setDropdownVisible(!dropdownVisible)}
-        >
-          <Text style={styles.dropdownText}>{selectedRestaurant}</Text>
-          <Ionicons
-            name={dropdownVisible ? "chevron-up" : "chevron-down"}
-            size={18}
-            color="#333"
-          />
-        </TouchableOpacity>
+        {/* Restaurant Filter */}
+        {renderRestaurantDropdown()}
 
-        {dropdownVisible && (
-          <View style={localDropdown.dropdownList}>
-            {loadingRestaurants ? (
-              <ActivityIndicator size="small" color="#27AE60" style={{ padding: 10 }} />
-            ) : localRestaurants.length > 0 ? (
-              localRestaurants.map((r) => (
-                <TouchableOpacity
-                  key={r.id}
-                  style={localDropdown.dropdownItem}
-                  onPress={() => handleSelectRestaurant(r)}
-                >
-                  <Text style={localDropdown.dropdownItemText}>{r.name}</Text>
-                </TouchableOpacity>
-              ))
-            ) : (
-              <Text style={{ textAlign: "center", color: "#666", padding: 10 }}>
-                No hay restaurantes disponibles
-              </Text>
-            )}
-          </View>
-        )}
-
-        {loadingReviews ? (
-          <ActivityIndicator size="large" color="#27AE60" style={{ marginTop: 20 }} />
-        ) : displayedReviews.length > 0 ? (
-          displayedReviews.map((item) => (
-            <View key={item.id} style={styles.reviewCard}>
-              <View style={styles.starsRow}>
-                {[...Array(5)].map((_, i) => (
-                  <Ionicons
-                    key={i}
-                    name={i < item.rating ? "star" : "star-outline"}
-                    size={18}
-                    color="#000"
-                  />
-                ))}
-              </View>
-
-              <View style={styles.reviewContent}>
-                {item.image ? (
-                  <Image 
-                    source={{ uri: item.image.uri }}
-                    style={styles.foodImage}
-                    onError={() => {}}
-                  />
-                ) : null}
-                
-                <View style={styles.textContainer}>
-                  <Text style={styles.reviewerName}>{item.namep}</Text>
-                  <Text style={styles.reviewText} numberOfLines={2}>
-                    {item.text}
-                  </Text>
-                </View>
-
-              <TouchableOpacity
-  style={styles.reviewButton}
-  onPress={() =>
-    router.push({
-      pathname: "/(tabs)/ReadReviews",
-      params: {
-        id: item.id,
-        namep: item.namep,
-        text: item.text,
-        rating: item.rating,
-        productName: item.productName || "Producto",
-        productDescription: item.productDescription || "",
-        productImage: item.image?.uri || "",
-        restaurantId: item.restaurantId || "",
-        restaurantName: item.restaurantName || "",
-      },
-    })
-  }
->
-  <Text style={styles.reviewButtonText}>Ver reseña</Text>
-</TouchableOpacity>
-              </View>
-            </View>
-          ))
-        ) : (
-          <Text style={styles.noReviewsText}>
-            {selectedRestaurant === "Seleccione un Restaurante"
-              ? "No hay opiniones disponibles."
-              : "No hay opiniones para este restaurante aún."}
-          </Text>
-        )}
+        {/* Reviews List */}
+        {renderReviewsList()}
       </ScrollView>
 
-      <View style={fixedStyles.inputContainerFixed}>
+      {/* Add Review Input */}
+      <View style={styles.inputContainerFixed}>
         <TouchableOpacity
           style={{ flex: 1 }}
-          onPress={() => router.push("/(tabs)/AddReviewScreen")}
+          onPress={handleAddReview}
         >
           <TextInput
-            placeholder="Escribir opinión ..."
+            placeholder={REVIEWS_TEXT.LIST.WRITE_OPINION}
             placeholderTextColor="#333"
             editable={false}
             style={styles.input}
           />
         </TouchableOpacity>
-        <Ionicons name="send" size={20} color="#000000ff" />
+        <Ionicons 
+          name={REVIEWS_ICONS.SEND} 
+          size={REVIEWS_ICONS.SIZE.MEDIUM} 
+          color={REVIEWS_ICONS.COLOR.PRIMARY} 
+        />
       </View>
 
+      {/* Bottom Navigation */}
       <BottomNavigation items={navItems} />
     </View>
   );
 }
-
-const localDropdown = StyleSheet.create({
-  dropdownList: {
-    backgroundColor: "#FFF",
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 8,
-    marginBottom: 10,
-    marginHorizontal: 16,
-  },
-  dropdownItem: {
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    borderBottomWidth: 1,
-    borderColor: "#eee",
-    backgroundColor: "#FFF",
-  },
-  dropdownItemText: {
-    fontSize: 14,
-    color: "#333",
-  },
-});
-
-const fixedStyles = StyleSheet.create({
-  inputContainerFixed: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    bottom: 90,
-    backgroundColor: "#FFF",
-    flexDirection: "row",
-    alignItems: "center",
-    borderTopWidth: 1,
-    borderColor: "#ccc",
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-  },
-});
