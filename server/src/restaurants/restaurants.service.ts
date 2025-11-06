@@ -39,7 +39,7 @@ export class RestaurantsService {
   }
 
   async findNearby(nearbyDto: NearbyRestaurantsDto): Promise<RestaurantWithDistance[]> {
-    const { latitude, longitude, radius = 10, limit = 20 } = nearbyDto;
+    const { latitude, longitude, radius = 20, limit = 20 } = nearbyDto;
 
     this.logger.log(`🔍 Searching nearby restaurants:`);
     this.logger.log(`   📍 User location: (${latitude}, ${longitude})`);

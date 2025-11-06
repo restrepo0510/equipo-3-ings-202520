@@ -191,9 +191,10 @@ export class CustomAlertHelper {
     hide: () => void;
   } | null = null;
 
-  static setAlertRef(ref: any) {
-    this.currentAlert = ref;
-  }
+ static setAlertRef(ref: any) {
+  console.log('🔔 Alert ref set:', !!ref);
+  this.currentAlert = ref;
+}
 
   static alert(
     title: string,
@@ -201,6 +202,11 @@ export class CustomAlertHelper {
     buttons?: AlertButton[],
     type: AlertType = 'info'
   ) {
+    console.log('🔔 Showing alert:', { title, alertRef: !!this.currentAlert });
+  if (!this.currentAlert) {
+    console.error('❌ Alert ref not initialized!');
+    return;
+  }
     this.currentAlert?.show({
       visible: true,
       title,

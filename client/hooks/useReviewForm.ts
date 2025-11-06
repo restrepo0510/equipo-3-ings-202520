@@ -43,9 +43,9 @@ export const useReviewForm = (): UseReviewFormReturn => {
   
   const [selectedRestaurant, setSelectedRestaurant] = useState<RestaurantSummary | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<ProductSummary | null>(null);
-  const [rating, setRating] = useState(REVIEWS_CONSTANTS.RATING.DEFAULT);
-  const [reviewText, setReviewText] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [rating, setRating] = useState<number>(REVIEWS_CONSTANTS.RATING.DEFAULT);
+  const [reviewText, setReviewText] = useState<string>('');
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
   // ============================================================================
   // Validation

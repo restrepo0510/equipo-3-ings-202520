@@ -8,11 +8,11 @@
 export const REVIEWS_CONSTANTS = {
   RATING: {
     MIN: 1,
-    MAX: 5,
+    MAX: 20,
     DEFAULT: 0,
   },
   LOCATION: {
-    DEFAULT_RADIUS_KM: 5,
+    DEFAULT_RADIUS_KM: 20,
   },
   UI: {
     MAX_DROPDOWN_HEIGHT: 250,

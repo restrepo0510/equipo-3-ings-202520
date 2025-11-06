@@ -128,10 +128,7 @@ export const profileStyles = StyleSheet.create({
     fontSize: 14,
     color: "#333",
   },
-});
 
-export const reviewsAdditionalStyles = StyleSheet.create({
-  // Fixed input container at bottom
   inputContainerFixed: {
     position: "absolute",
     left: 0,
@@ -170,9 +167,5 @@ export const reviewsAdditionalStyles = StyleSheet.create({
     color: "#333",
   },
   
-  // Star row container
-  starsRow: {
-    flexDirection: "row",
-    marginBottom: 8,
-  },
+
 });

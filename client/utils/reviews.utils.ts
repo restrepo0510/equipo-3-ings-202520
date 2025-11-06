@@ -11,20 +11,14 @@ import { REVIEWS_TEXT } from '@/constants/reviews.constants';
  */
 export class ReviewsUtils {
   /**
-   * Validates if image URL is valid
+   * Validates if image URL is valid (RELAXED VERSION)
    * 
    * @param imageUrl - Image URL to validate
-   * @returns true if URL is valid
+   * @returns true if URL exists
    */
   static isValidImageUrl(imageUrl: string | null | undefined): boolean {
-    if (!imageUrl || imageUrl.trim().length === 0) return false;
-    
-    try {
-      const url = new URL(imageUrl);
-      return url.protocol === 'http:' || url.protocol === 'https:';
-    } catch {
-      return false;
-    }
+    // Validación relajada - solo verifica que exista
+    return !!(imageUrl && imageUrl.trim().length > 0);
   }
 
   /**
@@ -34,7 +28,7 @@ export class ReviewsUtils {
    * @returns Formatted review object
    */
   static formatReview(review: Review): FormattedReview {
-    const imageUri = this.isValidImageUrl(review.product?.imageUrl)
+    const imageUri = ReviewsUtils.isValidImageUrl(review.product?.imageUrl)
       ? review.product.imageUrl
       : null;
 
@@ -58,7 +52,7 @@ export class ReviewsUtils {
    * @returns Array of formatted reviews
    */
   static formatReviews(reviews: Review[]): FormattedReview[] {
-    return reviews.map(this.formatReview);
+    return reviews.map(review => ReviewsUtils.formatReview(review));
   }
 
   /**
@@ -126,7 +120,7 @@ export class ReviewsUtils {
     imageUrl: string | null | undefined,
     fallback: string = 'https://via.placeholder.com/100'
   ): string {
-    return this.isValidImageUrl(imageUrl) ? imageUrl! : fallback;
+    return ReviewsUtils.isValidImageUrl(imageUrl) ? imageUrl! : fallback;
   }
 
   /**

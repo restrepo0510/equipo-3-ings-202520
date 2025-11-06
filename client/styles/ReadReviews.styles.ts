@@ -106,4 +106,9 @@ export const profileStyles = StyleSheet.create({
     color: "#333",
     lineHeight: 22,
   },
+    // Star row container
+  starsRow: {
+    flexDirection: "row",
+    marginBottom: 8,
+  },
 });
