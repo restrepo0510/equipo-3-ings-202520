@@ -7,35 +7,37 @@ export class StripeService {
   private stripe: Stripe;
 
   constructor(private configService: ConfigService) {
-    // Lee la API key de Stripe usando ConfigService
+    // Lee la clave secreta del archivo .env
     const secretKey = this.configService.get<string>('STRIPE_SECRET_KEY');
 
-    // Depuración: asegúrate que la clave sale en la consola y empieza con 'sk_'
+    // Log para verificar la clave
     console.log('🔑 Stripe SECRET_KEY:', secretKey);
 
     if (!secretKey) {
       throw new Error('STRIPE_SECRET_KEY no está definida en el archivo .env');
     }
 
-    // Instancia Stripe SDK con la versión que te pide tu node_modules
+    // Inicializa Stripe SDK con la versión correcta
     this.stripe = new Stripe(secretKey, { apiVersion: '2025-09-30.clover' });
   }
 
   async createPaymentIntent(amount: number, currency: string = 'cop') {
-    // Depuración: log cada vez que se crea un PaymentIntent
-    console.log('🟢 createPaymentIntent called. Stripe key:', this.configService.get<string>('STRIPE_SECRET_KEY'));
+    // Stripe espera el monto en centavos, asegúrate que frontend o backend envíe correcto
+    const amountInCents = Math.round(amount); // Ajusta si tu frontend ya multiplica por 100
+
+    console.log('🟢 createPaymentIntent called. Amount:', amountInCents, 'Currency:', currency);
+
     try {
       const paymentIntent = await this.stripe.paymentIntents.create({
-        amount: Math.round(amount * 100), // Stripe requiere centavos
+        amount: amountInCents,
         currency,
         automatic_payment_methods: { enabled: true },
       });
-      // Log del resultado para confirmar
+
       console.log('🟢 PaymentIntent creado:', paymentIntent.id);
 
       return { clientSecret: paymentIntent.client_secret };
     } catch (error: any) {
-      // Log de error específico de Stripe
       console.error('🔴 Error creating PaymentIntent:', error);
 
       throw new Error(

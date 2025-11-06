@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   Alert,
   ActivityIndicator,
   ScrollView,
+  Linking,
 } from 'react-native';
 import { useStripe } from '@stripe/stripe-react-native';
 import { router } from 'expo-router';
@@ -19,13 +20,28 @@ export default function PaymentScreen() {
   const [loading, setLoading] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<'efectivo' | 'tarjeta'>('efectivo');
 
-  const subtotal = 15000;
-  const total = 17000;
+  const subtotal = 200000;
+  const total = 250000; // Monto en centavos o pesos, según backend (ajusta si necesario)
 
   const deliveryLocation = {
     latitude: 4.6097,
     longitude: -74.0817,
   };
+
+  useEffect(() => {
+    const handleDeepLink = (event: { url: string }) => {
+      const url = event.url;
+      if (url.startsWith('client://stripe-redirect')) {
+        Alert.alert('Redirigido desde Stripe', 'El usuario volvió al app luego del pago.');
+      }
+    };
+
+    const subscription = Linking.addEventListener('url', handleDeepLink);
+
+    return () => {
+      subscription.remove();
+    };
+  }, []);
 
   const fetchPaymentSheetParams = async () => {
     try {
@@ -41,6 +57,7 @@ export default function PaymentScreen() {
       });
 
       const data = await response.json();
+      console.log('ClientSecret recibido:', data.clientSecret);
       return { clientSecret: data.clientSecret };
     } catch (error) {
       console.error('Error fetching payment intent:', error);
@@ -55,6 +72,7 @@ export default function PaymentScreen() {
       paymentIntentClientSecret: clientSecret,
       merchantDisplayName: 'Tu Restaurante',
       style: 'automatic',
+      returnURL: 'client://stripe-redirect',
     });
 
     if (error) {
@@ -74,7 +92,7 @@ export default function PaymentScreen() {
 
     try {
       const initialized = await initializePaymentSheet();
-      
+
       if (!initialized) {
         setLoading(false);
         return;
@@ -99,7 +117,6 @@ export default function PaymentScreen() {
   return (
     <ScrollView style={styles.container}>
       <View style={styles.content}>
-        {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
             <Text style={styles.backIcon}>←</Text>
@@ -108,7 +125,6 @@ export default function PaymentScreen() {
           <View style={styles.placeholder} />
         </View>
 
-        {/* Mapa */}
         <View style={styles.mapContainer}>
           <MapView
             style={styles.map}
@@ -123,19 +139,16 @@ export default function PaymentScreen() {
           </MapView>
         </View>
 
-        {/* Info de entrega */}
         <View style={styles.deliveryInfo}>
           <Text style={styles.deliveryText}>Entrega Estimada</Text>
           <Text style={styles.deliveryTime}>40min ⏱</Text>
         </View>
 
-        {/* Totales */}
         <View style={styles.totalsContainer}>
           <Text style={styles.subtotal}>SUBTOTAL: ${subtotal.toLocaleString('es-CO')}</Text>
           <Text style={styles.total}>TOTAL: ${total.toLocaleString('es-CO')}</Text>
         </View>
 
-        {/* Métodos de pago */}
         <View style={styles.paymentMethods}>
           <TouchableOpacity
             style={[
@@ -166,7 +179,6 @@ export default function PaymentScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Botón de proceder */}
         <TouchableOpacity
           style={styles.proceedButton}
           onPress={handlePayment}
@@ -184,114 +196,28 @@ export default function PaymentScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-  },
-  content: {
-    padding: 20,
-    paddingTop: 50,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 20,
-  },
-  backButton: {
-    padding: 5,
-  },
-  backIcon: {
-    fontSize: 24,
-    fontWeight: 'bold',
-  },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-  },
-  placeholder: {
-    width: 34,
-  },
-  mapContainer: {
-    height: 200,
-    borderRadius: 15,
-    overflow: 'hidden',
-    marginBottom: 20,
-    borderWidth: 2,
-    borderColor: '#333',
-  },
-  map: {
-    flex: 1,
-  },
-  deliveryInfo: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 15,
-  },
-  deliveryText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  deliveryTime: {
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  totalsContainer: {
-    marginBottom: 20,
-  },
-  subtotal: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 5,
-  },
-  total: {
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  paymentMethods: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 20,
-    gap: 10,
-  },
-  paymentButton: {
-    flex: 1,
-    paddingVertical: 15,
-    borderRadius: 25,
-    backgroundColor: '#9DC183',
-    alignItems: 'center',
-  },
-  paymentButtonDark: {
-    backgroundColor: '#2C2C2C',
-  },
-  paymentButtonActive: {
-    borderWidth: 3,
-    borderColor: '#000',
-  },
-  paymentButtonText: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#000',
-  },
-  paymentButtonTextActive: {
-    color: '#000',
-  },
-  paymentButtonTextWhite: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#fff',
-  },
-  proceedButton: {
-    backgroundColor: '#1B5E20',
-    paddingVertical: 18,
-    borderRadius: 25,
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  proceedButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
+  container: { flex: 1, backgroundColor: '#f5f5f5' },
+  content: { padding: 20, paddingTop: 50 },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 },
+  backButton: { padding: 5 },
+  backIcon: { fontSize: 24, fontWeight: 'bold' },
+  headerTitle: { fontSize: 24, fontWeight: 'bold' },
+  placeholder: { width: 34 },
+  mapContainer: { height: 200, borderRadius: 15, overflow: 'hidden', marginBottom: 20, borderWidth: 2, borderColor: '#333' },
+  map: { flex: 1 },
+  deliveryInfo: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 },
+  deliveryText: { fontSize: 18, fontWeight: 'bold' },
+  deliveryTime: { fontSize: 18, fontWeight: 'bold' },
+  totalsContainer: { marginBottom: 20 },
+  subtotal: { fontSize: 16, fontWeight: 'bold', marginBottom: 5 },
+  total: { fontSize: 18, fontWeight: 'bold' },
+  paymentMethods: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20, gap: 10 },
+  paymentButton: { flex: 1, paddingVertical: 15, borderRadius: 25, backgroundColor: '#9DC183', alignItems: 'center' },
+  paymentButtonDark: { backgroundColor: '#2C2C2C' },
+  paymentButtonActive: { borderWidth: 3, borderColor: '#000' },
+  paymentButtonText: { fontSize: 16, fontWeight: 'bold', color: '#000' },
+  paymentButtonTextActive: { color: '#000' },
+  paymentButtonTextWhite: { fontSize: 16, fontWeight: 'bold', color: '#fff' },
+  proceedButton: { backgroundColor: '#1B5E20', paddingVertical: 18, borderRadius: 25, alignItems: 'center', marginBottom: 20 },
+  proceedButtonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
 });
