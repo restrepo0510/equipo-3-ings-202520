@@ -13,7 +13,7 @@ import { useStripe } from '@stripe/stripe-react-native';
 import { router } from 'expo-router';
 import MapView, { Marker } from 'react-native-maps';
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
+import { API_URL } from '../../config/api';
 
 export default function PaymentScreen() {
   const { initPaymentSheet, presentPaymentSheet } = useStripe();

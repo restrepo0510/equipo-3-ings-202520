@@ -23,7 +23,7 @@ export class StripeService {
 
   async createPaymentIntent(amount: number, currency: string = 'cop') {
     // Stripe espera el monto en centavos, asegúrate que frontend o backend envíe correcto
-    const amountInCents = Math.round(amount); // Ajusta si tu frontend ya multiplica por 100
+    const amountInCents = Math.round(amount * 100); // Ajusta si tu frontend ya multiplica por 100
 
     console.log('🟢 createPaymentIntent called. Amount:', amountInCents, 'Currency:', currency);
 

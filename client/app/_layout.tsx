@@ -3,11 +3,14 @@
 import React, { useEffect } from 'react';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { AuthProvider, useAuth } from '../context/AuthContext';
-import { ActivityIndicator, View, StyleSheet } from 'react-native';
+import { ActivityIndicator, View, StyleSheet, Text } from 'react-native';
+
+// 1. IMPORTAR STRIPEPROVIDER
+import { StripeProvider } from '@stripe/stripe-react-native';
 
 /**
  * Navigation Guard Component
- * Handles automatic redirection based on authentication state
+ * (Sin cambios en esta función)
  */
 function NavigationGuard({ children }: { children: React.ReactNode }) {
   const { isLoading, isAuthenticated } = useAuth();
@@ -57,24 +60,43 @@ function NavigationGuard({ children }: { children: React.ReactNode }) {
  * Wraps the entire app with AuthProvider and navigation guard
  */
 export default function RootLayout() {
+
+  // 2. OBTENER LA CLAVE PUBLICABLE DE TU .env
+  const publishableKey = process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY;
+
+  // 3. VALIDAR QUE LA CLAVE EXISTA
+  if (!publishableKey) {
+    console.error('🔴 ¡ERROR CRÍTICO! Falta EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY en el archivo .env de la carpeta /client');
+    return (
+      <View style={styles.loadingContainer}>
+        <Text style={{ color: 'red', padding: 20, textAlign: 'center' }}>
+          Error: La clave publicable de Stripe no está configurada.
+        </Text>
+      </View>
+    );
+  }
+
+  // 4. ENVOLVER LA APP CON STRIPEPROVIDER
   return (
-    <AuthProvider>
-      <NavigationGuard>
-        <Stack
-          screenOptions={{
-            headerShown: false,
-            contentStyle: { backgroundColor: '#FFFFFF' },
-          }}
-        >
-          <Stack.Screen 
-            name="(tabs)" 
-            options={{
+    <StripeProvider publishableKey={publishableKey}>
+      <AuthProvider>
+        <NavigationGuard>
+          <Stack
+            screenOptions={{
               headerShown: false,
+              contentStyle: { backgroundColor: '#FFFFFF' },
             }}
-          />
-        </Stack>
-      </NavigationGuard>
-    </AuthProvider>
+          >
+            <Stack.Screen 
+              name="(tabs)" 
+              options={{
+                headerShown: false,
+              }}
+            />
+          </Stack>
+        </NavigationGuard>
+      </AuthProvider>
+    </StripeProvider>
   );
 }
 
