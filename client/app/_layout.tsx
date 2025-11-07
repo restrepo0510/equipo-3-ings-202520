@@ -3,7 +3,7 @@
 import React, { useEffect } from 'react';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { AuthProvider, useAuth } from '../context/AuthContext';
-import { AlertProvider } from '@/context/AlertProvider';
+import { FavoritesProvider } from '../context/FavoritesContext';
 import { ActivityIndicator, View, StyleSheet } from 'react-native';
 
 /**
@@ -60,7 +60,7 @@ function NavigationGuard({ children }: { children: React.ReactNode }) {
 export default function RootLayout() {
   return (
     <AuthProvider>
-      <AlertProvider>
+        <FavoritesProvider>
       <NavigationGuard>
         <Stack
           screenOptions={{
@@ -76,7 +76,7 @@ export default function RootLayout() {
           />
         </Stack>
       </NavigationGuard>
-      </AlertProvider>
+      </FavoritesProvider>
     </AuthProvider>
   );
 }

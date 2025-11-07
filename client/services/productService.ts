@@ -1,52 +1,12 @@
 // services/productService.ts
 import { API_URL } from '@/config/api';
-
-export interface Product {
-  id: string;
-  name: string;
-  description?: string;
-  price: number;
-  originalPrice?: number;
-  stock: number;
-  imageUrl?: string;
-  category?: string;
-  expirationDate?: Date;
-  isAvailable: boolean;
-  restaurantId: string;
-  createdAt: Date;
-  updatedAt: Date;
-  discount?: number;
-}
-
-export interface CreateProductData {
-  name: string;
-  description?: string;
-  price: number;
-  originalPrice?: number;
-  stock: number;
-  imageUrl?: string;
-  category?: string;
-  expirationDate?: string;
-  isAvailable?: boolean;
-  restaurantId: string;
-}
-
-interface UpdateProductData {
-  name?: string;
-  description?: string;
-  price?: number;
-  originalPrice?: number;
-  stock?: number;
-  imageUrl?: string;
-  category?: string;
-  expirationDate?: string;
-  isAvailable?: boolean;
-}
+import type { 
+  Product, 
+  CreateProductData, 
+  UpdateProductData 
+} from '@/types/product.types';
 
 class ProductService {
-  /**
-   * Get all products for a specific restaurant
-   */
   async getByRestaurant(restaurantId: string, token: string): Promise<Product[]> {
     try {
       const response = await fetch(
@@ -71,9 +31,6 @@ class ProductService {
     }
   }
 
-  /**
-   * Get a single product by ID
-   */
   async getById(productId: string, token: string): Promise<Product> {
     try {
       const response = await fetch(`${API_URL}/products/${productId}`, {
@@ -95,9 +52,6 @@ class ProductService {
     }
   }
 
-  /**
-   * Get all available products (across all restaurants)
-   */
   async getAvailable(token?: string): Promise<Product[]> {
     try {
       const headers: HeadersInit = {
@@ -124,9 +78,6 @@ class ProductService {
     }
   }
 
-  /**
-   * Create a new product
-   */
   async create(productData: CreateProductData, token: string): Promise<Product> {
     try {
       const response = await fetch(`${API_URL}/products`, {
@@ -150,9 +101,6 @@ class ProductService {
     }
   }
 
-  /**
-   * Update an existing product
-   */
   async update(
     productId: string,
     updateData: UpdateProductData,
@@ -180,9 +128,6 @@ class ProductService {
     }
   }
 
-  /**
-   * Delete a product
-   */
   async delete(productId: string, token: string): Promise<void> {
     try {
       const response = await fetch(`${API_URL}/products/${productId}`, {
