@@ -1,282 +1,198 @@
 // app/(tabs)/EditBusinessProfileScreen.tsx
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import {
   View,
   Text,
   TextInput,
   TouchableOpacity,
   ScrollView,
-  Alert,
   ActivityIndicator,
   Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import * as ImagePicker from 'expo-image-picker';
 import { BottomNavigation } from '@/components/ui/BottomNavigation';
 import { createBusinessNavItems } from '@/utils/navigationHelpers';
 import { useAuth } from '@/context/AuthContext';
-import { restaurantService } from '@/services/restaurantService';
+import { useBusinessProfile } from '@/hooks/useBusinessProfile';
+import { useBusinessProfileImage } from '@/hooks/useBusinessProfileImage';
 import { styles } from '@/styles/EditBusinessProfileScreen.styles';
+import { CustomAlertHelper } from '@/components/ui/CustomAlert';
+import { 
+  BUSINESS_PROFILE_TEXT, 
+  BUSINESS_PROFILE_ICONS 
+} from '@/constants/businessProfile.constants';
 
 /**
  * EditBusinessProfileScreen
  * 
- * Allows business users to edit their restaurant/business information
- * Includes image picker for logo/profile picture
+ * Screen for editing business/restaurant profile information
+ * Allows updating business details, hours, and profile image
+ * 
+ * @responsibilities
+ * - Display business profile form
+ * - Handle form submission
+ * - Manage image upload
  */
-export default function EditBusinessProfileScreen() {
+export default function EditBusinessProfileScreen(): React.ReactElement {
   const router = useRouter();
-  const { user, token } = useAuth();
+  const { user } = useAuth();
   const navItems = createBusinessNavItems('profile', router);
 
-  const [formData, setFormData] = useState({
-    name: '',
-    phone: '',
-    email: '',
-    address: '',
-    description: '',
-    category: '',
-    openingTime: '',
-    closingTime: '',
-    imageUrl: '', // ✅ Agregado para imagen
-  });
+  const {
+    formData,
+    isLoading,
+    isSaving,
+    updateField,
+    saveProfile,
+  } = useBusinessProfile();
 
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
-  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const {
+    isUploading: isUploadingImage,
+    showImagePickerDialog,
+    showRemoveImageDialog,
+  } = useBusinessProfileImage();
 
   /**
-   * Load restaurant data on mount
+   * Handles form save action
    */
-  useEffect(() => {
-    loadRestaurantData();
-  }, []);
-
-  const loadRestaurantData = async () => {
-    if (!user?.id || !token) return;
-
-    try {
-      setIsLoading(true);
-      const restaurant = await restaurantService.getById(user.id);
-      
-      setFormData({
-        name: restaurant.name || '',
-        phone: restaurant.phone || '',
-        email: restaurant.email || '',
-        address: restaurant.address || '',
-        description: restaurant.description || '',
-        category: restaurant.category || '',
-        openingTime: restaurant.openingTime || '',
-        closingTime: restaurant.closingTime || '',
-        imageUrl: restaurant.imageUrl || '', // ✅ Cargar imagen existente
-      });
-    } catch (error) {
-      console.error('Error loading restaurant data:', error);
-      Alert.alert('Error', 'No se pudo cargar la información del negocio');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  /**
-   * Update form field
-   */
-  const handleFieldChange = (field: keyof typeof formData, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-  };
-
-  /**
-   * Request camera permissions
-   */
-  const requestCameraPermission = async (): Promise<boolean> => {
-    const { status } = await ImagePicker.requestCameraPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert(
-        'Permiso Requerido',
-        'Se necesita acceso a la cámara para tomar fotos'
+  const handleSave = async (): Promise<void> => {
+    const success = await saveProfile();
+    
+    if (success) {
+      CustomAlertHelper.success(
+        BUSINESS_PROFILE_TEXT.ALERTS.SUCCESS_TITLE,
+        BUSINESS_PROFILE_TEXT.ALERTS.SUCCESS_MESSAGE,
+        () => router.back()
       );
-      return false;
-    }
-    return true;
-  };
-
-  /**
-   * Request media library permissions
-   */
-  const requestMediaLibraryPermission = async (): Promise<boolean> => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert(
-        'Permiso Requerido',
-        'Se necesita acceso a la galería para seleccionar fotos'
-      );
-      return false;
-    }
-    return true;
-  };
-
-  /**
-   * Pick image from gallery
-   */
-  const pickImageFromGallery = async () => {
-    const hasPermission = await requestMediaLibraryPermission();
-    if (!hasPermission) return;
-
-    try {
-      setIsUploadingImage(true);
-
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
-        aspect: [1, 1], // Square for profile picture
-        quality: 0.8,
-      });
-
-      if (!result.canceled && result.assets[0]) {
-        handleFieldChange('imageUrl', result.assets[0].uri);
-      }
-    } catch (error) {
-      console.error('Error picking image:', error);
-      Alert.alert('Error', 'No se pudo seleccionar la imagen');
-    } finally {
-      setIsUploadingImage(false);
     }
   };
 
   /**
-   * Take photo with camera
+   * Handles image selection
    */
-  const takePhoto = async () => {
-    const hasPermission = await requestCameraPermission();
-    if (!hasPermission) return;
-
-    try {
-      setIsUploadingImage(true);
-
-      const result = await ImagePicker.launchCameraAsync({
-        allowsEditing: true,
-        aspect: [1, 1], // Square for profile picture
-        quality: 0.8,
-      });
-
-      if (!result.canceled && result.assets[0]) {
-        handleFieldChange('imageUrl', result.assets[0].uri);
-      }
-    } catch (error) {
-      console.error('Error taking photo:', error);
-      Alert.alert('Error', 'No se pudo tomar la foto');
-    } finally {
-      setIsUploadingImage(false);
-    }
+  const handleImageSelect = (uri: string): void => {
+    updateField('imageUrl', uri);
   };
 
   /**
-   * Show image picker options
+   * Handles image removal
    */
-  const showImagePickerOptions = () => {
-    Alert.alert(
-      'Foto del Negocio',
-      'Elige una opción',
-      [
-        {
-          text: 'Tomar Foto',
-          onPress: takePhoto,
-        },
-        {
-          text: 'Elegir de Galería',
-          onPress: pickImageFromGallery,
-        },
-        {
-          text: 'Cancelar',
-          style: 'cancel',
-        },
-      ],
-      { cancelable: true }
-    );
+  const handleRemoveImage = (): void => {
+    updateField('imageUrl', '');
   };
 
   /**
-   * Remove selected image
+   * Renders loading state
    */
-  const removeImage = () => {
-    Alert.alert(
-      'Eliminar Foto',
-      '¿Estás seguro de eliminar la foto del negocio?',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Eliminar',
-          style: 'destructive',
-          onPress: () => handleFieldChange('imageUrl', ''),
-        },
-      ]
-    );
-  };
-
-  /**
-   * Validate form
-   */
-  const validateForm = (): boolean => {
-    if (!formData.name.trim()) {
-      Alert.alert('Error', 'El nombre del negocio es requerido');
-      return false;
-    }
-
-    if (!formData.address.trim()) {
-      Alert.alert('Error', 'La dirección es requerida');
-      return false;
-    }
-
-    return true;
-  };
-
-  /**
-   * Save changes
-   */
-  const handleSave = async () => {
-    if (!validateForm() || !user?.id || !token) return;
-
-    try {
-      setIsSaving(true);
-
-      await restaurantService.update(
-        String(user.id),
-        {
-          name: formData.name.trim(),
-          phone: formData.phone.trim(),
-          email: formData.email.trim(),
-          address: formData.address.trim(),
-          description: formData.description.trim(),
-          category: formData.category.trim(),
-          openingTime: formData.openingTime.trim(),
-          closingTime: formData.closingTime.trim(),
-          imageUrl: formData.imageUrl.trim(), // ✅ Incluir imagen
-        },
-        token
-      );
-
-      Alert.alert('Éxito', 'Información actualizada correctamente');
-      router.back();
-    } catch (error) {
-      console.error('Error saving:', error);
-      Alert.alert('Error', 'No se pudo actualizar la información');
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
   if (isLoading) {
     return (
       <View style={styles.container}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#27AE60" />
-          <Text style={styles.loadingText}>Cargando...</Text>
+          <ActivityIndicator 
+            size="large" 
+            color={BUSINESS_PROFILE_ICONS.COLORS.SUCCESS} 
+          />
+          <Text style={styles.loadingText}>
+            {BUSINESS_PROFILE_TEXT.LOADING.TEXT}
+          </Text>
         </View>
       </View>
     );
   }
+
+  /**
+   * Renders profile image section
+   */
+  const renderProfileImageSection = () => (
+    <View style={styles.profilePictureSection}>
+      <Text style={styles.label}>
+        {BUSINESS_PROFILE_TEXT.FORM.TITLE}
+      </Text>
+      
+      <View style={styles.profilePictureContainer}>
+        {formData.imageUrl ? (
+          <View style={styles.profileImageWrapper}>
+            <Image
+              source={{ uri: formData.imageUrl }}
+              style={styles.profileImage}
+              resizeMode="cover"
+            />
+            <TouchableOpacity
+              style={styles.removeProfileImageButton}
+              onPress={() => showRemoveImageDialog(handleRemoveImage)}
+            >
+              <Ionicons 
+                name={BUSINESS_PROFILE_ICONS.CLOSE} 
+                size={BUSINESS_PROFILE_ICONS.SIZE.MEDIUM} 
+                color={BUSINESS_PROFILE_ICONS.COLORS.DANGER} 
+              />
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <View style={styles.profileImagePlaceholder}>
+            <Ionicons 
+              name={BUSINESS_PROFILE_ICONS.BUSINESS} 
+              size={BUSINESS_PROFILE_ICONS.SIZE.EXTRA_LARGE} 
+              color={BUSINESS_PROFILE_ICONS.COLORS.SECONDARY} 
+            />
+          </View>
+        )}
+
+        <TouchableOpacity
+          style={styles.changeProfileImageButton}
+          onPress={() => showImagePickerDialog(handleImageSelect)}
+          disabled={isUploadingImage}
+        >
+          {isUploadingImage ? (
+            <ActivityIndicator 
+              color={BUSINESS_PROFILE_ICONS.COLORS.WHITE} 
+              size="small" 
+            />
+          ) : (
+            <Ionicons 
+              name={BUSINESS_PROFILE_ICONS.FOLDER} 
+              size={BUSINESS_PROFILE_ICONS.SIZE.LARGE} 
+              color={BUSINESS_PROFILE_ICONS.COLORS.PRIMARY} 
+            />
+          )}
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+
+  /**
+   * Renders text input field
+   */
+  const renderInputField = (
+    field: keyof typeof formData,
+    label: string,
+    placeholder: string,
+    options?: {
+      multiline?: boolean;
+      numberOfLines?: number;
+      keyboardType?: 'default' | 'phone-pad' | 'email-address';
+    }
+  ) => (
+    <View style={styles.inputGroup}>
+      <Text style={styles.label}>{label}</Text>
+      <TextInput
+        style={[
+          styles.input,
+          options?.multiline && styles.textArea,
+        ]}
+        value={formData[field] as string}
+        onChangeText={(value) => updateField(field, value)}
+        placeholder={placeholder}
+        placeholderTextColor={BUSINESS_PROFILE_ICONS.COLORS.SECONDARY}
+        multiline={options?.multiline}
+        numberOfLines={options?.numberOfLines}
+        keyboardType={options?.keyboardType}
+        autoCapitalize={options?.keyboardType === 'email-address' ? 'none' : 'sentences'}
+      />
+    </View>
+  );
 
   return (
     <View style={styles.container}>
@@ -287,164 +203,96 @@ export default function EditBusinessProfileScreen() {
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.back()}>
-            <Ionicons name="arrow-back" size={24} color="#000" />
+            <Ionicons 
+              name={BUSINESS_PROFILE_ICONS.BACK} 
+              size={BUSINESS_PROFILE_ICONS.SIZE.SMALL} 
+              color={BUSINESS_PROFILE_ICONS.COLORS.PRIMARY} 
+            />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Editar Perfil</Text>
-          <View style={{ width: 24 }} />
+          <View style={styles.headerTitleContainer}>
+            <Text style={styles.headerTitle}>
+              {BUSINESS_PROFILE_TEXT.HEADER.TITLE}{' '}
+              <Text style={styles.yummi}>
+                {BUSINESS_PROFILE_TEXT.HEADER.HIGHLIGHT}
+              </Text>
+            </Text>
+            <Text style={styles.headerSubtitle}>
+              {BUSINESS_PROFILE_TEXT.HEADER.SUBTITLE}
+            </Text>
+          </View>
         </View>
 
-        {/* Divider */}
         <View style={styles.divider} />
 
         {/* Form */}
         <View style={styles.form}>
-          {/* ✅ Profile Picture Section */}
-          <View style={styles.profilePictureSection}>
-            <Text style={styles.label}>Foto del Negocio</Text>
-            
-            <View style={styles.profilePictureContainer}>
-              {formData.imageUrl ? (
-                <View style={styles.profileImageWrapper}>
-                  <Image
-                    source={{ uri: formData.imageUrl }}
-                    style={styles.profileImage}
-                    resizeMode="cover"
-                  />
-                  <TouchableOpacity
-                    style={styles.removeProfileImageButton}
-                    onPress={removeImage}
-                  >
-                    <Ionicons name="close-circle" size={28} color="#E74C3C" />
-                  </TouchableOpacity>
-                </View>
-              ) : (
-                <View style={styles.profileImagePlaceholder}>
-                  <Ionicons name="business" size={48} color="#9CA3AF" />
-                </View>
-              )}
+          {renderProfileImageSection()}
 
-              <TouchableOpacity
-                style={styles.changeProfileImageButton}
-                onPress={showImagePickerOptions}
-                disabled={isUploadingImage}
-              >
-                {isUploadingImage ? (
-                  <ActivityIndicator color="#FFF" size="small" />
-                ) : (
-                  <>
-                    <Ionicons name="camera" size={20} color="#FFF" />
-                    <Text style={styles.changeProfileImageText}>
-                      {formData.imageUrl ? 'Cambiar Foto' : 'Agregar Foto'}
-                    </Text>
-                  </>
-                )}
-              </TouchableOpacity>
-            </View>
-          </View>
+          {renderInputField(
+            'name',
+            BUSINESS_PROFILE_TEXT.FORM.LABELS.BUSINESS_NAME,
+            BUSINESS_PROFILE_TEXT.FORM.PLACEHOLDERS.BUSINESS_NAME
+          )}
 
-          {/* Business Name */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Nombre del Negocio *</Text>
-            <TextInput
-              style={styles.input}
-              value={formData.name}
-              onChangeText={(value) => handleFieldChange('name', value)}
-              placeholder="Nombre del restaurante"
-              placeholderTextColor="#9CA3AF"
-            />
-          </View>
+          {renderInputField(
+            'phone',
+            BUSINESS_PROFILE_TEXT.FORM.LABELS.PHONE,
+            BUSINESS_PROFILE_TEXT.FORM.PLACEHOLDERS.PHONE,
+            { keyboardType: 'phone-pad' }
+          )}
 
-          {/* Phone */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Teléfono</Text>
-            <TextInput
-              style={styles.input}
-              value={formData.phone}
-              onChangeText={(value) => handleFieldChange('phone', value)}
-              placeholder="+57 300 123 4567"
-              placeholderTextColor="#9CA3AF"
-              keyboardType="phone-pad"
-            />
-          </View>
+          {renderInputField(
+            'email',
+            BUSINESS_PROFILE_TEXT.FORM.LABELS.EMAIL,
+            BUSINESS_PROFILE_TEXT.FORM.PLACEHOLDERS.EMAIL,
+            { keyboardType: 'email-address' }
+          )}
 
-          {/* Email */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Email</Text>
-            <TextInput
-              style={styles.input}
-              value={formData.email}
-              onChangeText={(value) => handleFieldChange('email', value)}
-              placeholder="email@example.com"
-              placeholderTextColor="#9CA3AF"
-              keyboardType="email-address"
-              autoCapitalize="none"
-            />
-          </View>
+          {renderInputField(
+            'address',
+            BUSINESS_PROFILE_TEXT.FORM.LABELS.ADDRESS,
+            BUSINESS_PROFILE_TEXT.FORM.PLACEHOLDERS.ADDRESS,
+            { multiline: true, numberOfLines: 2 }
+          )}
 
-          {/* Address */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Dirección *</Text>
-            <TextInput
-              style={[styles.input, styles.textArea]}
-              value={formData.address}
-              onChangeText={(value) => handleFieldChange('address', value)}
-              placeholder="Calle 123 #45-67, Medellín"
-              placeholderTextColor="#9CA3AF"
-              multiline
-              numberOfLines={2}
-            />
-            <Text style={styles.hint}>
-              💡 Actualizar la dirección recalculará las coordenadas en el mapa
-            </Text>
-          </View>
+          {renderInputField(
+            'description',
+            BUSINESS_PROFILE_TEXT.FORM.LABELS.DESCRIPTION,
+            BUSINESS_PROFILE_TEXT.FORM.PLACEHOLDERS.DESCRIPTION,
+            { multiline: true, numberOfLines: 3 }
+          )}
 
-          {/* Description */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Descripción</Text>
-            <TextInput
-              style={[styles.input, styles.textArea]}
-              value={formData.description}
-              onChangeText={(value) => handleFieldChange('description', value)}
-              placeholder="Describe tu negocio..."
-              placeholderTextColor="#9CA3AF"
-              multiline
-              numberOfLines={3}
-            />
-          </View>
-
-          {/* Category */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Categoría</Text>
-            <TextInput
-              style={styles.input}
-              value={formData.category}
-              onChangeText={(value) => handleFieldChange('category', value)}
-              placeholder="Ej: Comida Rápida, Pizza, etc."
-              placeholderTextColor="#9CA3AF"
-            />
-          </View>
+          {renderInputField(
+            'category',
+            BUSINESS_PROFILE_TEXT.FORM.LABELS.CATEGORY,
+            BUSINESS_PROFILE_TEXT.FORM.PLACEHOLDERS.CATEGORY
+          )}
 
           {/* Opening Hours */}
           <View style={styles.row}>
             <View style={[styles.inputGroup, styles.halfWidth]}>
-              <Text style={styles.label}>Hora Apertura</Text>
+              <Text style={styles.label}>
+                {BUSINESS_PROFILE_TEXT.FORM.LABELS.OPENING_TIME}
+              </Text>
               <TextInput
                 style={styles.input}
                 value={formData.openingTime}
-                onChangeText={(value) => handleFieldChange('openingTime', value)}
-                placeholder="08:00"
-                placeholderTextColor="#9CA3AF"
+                onChangeText={(value) => updateField('openingTime', value)}
+                placeholder={BUSINESS_PROFILE_TEXT.FORM.PLACEHOLDERS.OPENING_TIME}
+                placeholderTextColor={BUSINESS_PROFILE_ICONS.COLORS.SECONDARY}
               />
             </View>
 
             <View style={[styles.inputGroup, styles.halfWidth]}>
-              <Text style={styles.label}>Hora Cierre</Text>
+              <Text style={styles.label}>
+                {BUSINESS_PROFILE_TEXT.FORM.LABELS.CLOSING_TIME}
+              </Text>
               <TextInput
                 style={styles.input}
                 value={formData.closingTime}
-                onChangeText={(value) => handleFieldChange('closingTime', value)}
-                placeholder="20:00"
-                placeholderTextColor="#9CA3AF"
+                onChangeText={(value) => updateField('closingTime', value)}
+                placeholder={BUSINESS_PROFILE_TEXT.FORM.PLACEHOLDERS.CLOSING_TIME}
+                placeholderTextColor={BUSINESS_PROFILE_ICONS.COLORS.SECONDARY}
               />
             </View>
           </View>
@@ -456,26 +304,37 @@ export default function EditBusinessProfileScreen() {
             disabled={isSaving}
           >
             {isSaving ? (
-              <ActivityIndicator color="#FFF" size="small" />
+              <ActivityIndicator 
+                color={BUSINESS_PROFILE_ICONS.COLORS.WHITE} 
+                size="small" 
+              />
             ) : (
               <>
-                <Ionicons name="checkmark-circle" size={24} color="#FFF" />
-                <Text style={styles.saveButtonText}>Guardar Cambios</Text>
+                <Ionicons 
+                  name={BUSINESS_PROFILE_ICONS.CHECKMARK} 
+                  size={BUSINESS_PROFILE_ICONS.SIZE.SMALL} 
+                  color={BUSINESS_PROFILE_ICONS.COLORS.WHITE} 
+                />
+                <Text style={styles.saveButtonText}>
+                  {BUSINESS_PROFILE_TEXT.BUTTONS.SAVE}
+                </Text>
               </>
             )}
           </TouchableOpacity>
 
+          {/* Cancel Button */}
           <TouchableOpacity
             style={styles.cancelButton}
             onPress={() => router.back()}
             disabled={isSaving}
           >
-            <Text style={styles.cancelButtonText}>Cancelar</Text>
+            <Text style={styles.cancelButtonText}>
+              {BUSINESS_PROFILE_TEXT.BUTTONS.CANCEL}
+            </Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
 
-      {/* Bottom Navigation */}
       <BottomNavigation items={navItems} />
     </View>
   );
