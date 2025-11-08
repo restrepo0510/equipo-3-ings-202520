@@ -183,7 +183,7 @@ export default function ReadReviews(): React.ReactElement {
           {REVIEWS_TEXT.HEADER.SUBTITLE}
         </Text>
       </View>
-
+<View style={styles.divider} />
       {/* Content */}
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* Rating */}

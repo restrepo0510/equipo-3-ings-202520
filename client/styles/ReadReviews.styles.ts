@@ -4,7 +4,7 @@ import { StyleSheet } from "react-native";
 export const profileStyles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F5F1E8",
+    backgroundColor: "#ffffffff",
   },
   header: {
     flexDirection: "row",
@@ -13,9 +13,14 @@ export const profileStyles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingBottom: 16,
     backgroundColor: "#FFF",
-    borderBottomWidth: 2,
-    borderColor: "#000",
   },
+  divider: {
+        width: "80%",
+        height: 2,
+        left:35,
+        backgroundColor: "#000",
+        marginBottom: 20,
+    },
   backButton: {
     marginRight: 12,
   },
@@ -33,6 +38,8 @@ export const profileStyles = StyleSheet.create({
   },
   productCard: {
     backgroundColor: "#FFF",
+    borderWidth: 1,
+    borderColor: "#A6B89F",
     borderRadius: 16,
     padding: 12,
     marginBottom: 16,
@@ -68,9 +75,11 @@ export const profileStyles = StyleSheet.create({
   },
   visitButton: {
     position: "absolute",
-    top: 10,
-    right: 10,
-    backgroundColor: "#5B8A72",
+    top: -15,
+    right: -5,
+    backgroundColor: "#778959",
+    borderColor: "#ffffffff",
+    borderWidth: 2,
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 16,
@@ -87,6 +96,8 @@ export const profileStyles = StyleSheet.create({
   },
   reviewBox: {
     backgroundColor: "#FFF",
+    borderWidth: 1,
+    borderColor: "#A6B89F",
     borderRadius: 12,
     padding: 20,
     shadowColor: "#000",

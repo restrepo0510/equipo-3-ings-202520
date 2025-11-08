@@ -3,7 +3,7 @@ import { StyleSheet } from "react-native";
 export const profileStyles = StyleSheet.create({
   container: { 
     flex: 1, 
-    backgroundColor: "#F5F5F5" 
+    backgroundColor: "#fffefeff" 
   },
   header: {
     flexDirection: "row",
@@ -12,8 +12,6 @@ export const profileStyles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingBottom: 16,
     backgroundColor: "#FFF",
-    borderBottomWidth: 2,
-    borderBottomColor: "#000",
   },
   backButton: { 
     marginRight: 12 
@@ -28,6 +26,13 @@ export const profileStyles = StyleSheet.create({
     color: "#000",
     fontWeight: "700",
     fontStyle: "italic",
+  },
+  divider: {
+    width: "90%",
+    height: 2,
+    left:20,
+    backgroundColor: "#000",
+    marginVertical: 10,
   },
   scrollContent: { 
     padding: 20,

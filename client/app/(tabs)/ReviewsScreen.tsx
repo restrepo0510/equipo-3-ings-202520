@@ -201,19 +201,24 @@ export default function ReviewsScreen(): React.ReactElement {
   /**
    * Renders a single review card
    */
-  const renderReviewCard = (review: FormattedReview): React.ReactElement => (
-    <View key={review.id} style={styles.reviewCard}>
+const renderReviewCard = (review: FormattedReview): React.ReactElement => (
+  <View key={review.id} style={styles.reviewCardContainer}>
+    
+    {/* Estrellas por encima del card */}
+    <View style={styles.starsAbsolute}>
       {renderStars(review.rating)}
+    </View>
 
+    {/* Card */}
+    <View style={styles.reviewCard}>
       <View style={styles.reviewContent}>
         {review.image && (
           <Image 
             source={{ uri: review.image.uri }}
             style={styles.foodImage}
-            onError={() => console.log('Image load error')}
           />
         )}
-        
+
         <View style={styles.textContainer}>
           <Text style={styles.reviewerName}>{review.namep}</Text>
           <Text style={styles.reviewText} numberOfLines={2}>
@@ -224,16 +229,16 @@ export default function ReviewsScreen(): React.ReactElement {
         <TouchableOpacity
           style={styles.reviewButton}
           onPress={() => handleViewReview(review)}
-          accessibilityLabel={REVIEWS_TEXT.ACCESSIBILITY.VIEW_REVIEW}
-          accessibilityRole="button"
         >
           <Text style={styles.reviewButtonText}>
-            {REVIEWS_TEXT.LIST.VIEW_REVIEW}
+            Ver reseña
           </Text>
         </TouchableOpacity>
       </View>
     </View>
-  );
+  </View>
+);
+
 
   /**
    * Renders restaurant dropdown
@@ -349,9 +354,12 @@ export default function ReviewsScreen(): React.ReactElement {
         {/* Restaurant Filter */}
         {renderRestaurantDropdown()}
 
+
         {/* Reviews List */}
         {renderReviewsList()}
       </ScrollView>
+<View style={styles.divider2} />
+
 
       {/* Add Review Input */}
       <View style={styles.inputContainerFixed}>

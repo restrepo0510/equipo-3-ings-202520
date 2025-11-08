@@ -353,6 +353,7 @@ export default function AddReviewScreen(): React.ReactElement {
           {REVIEWS_TEXT.HEADER.SUBTITLE}
         </Text>
       </View>
+<View style={styles.divider} />
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* Select Restaurant */}
