@@ -1,16 +1,10 @@
-/**
- * useLoginForm Hook
- * 
- * Custom hook for managing login form state and validation
- * Encapsulates form logic following Single Responsibility Principle
- */
+// hooks/useLoginForm.ts
 
 import { useState, useCallback } from 'react';
-import { Alert } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 import { LoginCredentials, ValidationErrors } from '../types/auth.types';
 import { validateLoginForm, isFormValid } from '@/utils/validators';
-import { ERROR_MESSAGES } from '@/constants/auth.constants';
+import { AuthAlertService } from '@/services/authAlertService';
 
 /**
  * Hook return type
@@ -34,19 +28,7 @@ const INITIAL_FORM_DATA: LoginCredentials = {
 
 /**
  * Custom hook for login form management
- * 
- * @returns Form state and handlers
- * 
- * @example
- * ```tsx
- * const { formData, errors, handleFieldChange, handleSubmit } = useLoginForm();
- * 
- * <FormField
- *   value={formData.email}
- *   error={errors.email}
- *   onChangeText={(value) => handleFieldChange('email', value)}
- * />
- * ```
+ * IMPROVED: Uses CustomAlert instead of native Alert
  */
 export const useLoginForm = (): UseLoginFormReturn => {
   const { login, isLoading: authLoading } = useAuth();
@@ -70,45 +52,42 @@ export const useLoginForm = (): UseLoginFormReturn => {
     }
   }, [errors]);
 
- /**
- * Validates and submits the login form
- */
-const handleSubmit = useCallback(async () => {
-  // Validate form data
-  const validationErrors = validateLoginForm(formData);
-  
-  if (!isFormValid(validationErrors)) {
-    setErrors(validationErrors);
-    Alert.alert(
-      'Campos incompletos', 
-      'Por favor rellena todos los campos antes de enviar'
-    );
-    return;
-  }
-
-  try {
-    setIsSubmitting(true);
+  /**
+   * Validates and submits the login form
+   * IMPROVED: Uses AuthAlertService for all alerts
+   */
+  const handleSubmit = useCallback(async () => {
+    // Validate form data
+    const validationErrors = validateLoginForm(formData);
     
-    // Call authentication service
-    await login({
-      email: formData.email.trim(),
-      password: formData.password,
-    });
+    if (!isFormValid(validationErrors)) {
+      setErrors(validationErrors);
+      AuthAlertService.showIncompleteForm(); // IMPROVED: Custom alert
+      return;
+    }
 
-    console.log('✅ Login successful');
-    // Navigation is handled by AuthContext
-  } catch (error: any) {
-    console.error('❌ Login error:', error);
-    
-    // Show user-friendly error message
-    Alert.alert(
-      'Error al iniciar sesión',
-      error.message || ERROR_MESSAGES.LOGIN_FAILED
-    );
-  } finally {
-    setIsSubmitting(false);
-  }
-}, [formData, login]);
+    try {
+      setIsSubmitting(true);
+      
+      // Call authentication service
+      await login({
+        email: formData.email.trim(),
+        password: formData.password,
+      });
+
+      console.log('✅ Login successful');
+      // Navigation is handled by AuthContext
+      // No success alert shown - user sees immediate navigation
+    } catch (error: any) {
+      console.error('❌ Login error:', error);
+      
+      // Show user-friendly error message with CustomAlert
+      AuthAlertService.showLoginError(error); // IMPROVED: Custom alert
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, [formData, login]);
+
   /**
    * Resets form to initial state
    */

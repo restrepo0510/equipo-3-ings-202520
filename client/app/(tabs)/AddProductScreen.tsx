@@ -10,22 +10,20 @@ import {
   TouchableOpacity,
   Alert,
   ActivityIndicator,
-  Image,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import * as ImagePicker from 'expo-image-picker';
 import { BottomNavigation } from '@/components/ui/BottomNavigation';
 import { createBusinessNavItems } from '@/utils/navigationHelpers';
-import { productService, CreateProductDto } from '@/services/productService';
+import { productService } from '@/services/productService';
+import type { CreateProductData } from '@/types/product.types';
 import { useAuth } from '@/context/AuthContext';
-import { styles } from '../../styles/AddProductScreen.styles';
+import { styles} from '../../styles/AddProductScreen.styles';
 
 /**
  * AddProductScreen Component
  * 
  * Screen for business users to add new products
- * Includes image picker functionality
  */
 export default function AddProductScreen() {
   const router = useRouter();
@@ -33,7 +31,7 @@ export default function AddProductScreen() {
   const navItems = createBusinessNavItems('add', router);
 
   // Form state
-  const [formData, setFormData] = useState<CreateProductDto>({
+  const [formData, setFormData] = useState<CreateProductData>({
     name: '',
     description: '',
     price: 0,
@@ -42,134 +40,16 @@ export default function AddProductScreen() {
     imageUrl: '',
     category: '',
     isAvailable: true,
-    restaurantId: user?.id.toString() || '',
+    restaurantId: user?.id.toString() || '', // Adjust based on your user structure
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isUploadingImage, setIsUploadingImage] = useState(false);
 
   /**
    * Update form field
    */
-  const updateField = (field: keyof CreateProductDto, value: any) => {
+  const updateField = (field: keyof CreateProductData, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
-  };
-
-  /**
-   * Request camera permissions
-   */
-  const requestCameraPermission = async (): Promise<boolean> => {
-    const { status } = await ImagePicker.requestCameraPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert(
-        'Permiso Requerido',
-        'Se necesita acceso a la cámara para tomar fotos'
-      );
-      return false;
-    }
-    return true;
-  };
-
-  /**
-   * Request media library permissions
-   */
-  const requestMediaLibraryPermission = async (): Promise<boolean> => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert(
-        'Permiso Requerido',
-        'Se necesita acceso a la galería para seleccionar fotos'
-      );
-      return false;
-    }
-    return true;
-  };
-
-  /**
-   * Pick image from gallery
-   */
-  const pickImageFromGallery = async () => {
-    const hasPermission = await requestMediaLibraryPermission();
-    if (!hasPermission) return;
-
-    try {
-      setIsUploadingImage(true);
-
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
-        aspect: [4, 3],
-        quality: 0.8,
-      });
-
-      if (!result.canceled && result.assets[0]) {
-        updateField('imageUrl', result.assets[0].uri);
-      }
-    } catch (error) {
-      console.error('Error picking image:', error);
-      Alert.alert('Error', 'No se pudo seleccionar la imagen');
-    } finally {
-      setIsUploadingImage(false);
-    }
-  };
-
-  /**
-   * Take photo with camera
-   */
-  const takePhoto = async () => {
-    const hasPermission = await requestCameraPermission();
-    if (!hasPermission) return;
-
-    try {
-      setIsUploadingImage(true);
-
-      const result = await ImagePicker.launchCameraAsync({
-        allowsEditing: true,
-        aspect: [4, 3],
-        quality: 0.8,
-      });
-
-      if (!result.canceled && result.assets[0]) {
-        updateField('imageUrl', result.assets[0].uri);
-      }
-    } catch (error) {
-      console.error('Error taking photo:', error);
-      Alert.alert('Error', 'No se pudo tomar la foto');
-    } finally {
-      setIsUploadingImage(false);
-    }
-  };
-
-  /**
-   * Show image picker options
-   */
-  const showImagePickerOptions = () => {
-    Alert.alert(
-      'Seleccionar Imagen',
-      'Elige una opción',
-      [
-        {
-          text: 'Tomar Foto',
-          onPress: takePhoto,
-        },
-        {
-          text: 'Elegir de Galería',
-          onPress: pickImageFromGallery,
-        },
-        {
-          text: 'Cancelar',
-          style: 'cancel',
-        },
-      ],
-      { cancelable: true }
-    );
-  };
-
-  /**
-   * Remove selected image
-   */
-  const removeImage = () => {
-    updateField('imageUrl', '');
   };
 
   /**
@@ -259,51 +139,6 @@ export default function AddProductScreen() {
 
         {/* Form */}
         <View style={styles.form}>
-          {/* Image Picker */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Imagen del Producto</Text>
-            
-            {formData.imageUrl ? (
-              <View style={styles.imagePreviewContainer}>
-                <Image
-                  source={{ uri: formData.imageUrl }}
-                  style={styles.imagePreview}
-                  resizeMode="cover"
-                />
-                <TouchableOpacity
-                  style={styles.removeImageButton}
-                  onPress={removeImage}
-                >
-                  <Ionicons name="close-circle" size={32} color="#E74C3C" />
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.changeImageButton}
-                  onPress={showImagePickerOptions}
-                >
-                  <Ionicons name="camera" size={20} color="#FFF" />
-                  <Text style={styles.changeImageText}>Cambiar</Text>
-                </TouchableOpacity>
-              </View>
-            ) : (
-              <TouchableOpacity
-                style={styles.imagePickerButton}
-                onPress={showImagePickerOptions}
-                disabled={isUploadingImage}
-              >
-                {isUploadingImage ? (
-                  <ActivityIndicator color="#27AE60" />
-                ) : (
-                  <>
-                    <Ionicons name="camera" size={48} color="#9CA3AF" />
-                    <Text style={styles.imagePickerText}>
-                      Toca para agregar imagen
-                    </Text>
-                  </>
-                )}
-              </TouchableOpacity>
-            )}
-          </View>
-
           {/* Name */}
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Nombre *</Text>
@@ -385,6 +220,19 @@ export default function AddProductScreen() {
               onChangeText={(value) => updateField('category', value)}
               placeholder="Ej: Pizza, Hamburguesas, Postres"
               placeholderTextColor="#9CA3AF"
+            />
+          </View>
+
+          {/* Image URL */}
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>URL de Imagen</Text>
+            <TextInput
+              style={styles.input}
+              value={formData.imageUrl}
+              onChangeText={(value) => updateField('imageUrl', value)}
+              placeholder="https://..."
+              placeholderTextColor="#9CA3AF"
+              autoCapitalize="none"
             />
           </View>
 

@@ -4,11 +4,19 @@ import {
   Post, 
   Body, 
   Get, 
+  Put,
+  Param,
   HttpCode, 
   HttpStatus,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { RegisterUserDto, LoginUserDto, AuthResponseDto, UserResponseDto } from './dto/auth.dto';
+import { 
+  RegisterUserDto, 
+  LoginUserDto, 
+  UpdateUserDto,
+  AuthResponseDto, 
+  UserResponseDto 
+} from './dto/auth.dto';
 
 /**
  * Authentication Controller
@@ -57,6 +65,25 @@ export class AuthController {
   async getAllUsers(): Promise<UserResponseDto[]> {
     try {
       return await this.authService.getAllUsers();
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  /**
+   * Update user profile
+   * @param id - User ID
+   * @param updateUserDto - Updated user data
+   * @returns Updated user data
+   */
+  @Put('users/:id')
+  @HttpCode(HttpStatus.OK)
+  async updateUser(
+    @Param('id') id: string,
+    @Body() updateUserDto: UpdateUserDto
+  ): Promise<UserResponseDto> {
+    try {
+      return await this.authService.updateUser(id, updateUserDto);
     } catch (error) {
       throw error;
     }

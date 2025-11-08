@@ -1,16 +1,10 @@
-/**
- * useRegistrationForm Hook
- * 
- * Custom hook for managing registration form state and validation
- * Handles both customer and business account registration
- */
+// hooks/userRegistrationForm.ts
 
 import { useState, useCallback } from 'react';
-import { Alert } from 'react-native';
 import { useAuth } from '@/context/AuthContext';
 import { RegistrationData, ValidationErrors, UserRole } from '@/types/auth.types';
-import { validateRegistrationForm, isFormValid } from '@/utils/validators';
-import { ERROR_MESSAGES } from '@/constants/auth.constants';
+import { validateRegistrationForm, isFormValid, formatPhoneNumber } from '@/utils/validators';
+import { AuthAlertService } from '@/services/authAlertService';
 
 /**
  * Hook return type
@@ -39,19 +33,7 @@ const INITIAL_FORM_DATA: RegistrationData = {
 
 /**
  * Custom hook for registration form management
- * 
- * @returns Form state and handlers
- * 
- * @example
- * ```tsx
- * const { 
- *   formData, 
- *   errors, 
- *   handleFieldChange, 
- *   handleRoleChange,
- *   handleSubmit 
- * } = useRegistrationForm();
- * ```
+ * IMPROVED: Uses CustomAlert and formats phone number
  */
 export const useRegistrationForm = (): UseRegistrationFormReturn => {
   const { register, isLoading: authLoading } = useAuth();
@@ -62,12 +44,24 @@ export const useRegistrationForm = (): UseRegistrationFormReturn => {
 
   /**
    * Updates a single form field and clears its error
+   * IMPROVED: Formats phone number to only digits
    */
   const handleFieldChange = useCallback((
     field: keyof RegistrationData,
     value: string
   ) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    // Format phone to only digits
+    if (field === 'phone') {
+      const formattedPhone = formatPhoneNumber(value);
+      
+      // Limit to 10 digits
+      if (formattedPhone.length <= 10) {
+        setFormData(prev => ({ ...prev, [field]: formattedPhone }));
+      }
+      // Don't update if trying to add more than 10 digits
+    } else {
+      setFormData(prev => ({ ...prev, [field]: value }));
+    }
     
     // Clear field error when user starts typing
     if (errors[field]) {
@@ -87,55 +81,51 @@ export const useRegistrationForm = (): UseRegistrationFormReturn => {
     }
   }, [errors.address]);
 
- /**
- * Validates and submits the registration form
- */
-const handleSubmit = useCallback(async () => {
-  // Validate form data
-  const validationErrors = validateRegistrationForm(formData);
-  
-  if (!isFormValid(validationErrors)) {
-    setErrors(validationErrors);
-    Alert.alert(
-      'Campos incompletos',
-      'Por favor rellena todos los campos correctamente antes de enviar'
-    );
-    return;
-  }
-
-  try {
-    setIsSubmitting(true);
+  /**
+   * Validates and submits the registration form
+   * IMPROVED: Uses AuthAlertService for all alerts
+   */
+  const handleSubmit = useCallback(async () => {
+    // Validate form data
+    const validationErrors = validateRegistrationForm(formData);
     
-    // Prepare registration data
-    const registrationData: RegistrationData = {
-      name: formData.name.trim(),
-      email: formData.email.trim(),
-      phone: formData.phone.trim(),
-      password: formData.password,
-      role: formData.role,
-      // Only include address for business accounts
-      address: formData.role === UserRole.BUSINESS 
-        ? formData.address?.trim() 
-        : undefined,
-    };
+    if (!isFormValid(validationErrors)) {
+      setErrors(validationErrors);
+      AuthAlertService.showIncompleteForm(); // IMPROVED: Custom alert
+      return;
+    }
 
-    // Call authentication service
-    await register(registrationData);
+    try {
+      setIsSubmitting(true);
+      
+      // Prepare registration data with formatted phone
+      const registrationData: RegistrationData = {
+        name: formData.name.trim(),
+        email: formData.email.trim(),
+        phone: formatPhoneNumber(formData.phone), // Ensure only digits
+        password: formData.password,
+        role: formData.role,
+        // Only include address for business accounts
+        address: formData.role === UserRole.BUSINESS 
+          ? formData.address?.trim() 
+          : undefined,
+      };
 
-    console.log('✅ Registration successful');
-    // Navigation is handled by AuthContext
-  } catch (error: any) {
-    console.error('❌ Registration error:', error);
-    
-    // Show user-friendly error message
-    Alert.alert(
-      'Error en el registro',
-      error.message || ERROR_MESSAGES.REGISTRATION_FAILED
-    );
-  } finally {
-    setIsSubmitting(false);
-  }
-}, [formData, register]);
+      // Call authentication service
+      await register(registrationData);
+
+      console.log('✅ Registration successful');
+      // Navigation is handled by AuthContext
+      // No success alert shown - user sees immediate navigation
+    } catch (error: any) {
+      console.error('❌ Registration error:', error);
+      
+      // Show user-friendly error message with CustomAlert
+      AuthAlertService.showRegistrationError(error); // IMPROVED: Custom alert
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, [formData, register]);
 
   /**
    * Resets form to initial state

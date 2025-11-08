@@ -4,6 +4,7 @@ import React, { createContext, useState, useEffect, useContext } from 'react';
 import { router } from 'expo-router';
 import { authService } from '@/services/authService';
 import { storageService } from '@/services/storageService';
+import { API_URL } from '@/config/api';
 import {
   User,
   UserRole,
@@ -13,6 +14,7 @@ import {
   AuthContextValue,
   AuthState,
   isBusinessUser,
+  UpdateProfileData,
 } from '@/types/auth.types';
 
 /**
@@ -137,8 +139,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       setState(prev => ({ ...prev, isLoading: true }));
 
-      // Call authentication service (handles role normalization)
-      const response = await authService.register(data);
+      // Normalize registration data to ensure role is set
+      const registrationData: RegistrationData = {
+        ...data,
+        role: data.role || UserRole.CUSTOMER, // Set default role if not provided
+      };
+
+      // Call authentication service
+      const response = await authService.register(registrationData);
 
       // Store auth data
       await storageService.saveAuthData(response.accessToken, response.user);
@@ -193,21 +201,73 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   /**
-   * Updates user data in state and storage
+   * Updates user data in state and storage (local only)
    * Used after profile updates
    */
   const updateUser = async (user: User): Promise<void> => {
     try {
+      // Update in storage
       await storageService.updateUserData(user);
       
+      // Update state
       setState(prev => ({
         ...prev,
         user,
       }));
 
-      console.log('✅ User data updated');
+      console.log('✅ User data updated locally');
     } catch (error) {
       console.error('❌ Error updating user:', error);
+      throw error;
+    }
+  };
+
+  /**
+   * Updates user profile on the backend
+   * Syncs with server and updates local state
+   */
+  const updateProfile = async (data: UpdateProfileData): Promise<void> => {
+    try {
+      if (!state.user || !state.token) {
+        throw new Error('User not authenticated');
+      }
+
+      console.log('🔄 Updating profile on server...', data);
+
+      // Call backend API
+      const response = await fetch(`${API_URL}/auth/users/${state.user.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${state.token}`,
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to update profile');
+      }
+
+      const updatedUserData = await response.json();
+      console.log('✅ Profile updated on server:', updatedUserData);
+
+      // Update local state and storage
+      const updatedUser: User = {
+        ...state.user,
+        ...updatedUserData,
+      };
+
+      await storageService.updateUserData(updatedUser);
+      
+      setState(prev => ({
+        ...prev,
+        user: updatedUser,
+      }));
+
+      console.log('✅ Profile synced locally');
+    } catch (error) {
+      console.error('❌ Error updating profile:', error);
       throw error;
     }
   };
@@ -222,6 +282,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     register,
     logout,
     updateUser,
+    updateProfile,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
