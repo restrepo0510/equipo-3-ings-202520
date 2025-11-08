@@ -35,4 +35,11 @@
 ![alt text](/doc/design/img/Kanban5.png)
 ![alt text](/doc/design/img/Kanban5.1.png)
 
+## Sexto Sprint
+![alt text](/doc/design/img/burndown6.png)
+
+## Kanban
+![alt text](/doc/design/img/Kanban6.png)
+![alt text](/doc/design/img/Kanban6.1.png)
+![alt text](/doc/design/img/Kanban6.2.png)
 
