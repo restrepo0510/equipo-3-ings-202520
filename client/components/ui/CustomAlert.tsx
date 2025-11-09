@@ -6,7 +6,6 @@ import {
   Text,
   TouchableOpacity,
   Animated,
-  Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { styles } from '@/styles/CustomAlert.styles';
@@ -210,14 +209,38 @@ export class CustomAlertHelper {
     });
   }
 
+  /**
+   * Shows a success alert
+   */
   static success(title: string, message?: string, onPress?: () => void) {
     this.alert(title, message, [{ text: 'OK', onPress }], 'success');
   }
 
+  /**
+   * Shows an error alert
+   */
   static error(title: string, message?: string, onPress?: () => void) {
     this.alert(title, message, [{ text: 'OK', onPress }], 'error');
   }
 
+  /**
+   * Shows a warning alert
+   */
+  static warning(title: string, message?: string, onPress?: () => void) {
+    this.alert(title, message, [{ text: 'OK', onPress }], 'warning');
+  }
+
+  /**
+   * Shows an info alert
+   * NEW: Added info method
+   */
+  static info(title: string, message?: string, onPress?: () => void) {
+    this.alert(title, message, [{ text: 'OK', onPress }], 'info');
+  }
+
+  /**
+   * Shows a confirmation dialog
+   */
   static confirm(
     title: string,
     message?: string,
@@ -233,9 +256,5 @@ export class CustomAlertHelper {
       ],
       'confirm'
     );
-  }
-
-  static warning(title: string, message?: string, onPress?: () => void) {
-    this.alert(title, message, [{ text: 'OK', onPress }], 'warning');
   }
 }

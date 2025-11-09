@@ -1,355 +1,361 @@
 // app/(tabs)/OrderSummaryScreen.tsx
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useEffect } from 'react';
 import {
   View,
   Text,
   ScrollView,
   Image,
   TouchableOpacity,
-  Alert,
   ActivityIndicator,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/context/AuthContext';
-import { reservationService } from '@/services/reservationService';
+import { useReservationTimer } from '@/hooks/useReservationTimer';
+import { useOrderSummary } from '@/hooks/useOrderSummary';
+import { ReservationUtils } from '@/utils/reservation.utils';
+import { ReservationAlertService } from '@/services/reservationAlertService';
+import { RESERVATION_TEXT, RESERVATION_TIME } from '@/constants/reservations.constants';
+import type { OrderSummaryParams } from '@/types/reservation.types';
 import { styles } from '@/styles/OrderSummaryScreen.styles';
 
-const RESERVATION_TIME = 300; // 5 minutos en segundos
-
 /**
- * OrderSummaryScreen
+ * OrderSummaryScreen Component
  * 
- * Shows order summary with 5-minute countdown timer
- * Allows user to proceed to payment
+ * Displays order summary with 5-minute countdown timer
+ * Allows user to proceed to payment or cancel reservation
  */
 export default function OrderSummaryScreen() {
   const router = useRouter();
-  const { token, user } = useAuth();
-  const {
-    productId,
-    productName,
-    productImage,
-    restaurantId,
-    restaurantName,
-    restaurantAddress,
-    quantity,
-    price,
-    originalPrice,
-  } = useLocalSearchParams();
+  const { token } = useAuth();
+  
+  // ✅ CORRECCIÓN: No usar tipado genérico, dejar que infiera
+  const params = useLocalSearchParams();
 
-  const [timeLeft, setTimeLeft] = useState(RESERVATION_TIME);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [reservationId, setReservationId] = useState<string | null>(null);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  // Parse params manually with type assertion
+  const orderParams: OrderSummaryParams = {
+    productId: params.productId as string,
+    productName: params.productName as string,
+    productImage: params.productImage as string,
+    restaurantId: params.restaurantId as string,
+    restaurantName: params.restaurantName as string,
+    restaurantAddress: params.restaurantAddress as string,
+    quantity: params.quantity as string,
+    price: params.price as string,
+    originalPrice: params.originalPrice as string,
+  };
 
-  // Parse values
-  const quantityNum = parseInt(quantity as string);
-  const priceNum = parseFloat(price as string);
-  const originalPriceNum = originalPrice ? parseFloat(originalPrice as string) : null;
+  // Custom hooks
+  const { timerState, stopTimer } = useReservationTimer(
+    RESERVATION_TIME.DURATION_SECONDS,
+    () => handleTimeExpired()
+  );
 
-  // Calculate totals
-  const subtotal = priceNum * quantityNum;
-  const discount = originalPriceNum ? (originalPriceNum - priceNum) * quantityNum : 0;
-  const total = subtotal;
+  const { isProcessing, handleCancel, handleProceedToPayment } = useOrderSummary();
 
-  /**
-   * Start countdown timer
-   */
-  useEffect(() => {
-    timerRef.current = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev <= 1) {
-          handleTimeExpired();
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-
-    return () => {
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-      }
-    };
-  }, []);
+  // Parse and calculate order totals
+  const orderTotals = ReservationUtils.parseOrderParams(orderParams);
 
   /**
    * Handle time expired
    */
-  const handleTimeExpired = () => {
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
-    }
-
-    Alert.alert(
-      'Tiempo expirado',
-      'Tu reserva ha expirado. Por favor, vuelve a intentarlo.',
-      [
-        {
-          text: 'OK',
-          onPress: () => router.back(),
-        },
-      ]
-    );
+  const handleTimeExpired = (): void => {
+    stopTimer();
+    ReservationAlertService.showTimeExpired(() => router.back());
   };
 
   /**
-   * Format time as MM:SS
+   * Handle payment process
    */
-  const formatTime = (seconds: number): string => {
-    const minutes = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  };
-
-  /**
-   * Get timer color based on remaining time
-   */
-  const getTimerColor = (): string => {
-    if (timeLeft > 180) return '#27AE60'; // Verde
-    if (timeLeft > 60) return '#F39C12'; // Naranja
-    return '#E74C3C'; // Rojo
-  };
-
-  /**
-   * Handle cancel reservation
-   */
-  const handleCancel = () => {
-    Alert.alert(
-      'Cancelar reserva',
-      '¿Estás seguro de que deseas cancelar esta reserva?',
-      [
-        { text: 'No', style: 'cancel' },
-        {
-          text: 'Sí, cancelar',
-          style: 'destructive',
-          onPress: () => {
-            if (timerRef.current) {
-              clearInterval(timerRef.current);
-            }
-            router.back();
-          },
-        },
-      ]
-    );
-  };
-
-  /**
-   * Handle proceed to payment
-   */
-  const handleProceedToPayment = async () => {
-    if (timeLeft <= 0) {
-      Alert.alert('Error', 'Tu reserva ha expirado');
+  const handlePayment = async (): Promise<void> => {
+    if (!token) {
+      console.error('No token available');
       return;
     }
 
-    try {
-      setIsProcessing(true);
-
-      // TODO: Crear reserva en el backend
-      // const reservation = await reservationService.create({
-      //   productId: productId as string,
-      //   quantity: quantityNum,
-      //   userId: user?.id,
-      // }, token);
-
-      // Simular delay de procesamiento
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      // Mostrar alerta de confirmación
-      Alert.alert(
-        '¡Reserva confirmada!',
-        `Tienes ${formatTime(timeLeft)} para completar el pago.\n\nAhora serás redirigido a la pasarela de pagos.`,
-        [
-          {
-            text: 'Continuar al pago',
-            onPress: () => {
-              // TODO: Navegar a pasarela de pagos
-              // router.push({
-              //   pathname: '/(tabs)/PaymentScreen',
-              //   params: {
-              //     reservationId: reservation.id,
-              //     amount: total.toString(),
-              //   },
-              // });
-              
-              // Por ahora, solo mostrar mensaje
-              Alert.alert(
-                'Próximamente',
-                'La integración con la pasarela de pagos estará disponible pronto.',
-                [
-                  {
-                    text: 'OK',
-                    onPress: () => router.push('/(tabs)/HomeScreen'),
-                  },
-                ]
-              );
-            },
-          },
-        ]
-      );
-    } catch (error) {
-      console.error('Error processing reservation:', error);
-      Alert.alert('Error', 'No se pudo procesar la reserva. Intenta nuevamente.');
-    } finally {
-      setIsProcessing(false);
-    }
+    await handleProceedToPayment(orderParams, timerState.timeLeft, token);
   };
+
+  /**
+   * Cleanup timer on unmount
+   */
+  useEffect(() => {
+    return () => {
+      stopTimer();
+    };
+  }, [stopTimer]);
 
   return (
     <View style={styles.container}>
       {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={handleCancel}>
-          <Ionicons name="close" size={28} color="#000" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Resumen de Pedido</Text>
-        <View style={{ width: 28 }} />
-      </View>
+      <OrderHeader onClose={handleCancel} />
 
       {/* Timer Section */}
-      <View style={[styles.timerContainer, { backgroundColor: getTimerColor() }]}>
-        <Ionicons name="timer" size={32} color="#FFF" />
-        <View style={styles.timerContent}>
-          <Text style={styles.timerText}>Tiempo restante de reserva</Text>
-          <Text style={styles.timerCountdown}>{formatTime(timeLeft)}</Text>
-        </View>
-        <Ionicons 
-          name={timeLeft > 60 ? "time" : "alert-circle"} 
-          size={32} 
-          color="#FFF" 
-        />
-      </View>
+      <TimerSection timerState={timerState} />
 
+      {/* Scrollable Content */}
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
         {/* Product Card */}
-        <View style={styles.productCard}>
-          <Image
-            source={{ uri: (productImage as string) || 'https://via.placeholder.com/100' }}
-            style={styles.productImage}
-          />
-          <View style={styles.productInfo}>
-            <Text style={styles.productName} numberOfLines={2}>
-              {productName}
-            </Text>
-            <Text style={styles.productQuantity}>
-              Cantidad: {quantity}
-            </Text>
-            <View style={styles.priceRow}>
-              {originalPriceNum && originalPriceNum > priceNum && (
-                <Text style={styles.originalPriceText}>
-                  ${originalPriceNum.toLocaleString('es-CO')}
-                </Text>
-              )}
-              <Text style={styles.currentPriceText}>
-                ${priceNum.toLocaleString('es-CO')} c/u
-              </Text>
-            </View>
-          </View>
-        </View>
+        <ProductCard params={orderParams} totals={orderTotals} />
 
         {/* Restaurant Info */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Restaurante</Text>
-          <View style={styles.restaurantCard}>
-            <Ionicons name="restaurant" size={24} color="#27AE60" />
-            <View style={styles.restaurantInfo}>
-              <Text style={styles.restaurantName}>{restaurantName}</Text>
-              <View style={styles.addressRow}>
-                <Ionicons name="location" size={16} color="#7F8C8D" />
-                <Text style={styles.addressText}>{restaurantAddress}</Text>
-              </View>
-            </View>
-          </View>
-        </View>
+        <RestaurantInfo params={orderParams} />
 
         {/* Price Breakdown */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Detalle del Pedido</Text>
-          <View style={styles.priceBreakdown}>
-            <View style={styles.priceDetailRow}>
-              <Text style={styles.priceLabel}>Subtotal</Text>
-              <Text style={styles.priceValue}>
-                ${subtotal.toLocaleString('es-CO')}
-              </Text>
-            </View>
-
-            {discount > 0 && (
-              <View style={styles.priceDetailRow}>
-                <Text style={styles.priceLabelDiscount}>Descuento</Text>
-                <Text style={styles.priceValueDiscount}>
-                  -${discount.toLocaleString('es-CO')}
-                </Text>
-              </View>
-            )}
-
-            <View style={styles.divider} />
-
-            <View style={styles.priceDetailRow}>
-              <Text style={styles.totalLabel}>Total a pagar</Text>
-              <Text style={styles.totalValue}>
-                ${total.toLocaleString('es-CO')}
-              </Text>
-            </View>
-          </View>
-        </View>
+        <PriceBreakdown totals={orderTotals} />
 
         {/* Important Notes */}
-        <View style={styles.notesContainer}>
-          <View style={styles.noteRow}>
-            <Ionicons name="information-circle" size={20} color="#3498DB" />
-            <Text style={styles.noteText}>
-              Esta reserva es válida por 5 minutos
-            </Text>
-          </View>
-          <View style={styles.noteRow}>
-            <Ionicons name="card" size={20} color="#3498DB" />
-            <Text style={styles.noteText}>
-              Debes completar el pago para confirmar tu pedido
-            </Text>
-          </View>
-          <View style={styles.noteRow}>
-            <Ionicons name="bag-check" size={20} color="#3498DB" />
-            <Text style={styles.noteText}>
-              Recoge tu pedido en {restaurantName}
-            </Text>
-          </View>
-        </View>
+        <ImportantNotes restaurantName={orderParams.restaurantName} />
       </ScrollView>
 
       {/* Action Buttons */}
-      <View style={styles.footer}>
-        <TouchableOpacity
-          style={styles.cancelButton}
-          onPress={handleCancel}
-          disabled={isProcessing}
-        >
-          <Text style={styles.cancelButtonText}>Cancelar</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[
-            styles.payButton,
-            (isProcessing || timeLeft <= 0) && styles.payButtonDisabled
-          ]}
-          onPress={handleProceedToPayment}
-          disabled={isProcessing || timeLeft <= 0}
-        >
-          {isProcessing ? (
-            <ActivityIndicator color="#FFF" size="small" />
-          ) : (
-            <>
-              <Ionicons name="card" size={24} color="#FFF" />
-              <Text style={styles.payButtonText}>Proceder al pago</Text>
-            </>
-          )}
-        </TouchableOpacity>
-      </View>
+      <ActionButtons
+        isProcessing={isProcessing}
+        isExpired={timerState.isExpired}
+        onCancel={handleCancel}
+        onPay={handlePayment}
+      />
     </View>
   );
 }
+/**
+ * OrderHeader Component
+ */
+interface OrderHeaderProps {
+  onClose: () => void;
+}
+
+const OrderHeader: React.FC<OrderHeaderProps> = ({ onClose }) => (
+  <View style={styles.header}>
+    <TouchableOpacity onPress={onClose}>
+      <Ionicons name="close" size={28} color="#000" />
+    </TouchableOpacity>
+    <Text style={styles.headerTitle}>{RESERVATION_TEXT.HEADER.TITLE}</Text>
+    <View style={{ width: 28 }} />
+  </View>
+);
+
+/**
+ * TimerSection Component
+ */
+interface TimerSectionProps {
+  timerState: {
+    timeLeft: number;
+    isExpired: boolean;
+    timerColor: string;
+  };
+}
+
+const TimerSection: React.FC<TimerSectionProps> = ({ timerState }) => {
+  const timerIcon = ReservationUtils.getTimerIcon(timerState.timeLeft);
+
+  return (
+    <View style={[styles.timerContainer, { backgroundColor: timerState.timerColor }]}>
+      <Ionicons name="timer" size={32} color="#FFF" />
+      <View style={styles.timerContent}>
+        <Text style={styles.timerText}>{RESERVATION_TEXT.TIMER.LABEL}</Text>
+        <Text style={styles.timerCountdown}>
+          {ReservationUtils.formatTime(timerState.timeLeft)}
+        </Text>
+      </View>
+      <Ionicons name={timerIcon} size={32} color="#FFF" />
+    </View>
+  );
+};
+
+/**
+ * ProductCard Component
+ */
+interface ProductCardProps {
+  params: OrderSummaryParams;
+  totals: {
+    quantity: number;
+    unitPrice: number;
+    originalPrice: number | null;
+  };
+}
+
+const ProductCard: React.FC<ProductCardProps> = ({ params, totals }) => (
+  <View style={styles.productCard}>
+    <Image
+      source={{ uri: params.productImage || 'https://via.placeholder.com/100' }}
+      style={styles.productImage}
+    />
+    <View style={styles.productInfo}>
+      <Text style={styles.productName} numberOfLines={2}>
+        {params.productName}
+      </Text>
+      <Text style={styles.productQuantity}>
+        {RESERVATION_TEXT.PRICE_LABELS.QUANTITY}: {totals.quantity}
+      </Text>
+      <View style={styles.priceRow}>
+        {totals.originalPrice && totals.originalPrice > totals.unitPrice && (
+          <Text style={styles.originalPriceText}>
+            {ReservationUtils.formatCurrency(totals.originalPrice)}
+          </Text>
+        )}
+        <Text style={styles.currentPriceText}>
+          {ReservationUtils.formatCurrency(totals.unitPrice)} {RESERVATION_TEXT.PRICE_LABELS.UNIT_PRICE}
+        </Text>
+      </View>
+    </View>
+  </View>
+);
+
+/**
+ * RestaurantInfo Component
+ */
+interface RestaurantInfoProps {
+  params: OrderSummaryParams;
+}
+
+const RestaurantInfo: React.FC<RestaurantInfoProps> = ({ params }) => (
+  <View style={styles.section}>
+    <Text style={styles.sectionTitle}>{RESERVATION_TEXT.SECTIONS.RESTAURANT}</Text>
+    <View style={styles.restaurantCard}>
+      <Ionicons name="restaurant" size={24} color="#27AE60" />
+      <View style={styles.restaurantInfo}>
+        <Text style={styles.restaurantName}>{params.restaurantName}</Text>
+        {params.restaurantAddress && (
+          <View style={styles.addressRow}>
+            <Ionicons name="location" size={16} color="#7F8C8D" />
+            <Text style={styles.addressText}>{params.restaurantAddress}</Text>
+          </View>
+        )}
+      </View>
+    </View>
+  </View>
+);
+
+/**
+ * PriceBreakdown Component
+ */
+interface PriceBreakdownProps {
+  totals: {
+    subtotal: number;
+    discount: number;
+    total: number;
+  };
+}
+
+const PriceBreakdown: React.FC<PriceBreakdownProps> = ({ totals }) => (
+  <View style={styles.section}>
+    <Text style={styles.sectionTitle}>{RESERVATION_TEXT.SECTIONS.ORDER_DETAIL}</Text>
+    <View style={styles.priceBreakdown}>
+      {/* Subtotal */}
+      <View style={styles.priceDetailRow}>
+        <Text style={styles.priceLabel}>{RESERVATION_TEXT.PRICE_LABELS.SUBTOTAL}</Text>
+        <Text style={styles.priceValue}>
+          {ReservationUtils.formatCurrency(totals.subtotal)}
+        </Text>
+      </View>
+
+      {/* Discount */}
+      {totals.discount > 0 && (
+        <View style={styles.priceDetailRow}>
+          <Text style={styles.priceLabelDiscount}>
+            {RESERVATION_TEXT.PRICE_LABELS.DISCOUNT}
+          </Text>
+          <Text style={styles.priceValueDiscount}>
+            -{ReservationUtils.formatCurrency(totals.discount)}
+          </Text>
+        </View>
+      )}
+
+      <View style={styles.divider} />
+
+      {/* Total */}
+      <View style={styles.priceDetailRow}>
+        <Text style={styles.totalLabel}>{RESERVATION_TEXT.PRICE_LABELS.TOTAL}</Text>
+        <Text style={styles.totalValue}>
+          {ReservationUtils.formatCurrency(totals.total)}
+        </Text>
+      </View>
+    </View>
+  </View>
+);
+
+/**
+ * ImportantNotes Component
+ */
+interface ImportantNotesProps {
+  restaurantName: string;
+}
+
+const ImportantNotes: React.FC<ImportantNotesProps> = ({ restaurantName }) => (
+  <View style={styles.notesContainer}>
+    <NoteRow icon="information-circle" text={RESERVATION_TEXT.NOTES.TIME_LIMIT} />
+    <NoteRow icon="card" text={RESERVATION_TEXT.NOTES.PAYMENT_REQUIRED} />
+    <NoteRow icon="bag-check" text={RESERVATION_TEXT.NOTES.PICKUP(restaurantName)} />
+  </View>
+);
+
+/**
+ * NoteRow Component
+ */
+interface NoteRowProps {
+  icon: string;
+  text: string;
+}
+
+const NoteRow: React.FC<NoteRowProps> = ({ icon, text }) => (
+  <View style={styles.noteRow}>
+    <Ionicons name={icon as any} size={20} color="#3498DB" />
+    <Text style={styles.noteText}>{text}</Text>
+  </View>
+);
+
+/**
+ * ActionButtons Component
+ */
+interface ActionButtonsProps {
+  isProcessing: boolean;
+  isExpired: boolean;
+  onCancel: () => void;
+  onPay: () => void;
+}
+
+const ActionButtons: React.FC<ActionButtonsProps> = ({
+  isProcessing,
+  isExpired,
+  onCancel,
+  onPay,
+}) => (
+  <View style={styles.footer}>
+    {/* Cancel Button */}
+    <TouchableOpacity
+      style={styles.cancelButton}
+      onPress={onCancel}
+      disabled={isProcessing}
+    >
+      <Text style={styles.cancelButtonText}>
+        {RESERVATION_TEXT.BUTTONS.CANCEL}
+      </Text>
+    </TouchableOpacity>
+
+    {/* Pay Button */}
+    <TouchableOpacity
+      style={[
+        styles.payButton,
+        (isProcessing || isExpired) && styles.payButtonDisabled,
+      ]}
+      onPress={onPay}
+      disabled={isProcessing || isExpired}
+    >
+      {isProcessing ? (
+        <ActivityIndicator color="#FFF" size="small" />
+      ) : (
+        <>
+          <Ionicons name="card" size={24} color="#FFF" />
+          <Text style={styles.payButtonText}>
+            {RESERVATION_TEXT.BUTTONS.PAY}
+          </Text>
+        </>
+      )}
+    </TouchableOpacity>
+  </View>
+);

@@ -1,60 +1,67 @@
-// services/reservationService.ts
+// services/reservationApiService.ts
+
 import { API_URL } from '@/config/api';
+import { RESERVATION_ENDPOINTS } from '@/constants/reservations.constants';
+import type { 
+  Reservation, 
+  CreateReservationDto,
+  ReservationApiError 
+} from '@/types/reservation.types';
+// services/reservationService.ts
+export { ReservationApiService as reservationService } from './reservationService';
+export * from './reservationService';
+/**
+ * HTTP request configuration
+ */
+const createHeaders = (token: string): HeadersInit => ({
+  'Authorization': `Bearer ${token}`,
+  'Content-Type': 'application/json',
+});
 
-export enum ReservationStatus {
-  PENDING = 'pending',
-  CONFIRMED = 'confirmed',
-  EXPIRED = 'expired',
-  CANCELLED = 'cancelled',
-}
+/**
+ * Handle API response and errors
+ */
+const handleApiResponse = async <T>(response: Response): Promise<T> => {
+  const data = await response.json().catch(() => ({
+    message: 'Unknown error occurred',
+  }));
 
-export interface Reservation {
-  id: string;
-  userId: string;
-  productId: string;
-  quantity: number;
-  unitPrice: number;
-  subtotal: number;
-  discount: number;
-  total: number;
-  status: ReservationStatus;
-  expiresAt: Date;
-  createdAt: Date;
-  updatedAt: Date;
-  product?: any;
-}
+  if (!response.ok) {
+    const error: ReservationApiError = {
+      message: data.message || 'Request failed',
+      statusCode: response.status,
+    };
+    throw error;
+  }
 
-interface CreateReservationDto {
-  productId: string;
-  quantity: number;
-}
+  return data;
+};
 
-class ReservationService {
+/**
+ * ReservationApiService
+ * Handles all HTTP communication for reservations
+ * Single Responsibility: API requests only
+ */
+export class ReservationApiService {
   /**
    * Create a new reservation
    */
-  async create(
-    createReservationDto: CreateReservationDto,
+  static async createReservation(
+    data: CreateReservationDto,
     token: string
   ): Promise<Reservation> {
     try {
-      const response = await fetch(`${API_URL}/reservations`, {
+      const response = await fetch(`${API_URL}${RESERVATION_ENDPOINTS.BASE}`, {
         method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(createReservationDto),
+        headers: createHeaders(token),
+        body: JSON.stringify(data),
       });
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to create reservation');
-      }
-
-      return await response.json();
+      const reservation = await handleApiResponse<Reservation>(response);
+      console.log('✅ Reservation created:', reservation.id);
+      return reservation;
     } catch (error) {
-      console.error('Error creating reservation:', error);
+      console.error('❌ Error creating reservation:', error);
       throw error;
     }
   }
@@ -62,23 +69,21 @@ class ReservationService {
   /**
    * Get user's reservations
    */
-  async getMyReservations(token: string): Promise<Reservation[]> {
+  static async getMyReservations(token: string): Promise<Reservation[]> {
     try {
-      const response = await fetch(`${API_URL}/reservations/my-reservations`, {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
+      const response = await fetch(
+        `${API_URL}${RESERVATION_ENDPOINTS.MY_RESERVATIONS}`,
+        {
+          method: 'GET',
+          headers: createHeaders(token),
+        }
+      );
 
-      if (!response.ok) {
-        throw new Error('Failed to fetch reservations');
-      }
-
-      return await response.json();
+      const reservations = await handleApiResponse<Reservation[]>(response);
+      console.log('✅ Reservations loaded:', reservations.length);
+      return reservations;
     } catch (error) {
-      console.error('Error fetching reservations:', error);
+      console.error('❌ Error loading reservations:', error);
       throw error;
     }
   }
@@ -86,23 +91,24 @@ class ReservationService {
   /**
    * Get reservation by ID
    */
-  async getById(reservationId: string, token: string): Promise<Reservation> {
+  static async getReservationById(
+    reservationId: string,
+    token: string
+  ): Promise<Reservation> {
     try {
-      const response = await fetch(`${API_URL}/reservations/${reservationId}`, {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
+      const response = await fetch(
+        `${API_URL}${RESERVATION_ENDPOINTS.BY_ID(reservationId)}`,
+        {
+          method: 'GET',
+          headers: createHeaders(token),
+        }
+      );
 
-      if (!response.ok) {
-        throw new Error('Failed to fetch reservation');
-      }
-
-      return await response.json();
+      const reservation = await handleApiResponse<Reservation>(response);
+      console.log('✅ Reservation loaded:', reservation.id);
+      return reservation;
     } catch (error) {
-      console.error('Error fetching reservation:', error);
+      console.error('❌ Error loading reservation:', error);
       throw error;
     }
   }
@@ -110,27 +116,24 @@ class ReservationService {
   /**
    * Confirm reservation (after payment)
    */
-  async confirm(reservationId: string, token: string): Promise<Reservation> {
+  static async confirmReservation(
+    reservationId: string,
+    token: string
+  ): Promise<Reservation> {
     try {
       const response = await fetch(
-        `${API_URL}/reservations/${reservationId}/confirm`,
+        `${API_URL}${RESERVATION_ENDPOINTS.CONFIRM(reservationId)}`,
         {
           method: 'PATCH',
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
+          headers: createHeaders(token),
         }
       );
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to confirm reservation');
-      }
-
-      return await response.json();
+      const reservation = await handleApiResponse<Reservation>(response);
+      console.log('✅ Reservation confirmed:', reservation.id);
+      return reservation;
     } catch (error) {
-      console.error('Error confirming reservation:', error);
+      console.error('❌ Error confirming reservation:', error);
       throw error;
     }
   }
@@ -138,35 +141,27 @@ class ReservationService {
   /**
    * Cancel reservation
    */
-  async cancel(reservationId: string, token: string): Promise<void> {
+  static async cancelReservation(
+    reservationId: string,
+    token: string
+  ): Promise<void> {
     try {
-      const response = await fetch(`${API_URL}/reservations/${reservationId}`, {
-        method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
+      const response = await fetch(
+        `${API_URL}${RESERVATION_ENDPOINTS.CANCEL(reservationId)}`,
+        {
+          method: 'DELETE',
+          headers: createHeaders(token),
+        }
+      );
 
       if (!response.ok) {
         throw new Error('Failed to cancel reservation');
       }
+
+      console.log('✅ Reservation cancelled:', reservationId);
     } catch (error) {
-      console.error('Error cancelling reservation:', error);
+      console.error('❌ Error cancelling reservation:', error);
       throw error;
     }
   }
-
-  /**
-   * Calculate time remaining in seconds
-   */
-  getTimeRemaining(expiresAt: Date | string): number {
-    const expirationTime = typeof expiresAt === 'string' ? new Date(expiresAt) : expiresAt;
-    const now = new Date();
-    const diff = expirationTime.getTime() - now.getTime();
-    return Math.max(0, Math.floor(diff / 1000));
-  }
 }
-
-export const reservationService = new ReservationService();
-export default reservationService;
