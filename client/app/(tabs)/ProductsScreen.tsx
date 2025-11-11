@@ -8,7 +8,6 @@ import {
   Image, 
   TouchableOpacity,
   ActivityIndicator,
-  Alert,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -17,6 +16,8 @@ import { createNavItems } from '@/utils/navigationHelpers';
 import { productService, Product } from '@/services/productService';
 import { restaurantService, Restaurant } from '@/services/restaurantService';
 import { useAuth } from '@/context/AuthContext';
+import { useFavorites } from '@/context/FavoritesContext';
+import { CustomAlertHelper } from '@/components/ui/CustomAlert';
 import { styles } from '@/styles/ProductsScreen.styles';
 
 /**
@@ -31,12 +32,14 @@ export default function ProductsScreen() {
   const { token } = useAuth();
   const navItems = createNavItems('map', router);
 
+  // Use FavoritesContext
+  const { isFavorite, addFavorite, removeFavorite, loadFavorites } = useFavorites();
+
   // State
   const [products, setProducts] = useState<Product[]>([]);
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [favorites, setFavorites] = useState<Set<string>>(new Set());
 
   /**
    * Load restaurant info
@@ -73,7 +76,6 @@ export default function ProductsScreen() {
       setIsLoading(true);
       setError(null);
 
-      // Load products by restaurant ID
       const data = await productService.getByRestaurant(
         restaurantId as string, 
         token
@@ -93,21 +95,24 @@ export default function ProductsScreen() {
   useEffect(() => {
     loadRestaurantInfo();
     loadProducts();
-  }, [loadRestaurantInfo, loadProducts]);
+    loadFavorites();
+  }, [loadRestaurantInfo, loadProducts, loadFavorites]);
 
   /**
    * Toggles product favorite status
    */
-  const toggleFavorite = (productId: string) => {
-    setFavorites(prev => {
-      const newFavorites = new Set(prev);
-      if (newFavorites.has(productId)) {
-        newFavorites.delete(productId);
+  const toggleFavorite = async (productId: string, e: any) => {
+    e.stopPropagation();
+
+    try {
+      if (isFavorite(productId)) {
+        await removeFavorite(productId);
       } else {
-        newFavorites.add(productId);
+        await addFavorite(productId);
       }
-      return newFavorites;
-    });
+    } catch (error) {
+      console.error('Error toggling favorite:', error);
+    }
   };
 
   /**
@@ -122,18 +127,23 @@ export default function ProductsScreen() {
    */
   const handleProductPress = (product: Product) => {
     if (!restaurant) {
-      Alert.alert('Error', 'No se pudo cargar la información del restaurante');
+      CustomAlertHelper.error(
+        'Error', 
+        'No se pudo cargar la información del restaurante'
+      );
       return;
     }
 
     if (!product.isAvailable || product.stock <= 0) {
-      Alert.alert('Producto no disponible', 'Este producto no está disponible actualmente');
+      CustomAlertHelper.warning(
+        'Producto no disponible', 
+        'Este producto no está disponible actualmente'
+      );
       return;
     }
 
     console.log('🛒 Product selected:', product.name);
     
-    // Navigate to OrderSummaryScreen with all needed data
     router.push({
       pathname: '/(tabs)/OrderSummaryScreen',
       params: {
@@ -143,7 +153,7 @@ export default function ProductsScreen() {
         restaurantId: restaurant.id,
         restaurantName: restaurant.name,
         restaurantAddress: restaurant.address,
-        quantity: '1', // Default quantity
+        quantity: '1',
         price: product.price.toString(),
         originalPrice: product.originalPrice?.toString() || '',
       },
@@ -235,9 +245,7 @@ export default function ProductsScreen() {
           <View style={styles.headerTitleContainer}>
             <Text style={styles.headerTitle}>YUMMI</Text>
           </View>
-          <TouchableOpacity onPress={loadProducts}>
-            <Ionicons name="refresh" size={24} color="#000" />
-          </TouchableOpacity>
+          <View style={{ width: 24 }} />
         </View>
 
         {/* Divider */}
@@ -246,16 +254,12 @@ export default function ProductsScreen() {
         {/* Restaurant Name */}
         {restaurant && (
           <View style={styles.restaurantHeader}>
-            <Ionicons name="restaurant" size={24} color="#27AE60" />
             <Text style={styles.restaurantName}>{restaurant.name}</Text>
           </View>
         )}
 
         {/* Section Title */}
-        <Text style={styles.sectionTitle}>Productos Disponibles</Text>
-        <Text style={styles.sectionSubtitle}>
-          {products.length} {products.length === 1 ? 'producto' : 'productos'}
-        </Text>
+        <Text style={styles.sectionTitle}>Productos:</Text>
 
         {/* Products List */}
         <View style={styles.productsList}>
@@ -282,13 +286,6 @@ export default function ProductsScreen() {
                   ]}
                   resizeMode="cover"
                 />
-                
-                {/* Discount badge */}
-                {product.discount && product.discount > 0 && product.isAvailable && (
-                  <View style={styles.discountBadge}>
-                    <Text style={styles.discountText}>-{product.discount}%</Text>
-                  </View>
-                )}
               </View>
 
               {/* Product Info */}
@@ -297,40 +294,13 @@ export default function ProductsScreen() {
                   {product.name}
                 </Text>
                 <Text style={styles.productDescription} numberOfLines={2}>
-                  {product.description || 'Sin descripción'}
+                  {product.description || 'Detalles del producto...'}
                 </Text>
-                
-                {/* Category */}
-                {product.category && (
-                  <Text style={styles.productCategory}>
-                    {product.category}
-                  </Text>
-                )}
-
-                {/* Stock info */}
-                <View style={styles.stockRow}>
-                  <Ionicons 
-                    name={product.stock > 5 ? "checkmark-circle" : "alert-circle"} 
-                    size={14} 
-                    color={product.stock > 5 ? "#27AE60" : "#F39C12"} 
-                  />
-                  <Text style={[
-                    styles.stockText,
-                    product.stock <= 0 && styles.stockTextEmpty
-                  ]}>
-                    {product.stock > 0 ? `${product.stock} disponibles` : 'Agotado'}
-                  </Text>
-                </View>
               </View>
 
-              {/* Price Badge */}
+              {/* Price Badge - Top Right */}
               {product.isAvailable && product.stock > 0 ? (
                 <View style={styles.priceBadge}>
-                  {product.originalPrice && product.originalPrice > product.price && (
-                    <Text style={styles.originalPrice}>
-                      {formatPrice(product.originalPrice)}
-                    </Text>
-                  )}
                   <Text style={styles.priceText}>
                     {formatPrice(product.price)}
                   </Text>
@@ -341,18 +311,15 @@ export default function ProductsScreen() {
                 </View>
               )}
 
-              {/* Favorite Button */}
+              {/* Favorite Button - Bottom Right */}
               <TouchableOpacity
                 style={styles.favoriteButton}
-                onPress={(e) => {
-                  e.stopPropagation();
-                  toggleFavorite(product.id);
-                }}
+                onPress={(e) => toggleFavorite(product.id, e)}
               >
                 <Ionicons
-                  name={favorites.has(product.id) ? 'heart' : 'heart-outline'}
-                  size={28}
-                  color={favorites.has(product.id) ? '#E74C3C' : '#000'}
+                  name={isFavorite(product.id) ? 'heart' : 'heart'}
+                  size={24}
+                  color={isFavorite(product.id) ? '#E74C3C' : '#000'}
                 />
               </TouchableOpacity>
             </TouchableOpacity>

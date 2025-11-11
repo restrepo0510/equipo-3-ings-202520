@@ -1,11 +1,11 @@
 // services/reservationAlertService.ts
 
-import { Alert } from 'react-native';
+import { CustomAlertHelper } from '@/components/ui/CustomAlert';
 import { RESERVATION_TEXT } from '@/constants/reservations.constants';
 
 /**
  * ReservationAlertService
- * Centralized alert management for reservations
+ * Centralized alert management for reservations using CustomAlert
  * Single Responsibility: User notifications
  */
 export class ReservationAlertService {
@@ -13,15 +13,10 @@ export class ReservationAlertService {
    * Show time expired alert
    */
   static showTimeExpired(onPress: () => void): void {
-    Alert.alert(
+    CustomAlertHelper.error(
       RESERVATION_TEXT.ALERTS.TIME_EXPIRED_TITLE,
       RESERVATION_TEXT.ALERTS.TIME_EXPIRED_MESSAGE,
-      [
-        {
-          text: 'OK',
-          onPress,
-        },
-      ]
+      onPress
     );
   }
 
@@ -32,21 +27,11 @@ export class ReservationAlertService {
     onCancel: () => void,
     onDismiss?: () => void
   ): void {
-    Alert.alert(
+    CustomAlertHelper.confirm(
       RESERVATION_TEXT.ALERTS.CANCEL_TITLE,
       RESERVATION_TEXT.ALERTS.CANCEL_MESSAGE,
-      [
-        { 
-          text: RESERVATION_TEXT.ALERTS.CANCEL_NO, 
-          style: 'cancel',
-          onPress: onDismiss,
-        },
-        {
-          text: RESERVATION_TEXT.ALERTS.CANCEL_YES,
-          style: 'destructive',
-          onPress: onCancel,
-        },
-      ]
+      onCancel,
+      onDismiss
     );
   }
 
@@ -57,15 +42,10 @@ export class ReservationAlertService {
     timeLeft: string,
     onContinue: () => void
   ): void {
-    Alert.alert(
+    CustomAlertHelper.success(
       RESERVATION_TEXT.ALERTS.CONFIRM_TITLE,
       RESERVATION_TEXT.ALERTS.CONFIRM_MESSAGE(timeLeft),
-      [
-        {
-          text: RESERVATION_TEXT.ALERTS.CONFIRM_BUTTON,
-          onPress: onContinue,
-        },
-      ]
+      onContinue
     );
   }
 
@@ -73,15 +53,10 @@ export class ReservationAlertService {
    * Show coming soon (payment gateway)
    */
   static showComingSoon(onPress: () => void): void {
-    Alert.alert(
+    CustomAlertHelper.info(
       RESERVATION_TEXT.ALERTS.COMING_SOON_TITLE,
       RESERVATION_TEXT.ALERTS.COMING_SOON_MESSAGE,
-      [
-        {
-          text: 'OK',
-          onPress,
-        },
-      ]
+      onPress
     );
   }
 
@@ -89,7 +64,7 @@ export class ReservationAlertService {
    * Show processing error
    */
   static showProcessingError(): void {
-    Alert.alert(
+    CustomAlertHelper.error(
       RESERVATION_TEXT.ALERTS.ERROR_TITLE,
       RESERVATION_TEXT.ALERTS.ERROR_MESSAGE
     );
@@ -99,7 +74,7 @@ export class ReservationAlertService {
    * Show expired error
    */
   static showExpiredError(): void {
-    Alert.alert(
+    CustomAlertHelper.error(
       RESERVATION_TEXT.ALERTS.ERROR_TITLE,
       RESERVATION_TEXT.ALERTS.ERROR_EXPIRED
     );

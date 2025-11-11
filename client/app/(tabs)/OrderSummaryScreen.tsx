@@ -192,16 +192,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ params, totals }) => (
       <Text style={styles.productQuantity}>
         {RESERVATION_TEXT.PRICE_LABELS.QUANTITY}: {totals.quantity}
       </Text>
-      <View style={styles.priceRow}>
-        {totals.originalPrice && totals.originalPrice > totals.unitPrice && (
-          <Text style={styles.originalPriceText}>
-            {ReservationUtils.formatCurrency(totals.originalPrice)}
-          </Text>
-        )}
-        <Text style={styles.currentPriceText}>
-          {ReservationUtils.formatCurrency(totals.unitPrice)} {RESERVATION_TEXT.PRICE_LABELS.UNIT_PRICE}
-        </Text>
-      </View>
+      
     </View>
   </View>
 );

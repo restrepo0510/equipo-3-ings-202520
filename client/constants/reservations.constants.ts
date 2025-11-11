@@ -16,7 +16,7 @@ export const RESERVATION_TIME = {
  * Timer colors based on time remaining
  */
 export const TIMER_COLORS = {
-  SAFE: '#27AE60',
+  SAFE: '#1B5E20',
   WARNING: '#F39C12',
   DANGER: '#E74C3C',
 } as const;
@@ -61,7 +61,7 @@ export const RESERVATION_TEXT = {
   },
   BUTTONS: {
     CANCEL: 'Cancelar',
-    PAY: 'Proceder al pago',
+    PAY: 'Confirmar orden',
   },
   ALERTS: {
     TIME_EXPIRED_TITLE: 'Tiempo expirado',

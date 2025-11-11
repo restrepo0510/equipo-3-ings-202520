@@ -61,19 +61,25 @@ export const styles = StyleSheet.create({
   // Product Card
   productCard: {
     backgroundColor: '#E8E8E8',
-    borderRadius: 12,
-    padding: 20,
+    borderRadius: 20,
+    padding: 16, 
     marginBottom: 20,
+    flexDirection: 'row', 
+    alignItems: 'flex-start', 
   },
 
   productRow: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start', 
     justifyContent: 'space-between',
+    flex: 1, 
   },
 
   productInfo: {
     flex: 1,
+    marginLeft: 18,
+    justifyContent: 'flex-start',
+    marginBottom:30,
   },
 
   restaurantLabel: {
@@ -86,46 +92,33 @@ export const styles = StyleSheet.create({
   restaurantNameText: {
     fontSize: 16,
     color: '#000',
-    marginBottom: 16,
+    marginBottom: -10, 
   },
 
   productNameRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'space-between', 
   },
 
   productName: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '700',
     color: '#000',
     flex: 1,
-  },
-
-  productDots: {
-    fontSize: 16,
-    color: '#000',
-    marginHorizontal: 8,
-    letterSpacing: 2,
-  },
-
-  productPriceText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#000',
+    marginTop: 20,
   },
 
   productQuantity: {
     fontSize: 14,
     color: '#666',
-    marginTop: 4,
+    marginBottom: 8,
   },
 
   priceRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    marginTop: 4,
   },
 
   originalPriceText: {
@@ -141,10 +134,10 @@ export const styles = StyleSheet.create({
   },
 
   productImage: {
-    width: 80,
-    height: 80,
+    width: 120,
+    height: 120,
     borderRadius: 12,
-    marginLeft: 16,
+    marginRight: 8,
     backgroundColor: '#FFF',
   },
 
@@ -164,7 +157,7 @@ export const styles = StyleSheet.create({
   restaurantCard: {
     flexDirection: 'row',
     backgroundColor: '#FFF',
-    borderRadius: 12,
+    borderRadius: 20,
     padding: 16,
     gap: 12,
     shadowColor: '#000',
@@ -201,7 +194,7 @@ export const styles = StyleSheet.create({
   // Price Breakdown
   priceBreakdown: {
     backgroundColor: '#E8E8E8',
-    borderRadius: 12,
+    borderRadius: 20,
     padding: 20,
   },
 
@@ -260,7 +253,7 @@ export const styles = StyleSheet.create({
   // Notes
   notesContainer: {
     backgroundColor: '#E3F2FD',
-    borderRadius: 12,
+    borderRadius: 20,
     padding: 16,
     gap: 12,
   },
@@ -295,7 +288,7 @@ export const styles = StyleSheet.create({
 
   cancelButton: {
     paddingVertical: 16,
-    borderRadius: 12,
+    borderRadius: 30,
     borderWidth: 2,
     borderColor: '#E74C3C',
     alignItems: 'center',
@@ -315,13 +308,9 @@ export const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: '#1B5E20',
     paddingVertical: 16,
-    borderRadius: 12,
+    borderRadius: 30,
     gap: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 6,
+    boxShadow: '0px 6px 6px rgba(0, 0, 0, 0.1)',
   },
 
   payButtonDisabled: {
