@@ -49,6 +49,8 @@ export class LoginUserDto {
 /**
  * DTO for updating user information
  */
+// src/auth/dto/auth.dto.ts
+
 export class UpdateUserDto {
   @IsString()
   @IsOptional()
@@ -68,8 +70,11 @@ export class UpdateUserDto {
   @IsOptional()
   @MinLength(6)
   password?: string;
-}
 
+  @IsString()
+  @IsOptional()
+  profileImage?: string; 
+}
 /**
  * Response DTO for user data (excludes sensitive information)
  */

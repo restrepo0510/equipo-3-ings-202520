@@ -1,15 +1,24 @@
-// app/(tabs)/OrdersScreen.tsx
+// app/(tabs)/FavoritesScreen.tsx
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
+import { BottomNavigation } from '@/components/ui/BottomNavigation';
+import { createNavItems } from '@/utils/navigationHelpers';
 
-export default function OrdersScreen() {
+export default function FavoritesScreen() {
+  const router = useRouter();
+  const navItems = createNavItems('favorites', router);
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
-        <Text style={styles.title}>📦 Pedidos</Text>
+        <Text style={styles.title}>💲 Pasarela de pagos</Text>
         <Text style={styles.subtitle}>Próximamente...</Text>
       </View>
+
+      {/* Bottom Navigation */}
+      <BottomNavigation items={navItems} />
     </SafeAreaView>
   );
 }
@@ -24,6 +33,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
+    marginBottom: 100, // Space for bottom nav
   },
   title: {
     fontSize: 32,

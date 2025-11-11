@@ -78,6 +78,16 @@ export interface UpdateProfileData {
 }
 
 /**
+ * Update profile data
+ */
+export interface UpdateProfileData {
+  name?: string;
+  email?: string;
+  phone?: string;
+  password?: string;
+}
+
+/**
  * Validation errors for a form
  */
 export type ValidationErrors<T> = {

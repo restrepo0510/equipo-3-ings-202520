@@ -4,7 +4,7 @@ import { StyleSheet } from 'react-native';
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#FFFFFF',
   },
 
   scrollContent: {
@@ -74,37 +74,58 @@ export const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '700',
     color: '#000',
+    letterSpacing: 3,
   },
 
   divider: {
     height: 1,
-    backgroundColor: '#E0E0E0',
+    backgroundColor: '#000',
     marginHorizontal: 20,
     marginBottom: 20,
   },
 
-  // Restaurant Header
+  productCardDisabled: {
+    opacity: 0.5,
+  },
+
+  productImageDisabled: {
+    opacity: 0.6,
+  },
+
+  stockRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 4,
+  },
+
+  stockTextEmpty: {
+    color: '#E74C3C',
+    fontWeight: '600',
+  },
+
   restaurantHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    marginBottom: 10,
+    justifyContent: 'center',
     gap: 8,
+    paddingHorizontal: 20,
   },
 
   restaurantName: {
-    fontSize: 20,
+    fontSize: 26,
     fontWeight: '700',
-    color: '#27AE60',
+    color: '#000',
   },
 
   // Section
   sectionTitle: {
     fontSize: 22,
-    fontWeight: '700',
-    color: '#2C3E50',
+    fontWeight: '400',
+    color: '#000',
     paddingHorizontal: 20,
-    marginTop: 10,
+    textAlign: 'center',
+    marginBottom: 20,
   },
 
   sectionSubtitle: {
@@ -142,27 +163,27 @@ export const styles = StyleSheet.create({
   // Products List
   productsList: {
     paddingHorizontal: 20,
+    gap: 12,
   },
 
   productCard: {
     flexDirection: 'row',
     backgroundColor: '#FFF',
-    borderRadius: 16,
+    borderRadius: 20,
+    borderWidth: 1.5,
+    borderColor: '#A7B294',
     padding: 12,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    marginBottom: 12,
+    boxShadow: '0px 6px 6px rgba(0, 0, 0, 0.1)',
     position: 'relative',
+    minHeight: 120,
   },
 
   // Product Image
   imageContainer: {
     width: 100,
     height: 100,
-    borderRadius: 12,
+    borderRadius: 16,
     overflow: 'hidden',
     backgroundColor: '#F0F0F0',
     position: 'relative',
@@ -192,15 +213,16 @@ export const styles = StyleSheet.create({
   // Product Info
   productInfo: {
     flex: 1,
-    marginLeft: 12,
-    justifyContent: 'space-between',
+    marginLeft: 16,
+    justifyContent: 'flex-start',
     paddingVertical: 4,
+    paddingRight: 50,
   },
 
   productName: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '700',
-    color: '#2C3E50',
+    color: '#000',
     marginBottom: 4,
   },
 
@@ -208,14 +230,13 @@ export const styles = StyleSheet.create({
     fontSize: 13,
     color: '#7F8C8D',
     lineHeight: 18,
-    marginBottom: 4,
   },
 
   productCategory: {
     fontSize: 12,
     color: '#27AE60',
     fontWeight: '600',
-    marginBottom: 4,
+    marginTop: 4,
   },
 
   stockText: {
@@ -224,27 +245,31 @@ export const styles = StyleSheet.create({
     fontStyle: 'italic',
   },
 
-  // Price Badge
+  // Price Badge - Ahora en la esquina superior derecha
   priceBadge: {
     position: 'absolute',
-    bottom: 12,
-    right: 12,
-    backgroundColor: '#27AE60',
-    paddingHorizontal: 12,
+    top: -12,
+    right: -8,
+    backgroundColor: '#778959',
+    paddingHorizontal: 10,
     paddingVertical: 6,
-    borderRadius: 20,
-    minWidth: 80,
+    borderRadius: 12,
+    borderColor: '#FFF',
+    borderWidth: 2,
+    minWidth: 70, 
     alignItems: 'center',
+    boxShadow: '0px 6px 6px rgba(0, 0, 0, 0.1)',
+
   },
 
   priceText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '700',
     color: '#FFF',
   },
 
   originalPrice: {
-    fontSize: 11,
+    fontSize: 10,
     color: '#FFF',
     textDecorationLine: 'line-through',
     opacity: 0.7,
@@ -253,13 +278,13 @@ export const styles = StyleSheet.create({
 
   notAvailableBadge: {
     position: 'absolute',
-    bottom: 12,
+    top: 12,
     right: 12,
     backgroundColor: '#E74C3C',
     paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: 20,
-    minWidth: 80,
+    borderRadius: 12,
+    minWidth: 70,
     alignItems: 'center',
   },
 
@@ -269,21 +294,19 @@ export const styles = StyleSheet.create({
     color: '#FFF',
   },
 
-  // Favorite Button
+  // Favorite Button - Ahora en la esquina inferior derecha
   favoriteButton: {
     position: 'absolute',
-    top: 12,
+    bottom: 12,
     right: 12,
     width: 40,
     height: 40,
-    borderRadius: 20,
+    borderRadius: 100,
     backgroundColor: '#FFF',
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 3,
-    elevation: 4,
+    boxShadow: '0px 6px 6px rgba(0, 0, 0, 0.1)',
+    borderWidth: 1,
+    borderColor: '#000000ff',
   },
 });

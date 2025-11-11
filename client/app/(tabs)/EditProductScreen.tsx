@@ -8,20 +8,20 @@ import {
   Image,
   ScrollView,
   ActivityIndicator,
-  Alert,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { useAuth } from '@/context/AuthContext';
 import { productService, Product } from '@/services/productService';
-import { styles } from '@/styles/EditProductScreen.styles';
+import { CustomAlertHelper } from '@/components/ui/CustomAlert';
+import { styles } from '@/styles/editProductScreen.styles';
 
 /**
  * EditProductScreen
  * 
  * Allows business users to edit existing products
- * Matches the design from the provided image
+ * Uses CustomAlert for all user feedback
  */
 export default function EditProductScreen() {
   const router = useRouter();
@@ -56,8 +56,11 @@ export default function EditProductScreen() {
       setImageUrl(product.imageUrl || '');
     } catch (error) {
       console.error('Error loading product:', error);
-      Alert.alert('Error', 'No se pudo cargar el producto');
-      router.back();
+      CustomAlertHelper.error(
+        'Error',
+        'No se pudo cargar el producto',
+        () => router.back()
+      );
     } finally {
       setIsLoading(false);
     }
@@ -67,15 +70,34 @@ export default function EditProductScreen() {
    * Pick image from gallery
    */
   const handlePickImage = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.8,
-    });
+    try {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      
+      if (status !== 'granted') {
+        CustomAlertHelper.warning(
+          'Permisos necesarios',
+          'Necesitamos acceso a tu galería para seleccionar imágenes'
+        );
+        return;
+      }
 
-    if (!result.canceled) {
-      setImageUrl(result.assets[0].uri);
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+      });
+
+      if (!result.canceled) {
+        setImageUrl(result.assets[0].uri);
+        CustomAlertHelper.success(
+          'Imagen seleccionada',
+          'La imagen se guardará cuando presiones el botón de enviar'
+        );
+      }
+    } catch (error) {
+      console.error('Error picking image:', error);
+      CustomAlertHelper.error('Error', 'No se pudo seleccionar la imagen');
     }
   };
 
@@ -83,13 +105,20 @@ export default function EditProductScreen() {
    * Save product changes
    */
   const handleSave = async () => {
+    // Validation
     if (!name.trim()) {
-      Alert.alert('Error', 'El nombre del producto es requerido');
+      CustomAlertHelper.error(
+        'Campo requerido',
+        'El nombre del producto es obligatorio'
+      );
       return;
     }
 
     if (!price || isNaN(Number(price)) || Number(price) <= 0) {
-      Alert.alert('Error', 'Ingresa un precio válido');
+      CustomAlertHelper.error(
+        'Precio inválido',
+        'Por favor ingresa un precio válido mayor a 0'
+      );
       return;
     }
 
@@ -109,25 +138,34 @@ export default function EditProductScreen() {
         token
       );
 
-      Alert.alert('Éxito', 'Producto actualizado correctamente');
-      router.back();
+      CustomAlertHelper.success(
+        '¡Éxito!',
+        'Producto actualizado correctamente',
+        () => router.back()
+      );
     } catch (error) {
       console.error('Error saving product:', error);
-      Alert.alert('Error', 'No se pudo actualizar el producto');
+      CustomAlertHelper.error(
+        'Error',
+        'No se pudo actualizar el producto. Intenta de nuevo.'
+      );
     } finally {
       setIsSaving(false);
     }
   };
 
   /**
-   * Delete product
+   * Delete product with confirmation
    */
   const handleDelete = () => {
-    Alert.alert(
+    CustomAlertHelper.alert(
       'Eliminar Producto',
-      '¿Estás seguro de que deseas eliminar este producto?',
+      '¿Estás seguro de que deseas eliminar este producto? Esta acción no se puede deshacer.',
       [
-        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Cancelar',
+          style: 'cancel',
+        },
         {
           text: 'Eliminar',
           style: 'destructive',
@@ -136,22 +174,32 @@ export default function EditProductScreen() {
 
             try {
               await productService.delete(productId as string, token);
-              Alert.alert('Éxito', 'Producto eliminado');
-              router.back();
+              CustomAlertHelper.success(
+                'Producto eliminado',
+                'El producto ha sido eliminado exitosamente',
+                () => router.back()
+              );
             } catch (error) {
               console.error('Error deleting product:', error);
-              Alert.alert('Error', 'No se pudo eliminar el producto');
+              CustomAlertHelper.error(
+                'Error',
+                'No se pudo eliminar el producto. Intenta de nuevo.'
+              );
             }
           },
         },
-      ]
+      ],
+      'warning'
     );
   };
 
   if (isLoading) {
     return (
       <View style={styles.container}>
-        <ActivityIndicator size="large" color="#27AE60" />
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#27AE60" />
+          <Text style={styles.loadingText}>Cargando producto...</Text>
+        </View>
       </View>
     );
   }
@@ -164,10 +212,12 @@ export default function EditProductScreen() {
       >
         {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+          <TouchableOpacity onPress={() => router.back()}>
             <Ionicons name="arrow-back" size={24} color="#000" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Inventario</Text>
+          <View style={styles.headerTitleContainer}>
+            <Text style={styles.headerTitle}>Inventario</Text>
+          </View>
         </View>
 
         <View style={styles.divider} />
@@ -182,8 +232,9 @@ export default function EditProductScreen() {
             style={styles.input}
             value={name}
             onChangeText={setName}
-            placeholder="Producto 3"
+            placeholder="Ej: Hamburguesa Especial"
             placeholderTextColor="#BDC3C7"
+            editable={!isSaving}
           />
         </View>
 
@@ -199,6 +250,7 @@ export default function EditProductScreen() {
             multiline
             numberOfLines={4}
             textAlignVertical="top"
+            editable={!isSaving}
           />
         </View>
 
@@ -206,16 +258,18 @@ export default function EditProductScreen() {
         <View style={styles.row}>
           {/* Product Image */}
           <View style={styles.imageSection}>
-            <Text style={styles.label}>Imagen{'\n'}Producto</Text>
+            <Text style={styles.imageText}>Imagen{'\n'}Producto</Text>
             <TouchableOpacity
               style={styles.imageContainer}
               onPress={handlePickImage}
+              disabled={isSaving}
             >
               {imageUrl ? (
                 <Image source={{ uri: imageUrl }} style={styles.productImage} />
               ) : (
                 <View style={styles.imagePlaceholder}>
                   <Ionicons name="image-outline" size={32} color="#BDC3C7" />
+                  <Text style={styles.imagePlaceholderText}>Toca para{'\n'}agregar</Text>
                 </View>
               )}
             </TouchableOpacity>
@@ -224,8 +278,9 @@ export default function EditProductScreen() {
             <TouchableOpacity
               style={styles.galleryButton}
               onPress={handlePickImage}
+              disabled={isSaving}
             >
-              <Ionicons name="folder-open" size={24} color="#000" />
+              <Ionicons name="folder-open" size={48} color="#000" />
             </TouchableOpacity>
           </View>
 
@@ -239,6 +294,7 @@ export default function EditProductScreen() {
               placeholder="$15.000"
               placeholderTextColor="#BDC3C7"
               keyboardType="numeric"
+              editable={!isSaving}
             />
 
             {/* Action Buttons */}
@@ -247,20 +303,24 @@ export default function EditProductScreen() {
               <TouchableOpacity
                 style={styles.deleteButtonCircle}
                 onPress={handleDelete}
+                disabled={isSaving}
               >
                 <Ionicons name="trash" size={24} color="#FFF" />
               </TouchableOpacity>
 
               {/* Save Button */}
               <TouchableOpacity
-                style={styles.saveButtonCircle}
+                style={[
+                  styles.saveButtonCircle,
+                  isSaving && styles.saveButtonDisabled
+                ]}
                 onPress={handleSave}
                 disabled={isSaving}
               >
                 {isSaving ? (
-                  <ActivityIndicator color="#FFF" size="small" />
+                  <ActivityIndicator color="#000" size="small" />
                 ) : (
-                  <Ionicons name="checkmark" size={28} color="#FFF" />
+                  <Ionicons name="send" size={28} color="#000" />
                 )}
               </TouchableOpacity>
             </View>

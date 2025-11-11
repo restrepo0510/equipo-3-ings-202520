@@ -18,7 +18,8 @@ export interface Product {
   discount?: number;
 }
 
-export interface CreateProductData {
+// ✅ Exportar como tipos públicos
+export interface CreateProductDto {
   name: string;
   description?: string;
   price: number;
@@ -31,7 +32,7 @@ export interface CreateProductData {
   restaurantId: string;
 }
 
-interface UpdateProductData {
+export interface UpdateProductDto {
   name?: string;
   description?: string;
   price?: number;
@@ -127,7 +128,7 @@ class ProductService {
   /**
    * Create a new product
    */
-  async create(productData: CreateProductData, token: string): Promise<Product> {
+  async create(productData: CreateProductDto, token: string): Promise<Product> {
     try {
       const response = await fetch(`${API_URL}/products`, {
         method: 'POST',
@@ -155,7 +156,7 @@ class ProductService {
    */
   async update(
     productId: string,
-    updateData: UpdateProductData,
+    updateData: UpdateProductDto,
     token: string
   ): Promise<Product> {
     try {

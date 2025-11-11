@@ -4,7 +4,8 @@ import {
   ConflictException, 
   UnauthorizedException, 
   InternalServerErrorException,
-  BadRequestException 
+  BadRequestException,
+  NotFoundException
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { JwtService } from '@nestjs/jwt';
@@ -14,6 +15,7 @@ import { Restaurant } from '../restaurants/restaurant.entity';
 import { 
   RegisterUserDto, 
   LoginUserDto, 
+  UpdateUserDto,
   UserResponseDto,
   AuthResponseDto 
 } from './dto/auth.dto';
@@ -116,10 +118,10 @@ export class AuthService {
       // Validate input
       this.validateLoginCredentials(loginUserDto);
 
-      // Find user with password
+      // Find user with password and profileImage
       const user = await this.userRepository.findOne({
         where: { email: loginUserDto.email },
-        select: ['id', 'name', 'email', 'phone', 'password', 'role', 'createdAt', 'updatedAt'],
+        select: ['id', 'name', 'email', 'phone', 'password', 'role', 'profileImage', 'createdAt', 'updatedAt'],
       });
 
       if (!user) {
@@ -135,6 +137,8 @@ export class AuthService {
       if (!isPasswordValid) {
         throw new UnauthorizedException('Invalid credentials');
       }
+
+      console.log('✅ Login successful. Profile image:', user.profileImage || 'None');
 
       // Generate JWT token
       const accessToken = this.generateToken(user);
@@ -171,13 +175,74 @@ export class AuthService {
   async getAllUsers(): Promise<UserResponseDto[]> {
     try {
       const users = await this.userRepository.find({
-        select: ['id', 'name', 'email', 'phone', 'role', 'createdAt', 'updatedAt'],
+        select: ['id', 'name', 'email', 'phone', 'role', 'profileImage', 'createdAt', 'updatedAt'],
         order: { createdAt: 'DESC' },
       });
 
       return users.map(user => new UserResponseDto(user));
     } catch (error) {
       throw new InternalServerErrorException(`Failed to retrieve users: ${error.message}`);
+    }
+  }
+
+  /**
+   * Updates user profile information
+   */
+  async updateUser(id: string, updateUserDto: UpdateUserDto): Promise<UserResponseDto> {
+    try {
+      // Find user
+      const user = await this.userRepository.findOne({ where: { id } });
+
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+
+      // Update fields if provided
+      if (updateUserDto.name) {
+        user.name = updateUserDto.name.trim();
+      }
+
+      if (updateUserDto.email) {
+        // Check if email is being changed and if new email is unique
+        if (updateUserDto.email !== user.email) {
+          const existingUser = await this.userRepository.findOne({ 
+            where: { email: updateUserDto.email } 
+          });
+          if (existingUser) {
+            throw new ConflictException('Email already in use');
+          }
+          user.email = updateUserDto.email.trim();
+        }
+      }
+
+      if (updateUserDto.phone) {
+        user.phone = updateUserDto.phone.trim();
+      }
+
+      if (updateUserDto.password) {
+        user.password = await this.basicHashPassword(updateUserDto.password);
+      }
+
+      if (updateUserDto.profileImage !== undefined) {
+        user.profileImage = updateUserDto.profileImage;
+        console.log('✅ Updated profile image:', updateUserDto.profileImage);
+      }
+
+      // Save updated user
+      const updatedUser = await this.userRepository.save(user);
+
+      console.log('✅ User profile updated:', updatedUser.email);
+
+      return new UserResponseDto(updatedUser);
+    } catch (error) {
+      if (
+        error instanceof NotFoundException ||
+        error instanceof BadRequestException ||
+        error instanceof ConflictException
+      ) {
+        throw error;
+      }
+      throw new InternalServerErrorException(`Failed to update user: ${error.message}`);
     }
   }
 
@@ -305,21 +370,21 @@ export class AuthService {
   private async geocodeAddress(address: string): Promise<Coordinates> {
     try {
       const searchAddress = this.normalizeAddress(address);
-      console.log(`📍 Original: ${address}`);
-      console.log(`📍 Normalized: ${searchAddress}`);
+      console.log(`🔍 Original: ${address}`);
+      console.log(`🔍 Normalized: ${searchAddress}`);
 
       const response = await axios.get('https://nominatim.openstreetmap.org/search', {
         params: {
           q: searchAddress,
           format: 'json',
-          limit: 3, // ✅ Aumentar a 3 resultados para tener alternativas
+          limit: 3,
           countrycodes: 'co',
-          addressdetails: 1, // ✅ Obtener detalles de la dirección
+          addressdetails: 1,
         },
         headers: {
           'User-Agent': 'YummiApp/1.0',
         },
-        timeout: 8000, // ✅ Aumentar timeout
+        timeout: 8000,
       });
 
       if (response.data && response.data.length > 0) {
@@ -331,7 +396,7 @@ export class AuthService {
                  displayName.includes('envigado') ||
                  displayName.includes('itagüí') ||
                  displayName.includes('sabaneta');
-        }) || response.data[0]; // Si no encuentra, usar el primero
+        }) || response.data[0];
 
         const coordinates: Coordinates = {
           latitude: parseFloat(bestResult.lat),
@@ -347,7 +412,7 @@ export class AuthService {
       return this.DEFAULT_COORDINATES;
     } catch (error) {
       console.error('❌ Geocoding error:', error.message);
-      console.log('📍 Using default coordinates for Medellín');
+      console.log('🔍 Using default coordinates for Medellín');
       return this.DEFAULT_COORDINATES;
     }
   }
@@ -358,7 +423,7 @@ export class AuthService {
    */
   private async createRestaurantForBusiness(user: User, address?: string): Promise<void> {
     try {
-      console.log(`🏪 Creating restaurant for business user: ${user.email}`);
+      console.log(`🪙 Creating restaurant for business user: ${user.email}`);
 
       let coordinates: Coordinates = this.DEFAULT_COORDINATES;
 
@@ -370,7 +435,7 @@ export class AuthService {
       }
 
       const restaurant = this.restaurantRepository.create({
-        id: user.id, // Same UUID as the business user
+        id: user.id,
         name: user.name,
         email: user.email,
         phone: user.phone,

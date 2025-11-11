@@ -8,38 +8,41 @@ import {
   Image,
   TouchableOpacity,
   ActivityIndicator,
-  Alert,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { BottomNavigation } from "@/components/ui/BottomNavigation";
 import { createBusinessNavItems } from "@/utils/navigationHelpers";
 import { productService, Product } from "@/services/productService";
+import { restaurantService } from "@/services/restaurantService";
 import { useAuth } from "@/context/AuthContext";
-import { styles } from "@/styles/BusinessProfileScreen.styles";
+import { styles } from "@/styles/businessProfileScreen.styles";
+import { CustomAlertHelper } from "@/components/ui/CustomAlert";
 
-/**
- * BusinessProfileScreen Component
- *
- * Main screen for business users to view and manage their products.
- * This is the home screen for business accounts.
- */
 export default function BusinessProfileScreen(): React.ReactElement {
   const router = useRouter();
   const { token, user, logout } = useAuth();
   const navItems = createBusinessNavItems("profile", router);
 
-  // State
   const [products, setProducts] = useState<Product[]>([]);
+  const [restaurantImage, setRestaurantImage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Get restaurant ID from user (user.id is already a string UUID)
   const restaurantId = user?.id;
 
-  /**
-   * Fetch products for this business from backend
-   */
+  const loadRestaurantData = useCallback(async () => {
+    if (!restaurantId) return;
+
+    try {
+      const restaurant = await restaurantService.getById(restaurantId);
+      setRestaurantImage(restaurant.imageUrl || null);
+      console.log("🪙 Restaurant image loaded:", restaurant.imageUrl);
+    } catch (error: any) {
+      console.error("❌ Error loading restaurant data:", error);
+    }
+  }, [restaurantId]);
+
   const loadProducts = useCallback(async () => {
     if (!token) {
       setError("No authentication token");
@@ -57,45 +60,45 @@ export default function BusinessProfileScreen(): React.ReactElement {
       setIsLoading(true);
       setError(null);
 
-      const data = await productService.getByRestaurant(restaurantId, token);
-      console.log("📦 Business products loaded:", data.length);
-      setProducts(data);
+      await Promise.all([
+        loadRestaurantData(),
+        productService.getByRestaurant(restaurantId, token).then((data) => {
+          console.log("📦 Business products loaded:", data.length);
+          setProducts(data);
+        }),
+      ]);
     } catch (error: any) {
       console.error("❌ Error loading products:", error);
       setError(error.message || "Could not load products");
     } finally {
       setIsLoading(false);
     }
-  }, [token, restaurantId]);
+  }, [token, restaurantId, loadRestaurantData]);
 
-  // Load products on mount
   useEffect(() => {
     loadProducts();
   }, [loadProducts]);
 
-  /**
-   * Handles user logout and redirects to login screen
-   */
   const handleLogout = async (): Promise<void> => {
-    try {
-      await logout();
-      Alert.alert("Goodbye!", "You have been logged out.");
-    } catch (error) {
-      console.error("❌ Logout error:", error);
-      Alert.alert("Error", "Could not log out. Please try again.");
-    }
+    CustomAlertHelper.confirm(
+      "Cerrar Sesión",
+      "¿Estás seguro de que deseas cerrar sesión?",
+      async () => {
+        try {
+          await logout();
+          CustomAlertHelper.success("Hasta pronto", "Has cerrado sesión correctamente");
+        } catch (error) {
+          console.error("❌ Logout error:", error);
+          CustomAlertHelper.error("Error", "No se pudo cerrar sesión. Intenta de nuevo");
+        }
+      }
+    );
   };
 
-  /**
-   * Navigate to edit business profile screen
-   */
   const handleEditProfile = (): void => {
     router.push("/(tabs)/EditBusinessProfileScreen");
   };
 
-  /**
-   * Navigate to edit product screen
-   */
   const handleEditProduct = (product: Product): void => {
     router.push({
       pathname: "/(tabs)/EditProductScreen",
@@ -103,9 +106,6 @@ export default function BusinessProfileScreen(): React.ReactElement {
     });
   };
 
-  /**
-   * Update product quantity in stock
-   */
   const handleUpdateQuantity = async (
     product: Product,
     change: number
@@ -118,7 +118,6 @@ export default function BusinessProfileScreen(): React.ReactElement {
     try {
       await productService.update(product.id, { stock: newStock }, token);
       
-      // Update local state
       setProducts((prev) =>
         prev.map((p) => (p.id === product.id ? { ...p, stock: newStock } : p))
       );
@@ -126,40 +125,29 @@ export default function BusinessProfileScreen(): React.ReactElement {
       console.log(`✅ Stock updated: ${product.name} - ${newStock}`);
     } catch (error) {
       console.error("❌ Error updating quantity:", error);
-      Alert.alert("Error", "No se pudo actualizar la cantidad");
+      CustomAlertHelper.error("Error", "No se pudo actualizar la cantidad");
     }
   };
 
-  /**
-   * Delete product after user confirmation
-   */
   const handleDeleteProduct = async (product: Product): Promise<void> => {
     if (!token) return;
 
-    Alert.alert(
+    CustomAlertHelper.confirm(
       "Eliminar Producto",
       `¿Estás seguro de eliminar "${product.name}"?`,
-      [
-        { text: "Cancelar", style: "cancel" },
-        {
-          text: "Eliminar",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              await productService.delete(product.id, token);
-              setProducts((prev) => prev.filter((p) => p.id !== product.id));
-              Alert.alert("Éxito", "Producto eliminado");
-            } catch (error) {
-              console.error("❌ Error deleting product:", error);
-              Alert.alert("Error", "No se pudo eliminar el producto");
-            }
-          },
-        },
-      ]
+      async () => {
+        try {
+          await productService.delete(product.id, token);
+          setProducts((prev) => prev.filter((p) => p.id !== product.id));
+          CustomAlertHelper.success("Éxito", "Producto eliminado correctamente");
+        } catch (error) {
+          console.error("❌ Error deleting product:", error);
+          CustomAlertHelper.error("Error", "No se pudo eliminar el producto");
+        }
+      }
     );
   };
 
-  // Loading view
   if (isLoading) {
     return (
       <View style={styles.container}>
@@ -172,7 +160,6 @@ export default function BusinessProfileScreen(): React.ReactElement {
     );
   }
 
-  // Error view
   if (error) {
     return (
       <View style={styles.container}>
@@ -194,7 +181,6 @@ export default function BusinessProfileScreen(): React.ReactElement {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        {/* Header */}
         <View style={styles.header}>
           <View style={styles.headerTitleContainer}>
             <Text style={styles.headerTitle}>
@@ -208,29 +194,37 @@ export default function BusinessProfileScreen(): React.ReactElement {
           </TouchableOpacity>
         </View>
 
-        {/* Divider */}
         <View style={styles.divider} />
 
-        {/* Company Section */}
         <View style={styles.companySection}>
           <View style={styles.companyImageContainer}>
             <View style={styles.companyImage}>
-              <Text style={styles.companyEmoji}>😊</Text>
+              {restaurantImage ? (
+                <Image
+                  source={{ uri: restaurantImage }}
+                  style={{
+                    width: 100,
+                    height: 100,
+                    borderRadius: 100,
+                  }}
+                  resizeMode="cover"
+                />
+              ) : (
+                <Text style={styles.companyEmoji}>🪙</Text>
+              )}
             </View>
-            {/* ✅ BOTÓN DE EDITAR PERFIL ENLAZADO */}
             <TouchableOpacity 
               style={styles.editCompanyButton}
               onPress={handleEditProfile}
               accessibilityLabel="Edit business profile"
               accessibilityHint="Tap to edit your business information"
             >
-              <Ionicons name="pencil" size={16} color="#FFF" />
+              <Ionicons name="pencil" size={25} color="#000" />
             </TouchableOpacity>
           </View>
           <Text style={styles.companyName}>{user?.name || "Company Name"}</Text>
         </View>
 
-        {/* Products List */}
         {products.length === 0 ? (
           <View style={styles.emptyContainer}>
             <Ionicons name="restaurant-outline" size={80} color="#BDC3C7" />
@@ -243,22 +237,18 @@ export default function BusinessProfileScreen(): React.ReactElement {
           <View style={styles.productsList}>
             {products.map((product) => (
               <View key={product.id} style={styles.productCard}>
-                {/* Quantity Badge */}
                 <View style={styles.quantityBadge}>
                   <Text style={styles.quantityText}>{product.stock}</Text>
                 </View>
 
-                {/* Edit Button */}
                 <TouchableOpacity
                   style={styles.editButton}
                   onPress={() => handleEditProduct(product)}
                 >
-                  <Ionicons name="pencil" size={16} color="#000" />
+                  <Ionicons name="pencil" size={24} color="#000" />
                 </TouchableOpacity>
 
-                {/* Product Card Content */}
                 <View style={styles.productCardInner}>
-                  {/* Product Image */}
                   <View style={styles.productImageContainer}>
                     <Image
                       source={{
@@ -269,7 +259,6 @@ export default function BusinessProfileScreen(): React.ReactElement {
                     />
                   </View>
 
-                  {/* Product Info */}
                   <View style={styles.productInfo}>
                     <Text style={styles.productName} numberOfLines={1}>
                       {product.name}
@@ -282,44 +271,32 @@ export default function BusinessProfileScreen(): React.ReactElement {
                     </Text>
                   </View>
 
-                  {/* Quantity Controls */}
                   <View style={styles.quantityControls}>
                     <TouchableOpacity
                       style={styles.quantityButton}
                       onPress={() => handleUpdateQuantity(product, -1)}
                     >
-                      <Ionicons name="remove" size={20} color="#000" />
+                      <Ionicons name="remove" size={40} color="#000" />
                     </TouchableOpacity>
                     <TouchableOpacity
                       style={[styles.quantityButton, styles.quantityButtonAdd]}
                       onPress={() => handleUpdateQuantity(product, 1)}
                     >
-                      <Ionicons name="add" size={20} color="#000" />
+                      <Ionicons name="add" size={40} color="#000" />
                     </TouchableOpacity>
                   </View>
                 </View>
-
-                {/* Delete Button (Hold to delete) */}
-                <TouchableOpacity
-                  style={styles.deleteButton}
-                  onLongPress={() => handleDeleteProduct(product)}
-                  delayLongPress={1000}
-                >
-                  <Ionicons name="trash-outline" size={16} color="#E74C3C" />
-                </TouchableOpacity>
               </View>
             ))}
           </View>
         )}
 
-        {/* Logout Button */}
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
           <Text style={styles.logoutButtonText}>Cerrar Sesión</Text>
         </TouchableOpacity>
       </ScrollView>
 
-      {/* Bottom Navigation */}
       <BottomNavigation items={navItems} />
     </View>
   );
-} 
+}

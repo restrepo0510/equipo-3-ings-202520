@@ -1,9 +1,4 @@
-/**
- * Authentication Validators
- * 
- * Pure functions for input validation
- * Following Single Responsibility Principle
- */
+// utils/validators.ts
 
 import { LoginCredentials, RegistrationData, ValidationErrors, UserRole } from '@/types/auth.types';
 import { VALIDATION_RULES, VALIDATION_PATTERNS, ERROR_MESSAGES } from '@/constants/auth.constants';
@@ -16,11 +11,23 @@ export const isValidEmail = (email: string): boolean => {
 };
 
 /**
- * Validates phone number format
+ * Validates phone number format - IMPROVED
+ * Only accepts exactly 10 digits, no special characters
  */
 export const isValidPhone = (phone: string): boolean => {
-  const cleanPhone = phone.replace(/\s/g, '');
-  return VALIDATION_PATTERNS.PHONE.test(cleanPhone);
+  // Remove all non-numeric characters
+  const digitsOnly = phone.replace(/\D/g, '');
+  
+  // Must be exactly 10 digits
+  return digitsOnly.length === VALIDATION_RULES.PHONE_EXACT_LENGTH;
+};
+
+/**
+ * Formats phone number to only digits - NUEVO
+ * Removes any non-numeric characters
+ */
+export const formatPhoneNumber = (phone: string): string => {
+  return phone.replace(/\D/g, '');
 };
 
 /**
@@ -47,9 +54,6 @@ export const isValidAddress = (address: string | undefined): boolean => {
 
 /**
  * Validates login form data
- * 
- * @param credentials - User login credentials
- * @returns Object containing validation errors, empty if valid
  */
 export const validateLoginForm = (
   credentials: LoginCredentials
@@ -75,10 +79,7 @@ export const validateLoginForm = (
 };
 
 /**
- * Validates registration form data
- * 
- * @param data - User registration data
- * @returns Object containing validation errors, empty if valid
+ * Validates registration form data - IMPROVED
  */
 export const validateRegistrationForm = (
   data: RegistrationData
@@ -92,9 +93,12 @@ export const validateRegistrationForm = (
     errors.name = ERROR_MESSAGES.NAME_TOO_SHORT;
   }
 
-  // Phone validation
+  // Phone validation - IMPROVED
+  const phoneDigits = data.phone.replace(/\D/g, '');
   if (!data.phone.trim()) {
     errors.phone = ERROR_MESSAGES.PHONE_REQUIRED;
+  } else if (phoneDigits.length !== VALIDATION_RULES.PHONE_EXACT_LENGTH) {
+    errors.phone = ERROR_MESSAGES.INVALID_PHONE_LENGTH;
   } else if (!isValidPhone(data.phone)) {
     errors.phone = ERROR_MESSAGES.INVALID_PHONE;
   }
@@ -127,9 +131,6 @@ export const validateRegistrationForm = (
 
 /**
  * Checks if validation errors object is empty
- * 
- * @param errors - Validation errors object
- * @returns true if there are no errors
  */
 export const isFormValid = <T>(errors: ValidationErrors<T>): boolean => {
   return Object.keys(errors).length === 0;

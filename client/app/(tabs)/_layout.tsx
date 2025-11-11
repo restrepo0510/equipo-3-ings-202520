@@ -37,7 +37,7 @@ export default function TabLayout() {
       <Stack.Screen 
         name="SignUpScreen" 
         options={{
-          animation: 'slide_from_right',
+          animation: 'fade',
         }}
       />
 
@@ -51,37 +51,37 @@ export default function TabLayout() {
       <Stack.Screen 
         name="MapScreen" 
         options={{
-          animation: 'slide_from_right',
+          animation: 'fade',
         }}
       />
       <Stack.Screen 
         name="FavoritesScreen" 
         options={{
-          animation: 'slide_from_right',
+          animation: 'fade',
         }}
       />
       <Stack.Screen 
         name="ProfileScreen" 
         options={{
-          animation: 'slide_from_right',
+          animation: 'fade',
         }}
       />
       <Stack.Screen 
         name="EditProfileScreen" 
         options={{
-          animation: 'slide_from_bottom',
+          animation: 'fade',
         }}
       />
       <Stack.Screen 
         name="ProductsScreen" 
         options={{
-          animation: 'slide_from_right',
+          animation: 'fade',
         }}
       />
       <Stack.Screen 
-        name="OrdersScreen" 
+        name="OrderSummaryScreen" 
         options={{
-          animation: 'slide_from_right',
+          animation: 'fade',
         }}
       />
     </Stack>
