@@ -4,89 +4,76 @@ import type { Product } from '@/types/product.types';
 
 /**
  * FavoritesUtils
- * 
  * Utility functions for favorites feature
- * Pure functions with no side effects
  */
 export class FavoritesUtils {
   /**
-   * Formats price to Colombian Pesos format
-   * 
-   * @param price - Price to format
-   * @returns Formatted price string
+   * Format price as currency
+   * ✅ ACTUALIZADO: Sin decimales
    */
   static formatPrice(price: number): string {
-    return `$ ${price.toLocaleString('es-CO')}`;
+    return `$${Math.round(price).toLocaleString('es-CO')}`;
   }
 
   /**
-   * Checks if product is available
-   * 
-   * @param product - Product to check
-   * @returns true if product is available and in stock
+   * Get product image source with fallback
+   */
+  static getImageSource(imageUrl?: string): string {
+    return imageUrl || 'https://via.placeholder.com/100';
+  }
+
+  /**
+   * Get product description with fallback
+   */
+  static getProductDescription(
+    product: Product,
+    fallback: string = 'Sin descripción'
+  ): string {
+    return product.description || fallback;
+  }
+
+  /**
+   * Check if product is available
    */
   static isProductAvailable(product: Product): boolean {
     return product.isAvailable && product.stock > 0;
   }
 
   /**
-   * Gets product description or default
-   * 
-   * @param product - Product
-   * @returns Description or default message
+   * Get product stock status text
    */
-  static getProductDescription(product: Product, defaultText: string): string {
-    return product.description?.trim() || defaultText;
-  }
-
-  /**
-   * Checks if image URL is valid
-   * 
-   * @param imageUrl - Image URL to validate
-   * @returns true if URL is valid
-   */
-  static isValidImageUrl(imageUrl: string | null | undefined): boolean {
-    if (!imageUrl || imageUrl.trim().length === 0) return false;
-    
-    try {
-      const url = new URL(imageUrl);
-      return url.protocol === 'http:' || url.protocol === 'https:';
-    } catch {
-      return false;
+  static getStockStatusText(product: Product): string {
+    if (!product.isAvailable) {
+      return 'No disponible';
     }
+    
+    if (product.stock === 0) {
+      return 'Agotado';
+    }
+    
+    if (product.stock < 5) {
+      return `¡Solo quedan ${product.stock}!`;
+    }
+    
+    return `${product.stock} disponibles`;
   }
 
   /**
-   * Gets image source with fallback
-   * 
-   * @param imageUrl - Image URL
-   * @param fallback - Fallback URL
-   * @returns Valid image URL
+   * Check if product has discount
    */
-  static getImageSource(
-    imageUrl: string | null | undefined,
-    fallback: string = 'https://via.placeholder.com/90'
-  ): string {
-    return this.isValidImageUrl(imageUrl) ? imageUrl! : fallback;
+  static hasDiscount(product: Product): boolean {
+    return !!(product.originalPrice && product.originalPrice > product.price);
   }
 
   /**
-   * Converts Set to Array for easier manipulation
-   * 
-   * @param favoritesSet - Set of favorite IDs
-   * @returns Array of favorite IDs
+   * Calculate discount percentage
    */
-  static setToArray(favoritesSet: Set<string>): string[] {
-    return Array.from(favoritesSet);
-  }
-
-  /**
-   * Converts Array to Set
-   * 
-   * @param favoritesArray - Array of favorite IDs
-   * @returns Set of favorite IDs
-   */
-  static arrayToSet(favoritesArray: string[]): Set<string> {
-    return new Set(favoritesArray);
+  static getDiscountPercentage(product: Product): number {
+    if (!this.hasDiscount(product)) {
+      return 0;
+    }
+    
+    const discount = ((product.originalPrice! - product.price) / product.originalPrice!) * 100;
+    return Math.round(discount);
   }
 }

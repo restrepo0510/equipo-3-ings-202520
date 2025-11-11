@@ -16,14 +16,17 @@ export const styles = StyleSheet.create({
     paddingTop: 60,
     paddingBottom: 20,
     backgroundColor: '#FFF',
+    
   },
 
   headerTitle: {
-    fontSize: 20,
+    fontSize: 26,
     fontWeight: '700',
     color: '#000',
     textAlign: 'center',
+    width: '90%',
   },
+  
 
   // Timer
   timerContainer: {

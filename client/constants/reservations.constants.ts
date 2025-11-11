@@ -16,7 +16,7 @@ export const RESERVATION_TIME = {
  * Timer colors based on time remaining
  */
 export const TIMER_COLORS = {
-  SAFE: '#1B5E20',
+  SAFE: '#546E3B',
   WARNING: '#F39C12',
   DANGER: '#E74C3C',
 } as const;

@@ -18,7 +18,7 @@ import { Product } from '@/types/product.types';
 import { restaurantService } from '@/services/restaurantService';
 import { useFavorites } from '@/context/FavoritesContext';
 import { useAuth } from '@/context/AuthContext';
-import { styles } from '../../styles/ProductsScreen.styles';
+import { styles } from '../../styles/productsScreen.styles';
 
 export default function ProductsScreen() {
   const router = useRouter();

@@ -18,7 +18,7 @@ import { ReservationUtils } from '@/utils/reservation.utils';
 import { ReservationAlertService } from '@/services/reservationAlertService';
 import { RESERVATION_TEXT, RESERVATION_TIME } from '@/constants/reservations.constants';
 import type { OrderSummaryParams } from '@/types/reservation.types';
-import { styles } from '@/styles/OrderSummaryScreen.styles';
+import { styles } from '@/styles/orderSummaryScreen.styles';
 
 /**
  * OrderSummaryScreen Component
@@ -135,7 +135,7 @@ const OrderHeader: React.FC<OrderHeaderProps> = ({ onClose }) => (
       <Ionicons name="close" size={28} color="#000" />
     </TouchableOpacity>
     <Text style={styles.headerTitle}>{RESERVATION_TEXT.HEADER.TITLE}</Text>
-    <View style={{ width: 28 }} />
+  
   </View>
 );
 
@@ -208,7 +208,7 @@ const RestaurantInfo: React.FC<RestaurantInfoProps> = ({ params }) => (
   <View style={styles.section}>
     <Text style={styles.sectionTitle}>{RESERVATION_TEXT.SECTIONS.RESTAURANT}</Text>
     <View style={styles.restaurantCard}>
-      <Ionicons name="restaurant" size={24} color="#27AE60" />
+      <Ionicons name="restaurant" size={24} color="#1B5E20" />
       <View style={styles.restaurantInfo}>
         <Text style={styles.restaurantName}>{params.restaurantName}</Text>
         {params.restaurantAddress && (

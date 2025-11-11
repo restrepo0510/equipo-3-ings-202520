@@ -1,6 +1,6 @@
 // app/(tabs)/FavoritesScreen.tsx
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { 
   View, 
   Text, 
@@ -13,15 +13,16 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { BottomNavigation } from '@/components/ui/BottomNavigation';
 import { createNavItems } from '@/utils/navigationHelpers';
-import { useFavoritesList } from '@/hooks/useFavoritesList';
+import { useFavorites } from '@/context/FavoritesContext';
 import { useAuth } from '@/context/AuthContext';
+import { FavoritesApiService } from '@/services/favoriteService';
 import { FavoritesUtils } from '@/utils/favorites.utils';
 import { 
   FAVORITES_TEXT, 
   FAVORITES_ICONS, 
   FAVORITES_CONSTANTS 
 } from '@/constants/favorites.constants';
-import { styles } from '@/styles/FavoritesScreen.styles';
+import { styles } from '@/styles/favoritesScreen.styles';
 import type { Favorite } from '@/types/favorites.types';
 import type { Product } from '@/types/product.types';
 
@@ -30,12 +31,6 @@ import type { Product } from '@/types/product.types';
  * 
  * Displays user's favorite products with ability to remove them
  * Shows loading state, empty state, and error handling
- * 
- * @responsibilities
- * - Display favorites list
- * - Handle favorite removal
- * - Navigate to product details
- * - Show appropriate states (loading, empty, error)
  */
 export default function FavoritesScreen(): React.ReactElement {
   // ============================================================================
@@ -46,11 +41,44 @@ export default function FavoritesScreen(): React.ReactElement {
   const { token } = useAuth();
   const navItems = createNavItems('favorites', router);
 
-  const {
-    favorites,
-    isLoading,
-    removeFavoriteFromList,
-  } = useFavoritesList(token);
+  // ✅ Usar SOLO el contexto de favoritos
+  const { removeFavorite } = useFavorites();
+  
+  // ✅ Estado local para la lista de favoritos completa (con detalles de producto)
+  const [favoritesList, setFavoritesList] = useState<Favorite[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // ============================================================================
+  // Effects
+  // ============================================================================
+
+  /**
+   * Load favorites with product details on mount
+   */
+  useEffect(() => {
+    loadFavorites();
+  }, [token]);
+
+  /**
+   * Load favorites from API
+   */
+  const loadFavorites = async (): Promise<void> => {
+    if (!token) {
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      const data = await FavoritesApiService.getUserFavorites(token);
+      setFavoritesList(data);
+      console.log('✅ Favorites loaded:', data.length);
+    } catch (error) {
+      console.error('❌ Error loading favorites:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // ============================================================================
   // Handlers
@@ -75,9 +103,26 @@ export default function FavoritesScreen(): React.ReactElement {
 
   /**
    * Removes product from favorites
+   * ✅ Actualización optimista con rollback
    */
   const handleRemoveFavorite = async (productId: string): Promise<void> => {
-    await removeFavoriteFromList(productId);
+    // Store original state for rollback
+    const originalList = [...favoritesList];
+
+    try {
+      // 1. Optimistic update - remove from local list
+      setFavoritesList(prev => prev.filter(f => f.product.id !== productId));
+
+      // 2. Update global context (this updates ProductsScreen)
+      await removeFavorite(productId);
+
+      console.log('✅ Favorite removed successfully');
+    } catch (error) {
+      console.error('❌ Error removing favorite:', error);
+      
+      // Rollback on error
+      setFavoritesList(originalList);
+    }
   };
 
   // ============================================================================
@@ -148,10 +193,10 @@ export default function FavoritesScreen(): React.ReactElement {
 
           {/* Product Info */}
           <View style={styles.productInfo}>
-            <Text style={styles.productName} numberOfLines={1}>
+            <Text style={styles.productName} numberOfLines={1} ellipsizeMode="tail">
               {product.name}
             </Text>
-            <Text style={styles.productDescription} numberOfLines={2}>
+            <Text style={styles.productDescription} numberOfLines={2} ellipsizeMode="tail">
               {FavoritesUtils.getProductDescription(
                 product, 
                 FAVORITES_TEXT.PRODUCT.NO_DESCRIPTION
@@ -239,8 +284,8 @@ export default function FavoritesScreen(): React.ReactElement {
       >
         {isLoading ? (
           renderLoading()
-        ) : favorites.length > 0 ? (
-          favorites.map(renderFavoriteCard)
+        ) : favoritesList.length > 0 ? (
+          favoritesList.map(renderFavoriteCard)
         ) : (
           renderEmpty()
         )}

@@ -10,15 +10,25 @@ import type { OrderSummaryParams, OrderTotals, TimerState } from '@/types/reserv
 export class ReservationUtils {
   /**
    * Parse order params from navigation
+   * ✅ CORREGIDO: Ahora calcula correctamente el total con descuento
    */
   static parseOrderParams(params: OrderSummaryParams): OrderTotals {
     const quantity = parseInt(params.quantity);
     const unitPrice = parseFloat(params.price);
     const originalPrice = params.originalPrice ? parseFloat(params.originalPrice) : null;
 
-    const subtotal = unitPrice * quantity;
-    const discount = originalPrice ? (originalPrice - unitPrice) * quantity : 0;
-    const total = subtotal;
+    // Calcular subtotal (precio original * cantidad)
+    const subtotal = originalPrice 
+      ? originalPrice * quantity  // Si hay precio original, usarlo para el subtotal
+      : unitPrice * quantity;     // Si no, usar el precio actual
+
+    // Calcular descuento (diferencia entre precio original y precio actual)
+    const discount = originalPrice 
+      ? (originalPrice - unitPrice) * quantity 
+      : 0;
+
+    // Calcular total (subtotal - descuento) o simplemente (precio actual * cantidad)
+    const total = unitPrice * quantity;
 
     return {
       quantity,

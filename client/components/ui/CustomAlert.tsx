@@ -8,7 +8,7 @@ import {
   Animated,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { styles } from '@/styles/CustomAlert.styles';
+import { styles } from '@/styles/customAlert.styles';
 
 export type AlertType = 'success' | 'error' | 'warning' | 'confirm' | 'info';
 

@@ -16,7 +16,7 @@ import { createBusinessNavItems } from "@/utils/navigationHelpers";
 import { productService, Product } from "@/services/productService";
 import { restaurantService } from "@/services/restaurantService";
 import { useAuth } from "@/context/AuthContext";
-import { styles } from "@/styles/BusinessProfileScreen.styles";
+import { styles } from "@/styles/businessProfileScreen.styles";
 import { CustomAlertHelper } from "@/components/ui/CustomAlert";
 
 export default function BusinessProfileScreen(): React.ReactElement {
