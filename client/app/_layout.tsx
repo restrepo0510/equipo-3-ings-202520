@@ -4,6 +4,7 @@ import React, { useEffect } from 'react';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { AuthProvider, useAuth } from '../context/AuthContext';
 import { FavoritesProvider } from '../context/FavoritesContext';
+import { AlertProvider } from '@/context/AlertProvider';
 import { ActivityIndicator, View, StyleSheet } from 'react-native';
 
 /**
@@ -60,23 +61,25 @@ function NavigationGuard({ children }: { children: React.ReactNode }) {
 export default function RootLayout() {
   return (
     <AuthProvider>
+      <AlertProvider>
         <FavoritesProvider>
-      <NavigationGuard>
-        <Stack
-          screenOptions={{
-            headerShown: false,
-            contentStyle: { backgroundColor: '#FFFFFF' },
-          }}
-        >
-          <Stack.Screen 
-            name="(tabs)" 
-            options={{
-              headerShown: false,
-            }}
-          />
-        </Stack>
-      </NavigationGuard>
-      </FavoritesProvider>
+          <NavigationGuard>
+            <Stack
+              screenOptions={{
+                headerShown: false,
+                contentStyle: { backgroundColor: '#FFFFFF' },
+              }}
+            >
+              <Stack.Screen 
+                name="(tabs)" 
+                options={{
+                  headerShown: false,
+                }}
+              />
+            </Stack>
+          </NavigationGuard>
+        </FavoritesProvider>
+      </AlertProvider>
     </AuthProvider>
   );
 }

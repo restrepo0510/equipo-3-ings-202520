@@ -14,7 +14,7 @@ import { useRouter } from 'expo-router';
 import { BottomNavigation } from '@/components/ui/BottomNavigation';
 import { createNavItems } from '@/utils/navigationHelpers';
 import { useAuth } from '@/context/AuthContext';
-import { editProfileStyles as styles } from '@/styles/EditProfileScreen.styles';
+import { editProfileStyles as styles } from '@/styles/editProfileScreen.styles';
 import { useProfileForm } from '@/hooks/useProfileForm';
 import { useProfileImage } from '@/hooks/useProfileImage';
 import { ProfileAlertService } from '@/services/profileAlertService';

@@ -17,14 +17,35 @@ const createHeaders = (token: string) => ({
  */
 const handleApiResponse = async <T>(response: Response): Promise<T> => {
   if (!response.ok) {
-    const error: FavoritesApiError = await response.json().catch(() => ({
-      message: 'Unknown error occurred',
-      statusCode: response.status,
-    }));
+    let error: FavoritesApiError;
+    try {
+      error = await response.json();
+    } catch {
+      error = {
+        message: `HTTP Error ${response.status}: ${response.statusText}`,
+        statusCode: response.status,
+      };
+    }
     throw error;
   }
 
-  return response.json();
+  // Para respuestas sin contenido (204, o 200 sin body)
+  if (response.status === 204 || response.headers.get('content-length') === '0') {
+    return undefined as T;
+  }
+
+  // Verificar si hay contenido antes de parsear
+  const text = await response.text();
+  if (!text || text.trim() === '') {
+    return undefined as T;
+  }
+
+  try {
+    return JSON.parse(text);
+  } catch (error) {
+    console.warn('⚠️ Could not parse response as JSON:', text);
+    return undefined as T;
+  }
 };
 
 /**
@@ -63,8 +84,9 @@ export class FavoritesApiService {
       );
 
       await handleApiResponse<void>(response);
+      console.log('✅ API: Favorite added successfully');
     } catch (error) {
-      console.error('❌ Error adding favorite:', error);
+      console.error('❌ API Error adding favorite:', error);
       throw error;
     }
   }
@@ -86,11 +108,11 @@ export class FavoritesApiService {
         }
       );
 
-      if (!response.ok) {
-        throw new Error('Error removing favorite');
-      }
+      // ✅ Usar handleApiResponse en lugar de manejo manual
+      await handleApiResponse<void>(response);
+      console.log('✅ API: Favorite removed successfully');
     } catch (error) {
-      console.error('❌ Error removing favorite:', error);
+      console.error('❌ API Error removing favorite:', error);
       throw error;
     }
   }
@@ -115,7 +137,7 @@ export class FavoritesApiService {
       const data = await handleApiResponse<FavoriteResponse[]>(response);
       return data.map(mapFavoriteResponse);
     } catch (error) {
-      console.error('❌ Error loading favorites:', error);
+      console.error('❌ API Error loading favorites:', error);
       throw error;
     }
   }
@@ -141,7 +163,7 @@ export class FavoritesApiService {
       
       return response.json();
     } catch (error) {
-      console.error('❌ Error checking favorite:', error);
+      console.error('❌ API Error checking favorite:', error);
       return false;
     }
   }

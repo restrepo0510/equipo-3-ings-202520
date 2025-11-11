@@ -15,7 +15,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { useAuth } from '@/context/AuthContext';
 import { productService, Product } from '@/services/productService';
 import { CustomAlertHelper } from '@/components/ui/CustomAlert';
-import { styles } from '@/styles/EditProductScreen.styles';
+import { styles } from '@/styles/editProductScreen.styles';
 
 /**
  * EditProductScreen

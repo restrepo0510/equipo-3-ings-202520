@@ -17,7 +17,7 @@ import { createBusinessNavItems } from '@/utils/navigationHelpers';
 import { useAuth } from '@/context/AuthContext';
 import { useBusinessProfile } from '@/hooks/useBusinessProfile';
 import { useBusinessProfileImage } from '@/hooks/useBusinessProfileImage';
-import { styles } from '@/styles/EditBusinessProfileScreen.styles';
+import { styles } from '@/styles/editBusinessProfileScreen.styles';
 import { CustomAlertHelper } from '@/components/ui/CustomAlert';
 import { 
   BUSINESS_PROFILE_TEXT, 
