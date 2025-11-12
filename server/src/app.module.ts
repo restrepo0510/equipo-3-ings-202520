@@ -5,7 +5,13 @@ import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { RestaurantsModule } from './restaurants/restaurants.module';
 import { ProductsModule } from './products/products.module';
+<<<<<<< HEAD
 import { PaymentsModule } from './payments/payments.module';
+=======
+import { FavoritesModule } from './favorites/favorites.module';
+import { ReviewsModule } from './reviews/reviews.module';
+
+>>>>>>> 64ee6b084d5fc9ff8bafc65196de2d709652c996
 
 @Module({
   imports: [
@@ -27,11 +33,19 @@ import { PaymentsModule } from './payments/payments.module';
       }),
       inject: [ConfigService],
     }),
-    UsersModule,
     AuthModule,
+    UsersModule,
     RestaurantsModule,
+<<<<<<< HEAD
     ProductsModule,
     PaymentsModule,
+=======
+    ReviewsModule,
+    ProductsModule,
+    FavoritesModule,
+>>>>>>> 64ee6b084d5fc9ff8bafc65196de2d709652c996
   ],
+  providers: [],
+  controllers: [],
 })
 export class AppModule {}

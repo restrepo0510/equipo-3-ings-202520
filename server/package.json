@@ -22,12 +22,19 @@
   "dependencies": {
     "@nestjs/common": "^11.1.8",
     "@nestjs/config": "^4.0.2",
+<<<<<<< HEAD
     "@nestjs/core": "^11.1.8",
     "@nestjs/jwt": "^11.0.0",
     "@nestjs/platform-express": "^11.1.8",
+=======
+    "@nestjs/core": "^11.0.1",
+    "@nestjs/jwt": "^11.0.1",
+    "@nestjs/passport": "^11.0.5",
+    "@nestjs/platform-express": "^11.0.1",
+    "@nestjs/schedule": "^6.0.1",
+>>>>>>> 64ee6b084d5fc9ff8bafc65196de2d709652c996
     "@nestjs/typeorm": "^11.0.0",
     "@types/bcryptjs": "^2.4.6",
-    "@types/passport-jwt": "^4.0.1",
     "axios": "^1.12.2",
     "bcrypt": "^6.0.0",
     "bcryptjs": "^3.0.2",
@@ -52,7 +59,12 @@
     "@types/bcrypt": "^6.0.0",
     "@types/express": "^5.0.0",
     "@types/jest": "^30.0.0",
+<<<<<<< HEAD
     "@types/node": "^18.19.130",
+=======
+    "@types/node": "^22.10.7",
+    "@types/passport-jwt": "^4.0.1",
+>>>>>>> 64ee6b084d5fc9ff8bafc65196de2d709652c996
     "@types/supertest": "^6.0.2",
     "eslint": "^9.18.0",
     "eslint-config-prettier": "^10.0.1",
