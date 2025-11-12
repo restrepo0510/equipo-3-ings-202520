@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { View, Text, Image, TouchableOpacity } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { mapStyles } from '@/styles/mapScreen.styles';
 import { MAP_PLACEHOLDERS } from '@/constants/map.constants';
 import type { Restaurant } from '@/types/restaurant.types';
@@ -19,8 +20,13 @@ interface RestaurantMapCardProps {
 /**
  * RestaurantMapCard Component
  * 
- * Displays a floating card with restaurant information when a marker is selected.
- * Shows restaurant image, name, and a button to view products.
+ * Card horizontal con layout: Imagen | Información | Botón
+ * Diseñado según la referencia visual proporcionada
+ * 
+ * Layout:
+ * - Izquierda: Imagen del restaurante con badge "Ver prod..."
+ * - Centro: Nombre, categoría, dirección, distancia
+ * - Derecha: Botón de flecha circular
  * 
  * @example
  * ```tsx
@@ -34,59 +40,93 @@ export const RestaurantMapCard: React.FC<RestaurantMapCardProps> = ({
   restaurant,
   onViewProducts,
 }) => {
-  // ✅ LIMPIEZA: Usamos la función helper del tipo
   const imageUrl = restaurant.imageUrl || MAP_PLACEHOLDERS.RESTAURANT_IMAGE;
 
   return (
     <View style={mapStyles.restaurantCardContainer}>
-      <View style={mapStyles.restaurantCard}>
-        {/* Restaurant circular image */}
-        <Image
-          source={{ uri: imageUrl }}
-          style={mapStyles.restaurantImage}
-          accessibilityLabel={`${restaurant.name} image`}
-        />
+      <TouchableOpacity
+        style={mapStyles.restaurantCard}
+        onPress={() => onViewProducts(restaurant)}
+        activeOpacity={0.95}
+        accessibilityRole="button"
+        accessibilityLabel={`Ver productos de ${restaurant.name}`}
+      >
+        {/* ========================================
+            SECCIÓN IZQUIERDA: IMAGEN
+        ======================================== */}
+        <View style={mapStyles.imageSection}>
+          <Image
+            source={{ uri: imageUrl }}
+            style={mapStyles.restaurantImage}
+            accessibilityLabel={`Imagen de ${restaurant.name}`}
+            accessibilityIgnoresInvertColors
+          />
+          
+          {/* Badge "Ver prod..." sobre la imagen */}
+          <View style={mapStyles.imageBadge}>
+            <Text style={mapStyles.imageBadgeText}>Ver prod...</Text>
+          </View>
+        </View>
 
-        {/* View products button */}
-        <TouchableOpacity
-          style={mapStyles.viewProductsButton}
-          onPress={() => onViewProducts(restaurant)}
-          accessibilityRole="button"
-          accessibilityLabel={`View products from ${restaurant.name}`}
-        >
-          <Text style={mapStyles.viewProductsButtonText}>Ver productos</Text>
-        </TouchableOpacity>
-
-        {/* Restaurant name */}
-        <Text
-          style={mapStyles.restaurantName}
-          numberOfLines={2}
-          accessibilityRole="text"
-        >
-          {restaurant.name}
-        </Text>
-
-        {/* ✅ OPCIONAL: Mostrar información adicional */}
-        {restaurant.address && (
+        {/* ========================================
+            SECCIÓN CENTRO: INFORMACIÓN
+        ======================================== */}
+        <View style={mapStyles.infoSection}>
+          {/* Nombre del restaurante */}
           <Text
-            style={mapStyles.restaurantAddress}
+            style={mapStyles.restaurantName}
             numberOfLines={1}
             accessibilityRole="text"
           >
-            {restaurant.address}
+            {restaurant.name}
           </Text>
-        )}
 
-        {/* ✅ OPCIONAL: Mostrar distancia si está disponible */}
-        {restaurant.distance !== undefined && (
-          <Text
-            style={mapStyles.restaurantDistance}
-            accessibilityRole="text"
-          >
-            📍 {restaurant.distance.toFixed(1)} km
-          </Text>
-        )}
-      </View>
+          {/* Categoría */}
+          {restaurant.category && (
+            <Text
+              style={mapStyles.restaurantCategory}
+              numberOfLines={1}
+              accessibilityRole="text"
+            >
+              {restaurant.category}
+            </Text>
+          )}
+
+          {/* Dirección */}
+          {restaurant.address && (
+            <Text
+              style={mapStyles.restaurantAddress}
+              numberOfLines={1}
+              accessibilityRole="text"
+            >
+              📍 {restaurant.address}
+            </Text>
+          )}
+
+          {/* Distancia */}
+          {restaurant.distance !== undefined && (
+            <Text
+              style={mapStyles.restaurantDistance}
+              accessibilityRole="text"
+            >
+              {restaurant.distance.toFixed(1)} km de distancia
+            </Text>
+          )}
+        </View>
+
+        {/* ========================================
+            SECCIÓN DERECHA: BOTÓN FLECHA
+        ======================================== */}
+        <View style={mapStyles.buttonSection}>
+          <View style={mapStyles.arrowButton}>
+            <Ionicons 
+              name="chevron-forward" 
+              size={24} 
+              color="#27AE60" 
+            />
+          </View>
+        </View>
+      </TouchableOpacity>
     </View>
   );
 };

@@ -1,7 +1,14 @@
 // styles/mapScreen.styles.ts
 
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Dimensions } from 'react-native';
 import { MAP_CARD } from '@/constants/map.constants';
+
+const { width } = Dimensions.get('window');
+
+// Constantes para el card
+const CARD_WIDTH = width * 0.9;
+const CARD_HEIGHT = 100;
+const IMAGE_SIZE = 80;
 
 /**
  * MapScreen Component Styles
@@ -88,7 +95,7 @@ export const mapStyles = StyleSheet.create({
   },
 
   // ============================================================================
-  // Restaurant Card Styles
+  // Restaurant Card Styles - LAYOUT HORIZONTAL
   // ============================================================================
   
   restaurantCardContainer: {
@@ -97,32 +104,119 @@ export const mapStyles = StyleSheet.create({
     left: 0,
     right: 0,
     alignItems: 'center',
+    paddingHorizontal: 15,
   },
 
   restaurantCard: {
-    width: MAP_CARD.WIDTH,
+    flexDirection: 'row', // ← CAMBIO PRINCIPAL: Layout horizontal
+    width: CARD_WIDTH,
+    height: CARD_HEIGHT,
     backgroundColor: '#FFFFFF',
-    borderRadius: MAP_CARD.CARD_BORDER_RADIUS,
+    borderRadius: 12,
     alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 8,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
     elevation: 5,
   },
 
-  restaurantImage: {
-    width: MAP_CARD.IMAGE_SIZE,
-    height: MAP_CARD.IMAGE_SIZE,
-    borderRadius: MAP_CARD.IMAGE_BORDER_RADIUS,
-    marginBottom: 6,
+  // ==========================================
+  // SECCIÓN IZQUIERDA: IMAGEN
+  // ==========================================
+  imageSection: {
+    width: IMAGE_SIZE,
+    height: IMAGE_SIZE,
+    position: 'relative',
+    marginLeft: 10,
   },
 
-  viewProductsButton: {
+  restaurantImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 8,
+  },
+
+  imageBadge: {
+    position: 'absolute',
+    top: 4,
+    left: 0,
+    right: 0,
     backgroundColor: '#27AE60',
-    borderRadius: MAP_CARD.BUTTON_BORDER_RADIUS,
+    paddingVertical: 3,
+    paddingHorizontal: 4,
+    borderRadius: 4,
+    alignItems: 'center',
+  },
+
+  imageBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 9,
+    fontWeight: 'bold',
+  },
+
+  // ==========================================
+  // SECCIÓN CENTRO: INFORMACIÓN
+  // ==========================================
+  infoSection: {
+    flex: 1,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    justifyContent: 'center',
+  },
+
+  restaurantName: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#2C3E50',
+    marginBottom: 2,
+  },
+
+  restaurantCategory: {
+    fontSize: 12,
+    color: '#95A5A6',
+    marginBottom: 2,
+  },
+
+  restaurantAddress: {
+    fontSize: 11,
+    color: '#7F8C8D',
+    marginBottom: 2,
+  },
+
+  restaurantDistance: {
+    fontSize: 11,
+    color: '#27AE60',
+    fontWeight: '600',
+  },
+
+  // ==========================================
+  // SECCIÓN DERECHA: BOTÓN FLECHA
+  // ==========================================
+  buttonSection: {
+    width: 50,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingRight: 8,
+  },
+
+  arrowButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#F5F5F5',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+  },
+
+  // ==========================================
+  // ESTILOS LEGACY (mantener por compatibilidad)
+  // ==========================================
+  viewProductsButton: {
+    backgroundColor: '#004226',
+    borderRadius: 20,
     paddingHorizontal: 14,
     paddingVertical: 6,
     alignSelf: 'flex-end',
@@ -132,33 +226,7 @@ export const mapStyles = StyleSheet.create({
   viewProductsButtonText: {
     color: '#FFFFFF',
     fontWeight: 'bold',
-    fontSize: 12,
-  },
-
-  restaurantName: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#2C3E50',
-    textAlign: 'center',
-    marginTop: 4,
-    marginBottom: 6,
-  },
-
-  // ✅ NUEVO: Estilos adicionales para la tarjeta
-  restaurantAddress: {
-    fontSize: 12,
-    color: '#7F8C8D',
-    textAlign: 'center',
-    marginTop: 2,
-    paddingHorizontal: 8,
-  },
-
-  restaurantDistance: {
-    fontSize: 11,
-    color: '#27AE60',
-    fontWeight: '600',
-    textAlign: 'center',
-    marginTop: 4,
+    fontSize: 14,
   },
 
   // ============================================================================
@@ -166,7 +234,7 @@ export const mapStyles = StyleSheet.create({
   // ============================================================================
   
   loader: {
-    color: '#27AE60',
+    color: '#004226',
   },
 
   error: {
