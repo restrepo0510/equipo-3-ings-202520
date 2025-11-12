@@ -21,17 +21,17 @@ import { useLocation } from "../../hooks/useLocation";
 import { restaurantService, Restaurant } from "../../services/restaurantService";
 
 // Componentes
-import { BottomNavigation } from "../../components/ui/BottomNavigation";
+import { BottomNavigation } from "../../components/ui/bottomNavigation";
 
 // Estilos y constantes
 import { styles, COLORS } from "../../styles/homeScreen.styles";
 import {
   DEFAULT_VALUES,
   PLACEHOLDER_IMAGES,
-} from "../../constants/homeScreen.constants";
+} from "../../constants/home.constants";
 
 // Navegación
-import { createNavItems } from "../../utils/navigationHelpers";
+import { createHomeNavItems } from "../../utils/navigationHelpers";
 
 /**
  * HomeScreen Component
@@ -44,7 +44,7 @@ export default function HomeScreen() {
   // 🔹 Navegación
   // ============================================================
   const router = useRouter();
-  const navItems = createNavItems("home", router);
+  const navItems = createHomeNavItems("home", router);
 
   // ============================================================
   // 🔹 Estados locales

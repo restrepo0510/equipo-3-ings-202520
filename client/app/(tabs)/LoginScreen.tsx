@@ -14,7 +14,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useLoginForm } from '@/hooks/useLoginForm';
-import { FormField } from '@/components/ui/FormField';
+import { FormField } from '@/components/ui/formField';
 import {
   COLORS,
   BASE_STYLES,

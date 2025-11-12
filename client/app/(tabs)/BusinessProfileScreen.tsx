@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { BottomNavigation } from "@/components/ui/BottomNavigation";
+import { BottomNavigation } from "@/components/ui/bottomNavigation";
 import { createBusinessNavItems } from "@/utils/navigationHelpers";
 import { productService, Product } from "@/services/productService";
 import { restaurantService } from "@/services/restaurantService";

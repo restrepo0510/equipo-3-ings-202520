@@ -1,13 +1,11 @@
 // styles/mapScreen.styles.ts
 
 import { StyleSheet } from 'react-native';
-import { COLORS } from './homeScreen.styles';
-import { RESTAURANT_CARD, CARD_POSITION } from '../constants/mapScreen.constants';
+import { MAP_CARD } from '@/constants/map.constants';
 
 /**
- * Styles for MapScreen component
+ * MapScreen Component Styles
  */
-
 export const mapStyles = StyleSheet.create({
   // ============================================================================
   // Container Styles
@@ -16,7 +14,6 @@ export const mapStyles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  
 
   /**
    * Centered container for loading and error states
@@ -25,7 +22,8 @@ export const mapStyles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: COLORS.background,
+    backgroundColor: '#F5F5F5',
+    paddingHorizontal: 20,
   },
 
   // ============================================================================
@@ -37,12 +35,42 @@ export const mapStyles = StyleSheet.create({
   },
 
   // ============================================================================
+  // Loading & Error States
+  // ============================================================================
+  
+  loadingText: {
+    marginTop: 12,
+    fontSize: 16,
+    color: '#7F8C8D',
+    textAlign: 'center',
+  },
+
+  errorText: {
+    color: '#E74C3C',
+    fontSize: 16,
+    textAlign: 'center',
+    marginTop: 16,
+    marginBottom: 24,
+  },
+
+  retryButton: {
+    backgroundColor: '#27AE60',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
+    marginTop: 16,
+  },
+
+  retryButtonText: {
+    color: '#FFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+
+  // ============================================================================
   // User Location Marker Styles
   // ============================================================================
   
-  /**
-   * Outer circle of user location marker (translucent blue)
-   */
   userMarkerOuter: {
     height: 24,
     width: 24,
@@ -52,65 +80,49 @@ export const mapStyles = StyleSheet.create({
     alignItems: 'center',
   },
 
-  /**
-   * Inner circle of user location marker (solid color)
-   */
   userMarkerInner: {
     height: 12,
     width: 12,
     borderRadius: 6,
-    backgroundColor: COLORS.primaryDark,
+    backgroundColor: '#007AFF',
   },
 
   // ============================================================================
   // Restaurant Card Styles
   // ============================================================================
   
-  /**
-   * Container for restaurant info card
-   * Positioned at bottom of screen
-   */
   restaurantCardContainer: {
     position: 'absolute',
-    bottom: CARD_POSITION.BOTTOM_OFFSET,
+    bottom: MAP_CARD.BOTTOM_OFFSET,
     left: 0,
     right: 0,
     alignItems: 'center',
   },
 
-  /**
-   * Restaurant info card
-   */
   restaurantCard: {
-    width: RESTAURANT_CARD.WIDTH,
-    backgroundColor: COLORS.white,
-    borderRadius: RESTAURANT_CARD.CARD_BORDER_RADIUS,
+    width: MAP_CARD.WIDTH,
+    backgroundColor: '#FFFFFF',
+    borderRadius: MAP_CARD.CARD_BORDER_RADIUS,
     alignItems: 'center',
     paddingVertical: 12,
     paddingHorizontal: 8,
-    shadowColor: COLORS.shadow,
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 6,
     elevation: 5,
   },
 
-  /**
-   * Restaurant image (circular)
-   */
   restaurantImage: {
-    width: RESTAURANT_CARD.IMAGE_SIZE,
-    height: RESTAURANT_CARD.IMAGE_SIZE,
-    borderRadius: RESTAURANT_CARD.IMAGE_BORDER_RADIUS,
+    width: MAP_CARD.IMAGE_SIZE,
+    height: MAP_CARD.IMAGE_SIZE,
+    borderRadius: MAP_CARD.IMAGE_BORDER_RADIUS,
     marginBottom: 6,
   },
 
-  /**
-   * "View products" button
-   */
   viewProductsButton: {
-    backgroundColor: COLORS.primaryDark,
-    borderRadius: RESTAURANT_CARD.BUTTON_BORDER_RADIUS,
+    backgroundColor: '#27AE60',
+    borderRadius: MAP_CARD.BUTTON_BORDER_RADIUS,
     paddingHorizontal: 14,
     paddingVertical: 6,
     alignSelf: 'flex-end',
@@ -118,37 +130,46 @@ export const mapStyles = StyleSheet.create({
   },
 
   viewProductsButtonText: {
-    color: COLORS.white,
+    color: '#FFFFFF',
     fontWeight: 'bold',
     fontSize: 12,
   },
 
-  /**
-   * Restaurant name text
-   */
   restaurantName: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: COLORS.text.primary,
+    color: '#2C3E50',
     textAlign: 'center',
     marginTop: 4,
     marginBottom: 6,
   },
 
-  // ============================================================================
-  // Loading & Error States
-  // ============================================================================
-  
-  loadingText: {
-    marginTop: 10,
-    fontSize: 16,
-    color: COLORS.text.secondary,
+  // ✅ NUEVO: Estilos adicionales para la tarjeta
+  restaurantAddress: {
+    fontSize: 12,
+    color: '#7F8C8D',
+    textAlign: 'center',
+    marginTop: 2,
+    paddingHorizontal: 8,
   },
 
-  errorText: {
-    color: COLORS.error || '#E74C3C',
-    fontSize: 16,
+  restaurantDistance: {
+    fontSize: 11,
+    color: '#27AE60',
+    fontWeight: '600',
     textAlign: 'center',
-    paddingHorizontal: 20,
+    marginTop: 4,
+  },
+
+  // ============================================================================
+  // Style tokens for programmatic access
+  // ============================================================================
+  
+  loader: {
+    color: '#27AE60',
+  },
+
+  error: {
+    color: '#E74C3C',
   },
 });

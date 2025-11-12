@@ -1,7 +1,7 @@
 // styles/homeScreen.styles.ts
 
 import { StyleSheet } from 'react-native';
-import { CARD_WIDTH } from '../constants/homeScreen.constants';
+import { CARD_WIDTH } from '../constants/home.constants';
 
 /**
  * Color palette for the Home Screen

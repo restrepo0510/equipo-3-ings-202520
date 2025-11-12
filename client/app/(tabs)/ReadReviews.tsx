@@ -10,8 +10,8 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { BottomNavigation } from '@/components/ui/BottomNavigation';
-import { createReviewsNavItems } from '@/utils/navigationHelpers';
+import { BottomNavigation } from '@/components/ui/bottomNavigation';
+import { createNavItems } from '@/utils/navigationHelpers';
 import { ReviewsUtils } from '@/utils/reviews.utils';
 import { 
   REVIEWS_TEXT, 
@@ -37,7 +37,7 @@ export default function ReadReviews(): React.ReactElement {
   
   const router = useRouter();
   const params = useLocalSearchParams();
-  const navItems = createReviewsNavItems('reviews', router);
+  const navItems = createNavItems('reviews', router);
 
   // Extract review data from params
   const {

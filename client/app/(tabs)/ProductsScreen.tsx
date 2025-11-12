@@ -14,7 +14,7 @@ import {
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { BottomNavigation } from '@/components/ui/BottomNavigation';
+import { BottomNavigation } from '@/components/ui/bottomNavigation';
 import { createNavItems } from '@/utils/navigationHelpers';
 import { useAuth } from '@/context/AuthContext';
 import { useFavorites } from '@/context/FavoritesContext';

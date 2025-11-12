@@ -28,6 +28,26 @@ interface NearbyParams {
   limit?: number;
 }
 
+/**
+ * Normalizes restaurant data from API
+ * Ensures latitude and longitude are numbers
+ */
+const normalizeRestaurant = (data: any): Restaurant => {
+  return {
+    ...data,
+    latitude: Number(data.latitude),
+    longitude: Number(data.longitude),
+    distance: data.distance !== undefined ? Number(data.distance) : undefined,
+  };
+};
+
+/**
+ * Normalizes array of restaurants
+ */
+const normalizeRestaurants = (data: any[]): Restaurant[] => {
+  return data.map(normalizeRestaurant);
+};
+
 class RestaurantService {
   /**
    * Get all restaurants
@@ -41,7 +61,8 @@ class RestaurantService {
         throw new Error(errorData.message || 'Failed to fetch restaurants');
       }
 
-      return await response.json();
+      const data = await response.json();
+      return normalizeRestaurants(data);
     } catch (error) {
       console.error('Error fetching restaurants:', error);
       throw error;
@@ -64,7 +85,7 @@ class RestaurantService {
 
       const data = await response.json();
       console.log('✅ Restaurant fetched:', data.name);
-      return data;
+      return normalizeRestaurant(data);
     } catch (error) {
       console.error('❌ Error fetching restaurant:', error);
       throw error;
@@ -94,7 +115,19 @@ class RestaurantService {
         throw new Error(errorData.message || 'Failed to fetch nearby restaurants');
       }
 
-      return await response.json();
+      const data = await response.json();
+      const normalized = normalizeRestaurants(data);
+      
+      // Log para debugging
+      console.log('📍 Sample restaurant coords:', {
+        name: normalized[0]?.name,
+        lat: normalized[0]?.latitude,
+        latType: typeof normalized[0]?.latitude,
+        lon: normalized[0]?.longitude,
+        lonType: typeof normalized[0]?.longitude,
+      });
+      
+      return normalized;
     } catch (error) {
       console.error('Error fetching nearby restaurants:', error);
       throw error;
@@ -106,7 +139,7 @@ class RestaurantService {
    */
   async create(restaurantData: Partial<Restaurant>, token: string): Promise<Restaurant> {
     try {
-      console.log('📝 Creating restaurant:', restaurantData);
+      console.log('🏗️ Creating restaurant:', restaurantData);
       
       const response = await fetch(`${API_URL}/restaurants`, {
         method: 'POST',
@@ -124,7 +157,7 @@ class RestaurantService {
 
       const data = await response.json();
       console.log('✅ Restaurant created:', data.id);
-      return data;
+      return normalizeRestaurant(data);
     } catch (error) {
       console.error('❌ Error creating restaurant:', error);
       throw error;
@@ -141,10 +174,10 @@ class RestaurantService {
     token: string
   ): Promise<Restaurant> {
     try {
-      console.log(`📝 Updating restaurant: ${restaurantId}`, updateData);
+      console.log(`🔧 Updating restaurant: ${restaurantId}`, updateData);
       
       const response = await fetch(`${API_URL}/restaurants/${restaurantId}`, {
-        method: 'PUT', // ✅ Changed from PATCH to PUT
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
@@ -168,7 +201,7 @@ class RestaurantService {
 
       const data = await response.json();
       console.log('✅ Restaurant updated:', data.name);
-      return data;
+      return normalizeRestaurant(data);
     } catch (error: any) {
       console.error('❌ Error updating restaurant:', error.message);
       throw error;

@@ -1,14 +1,16 @@
 // utils/navigationHelpers.ts
 
-import { NavItem } from '@/components/ui/BottomNavigation';
+import { NavItem } from '@/components/ui/bottomNavigation';
 
 /**
  * Available screens for navigation
  */
-export type NavigationScreen = 'home'|'map' | 'favorites' | 'reviews' | 'profile';
+export type NavigationScreen = 'home' | 'map' | 'favorites' | 'reviews' | 'profile';
 
 /**
  * Creates navigation items configuration for a specific screen
+ * ✅ CORREGIDO: Ahora incluye el botón de mapa y corrige isActive
+ * 
  * @param currentScreen - The current active screen identifier
  * @param router - Expo router instance
  * @returns Array of navigation items
@@ -19,8 +21,17 @@ export const createNavItems = (
 ): NavItem[] => {
   return [
     {
+      id: 'home',
+      icon: 'home',
+      onPress: () => {
+        console.log('🏠 Navegando a el inicio');
+        router.push('/(tabs)/HomeScreen');
+      },
+      isActive: currentScreen === 'home', // ✅ CORREGIDO: era 'map'
+    },
+    {
       id: 'map',
-      icon: 'location',
+      icon: 'location', // ✅ AGREGADO: botón de mapa
       onPress: () => {
         console.log('🗺️ Navegando al mapa');
         router.push('/(tabs)/MapScreen');
@@ -66,7 +77,6 @@ export const createBusinessNavItems = (
   router: any
 ): NavItem[] => {
   return [
-    
     {
       id: 'add',
       icon: 'add-circle-outline',
@@ -89,22 +99,25 @@ export const createBusinessNavItems = (
 };
 
 /**
- * Creates navigation items for reviews screens
- * Only 4 buttons: Home ,favorites , reviews, Profile
+ * Creates navigation items for home screen
+ * ✅ CORREGIDO: Ahora usa 'home' en lugar de 'map'
+ * 
+ * 4 buttons: Map, Favorites, Reviews, Profile
+ * (Home is the main screen, so it's not in the navigation)
  */
-export const createReviewsNavItems = (
+export const createHomeNavItems = (
   currentScreen: NavigationScreen,
   router: any
 ): NavItem[] => {
   return [
     {
-      id: 'home',
-      icon: 'home',
+      id: 'map',
+      icon: 'location',
       onPress: () => {
-        console.log('🏠 Navegando a el inicio');
-        router.push('/(tabs)/HomeScreen');
+        console.log('🗺️ Navegando al mapa');
+        router.push('/(tabs)/MapScreen');
       },
-      isActive: currentScreen === 'home',
+      isActive: currentScreen === 'map',
     },
     {
       id: 'favorites',

@@ -1,10 +1,10 @@
-// components/map/RestaurantMapCard.tsx
+// components/ui/map/RestaurantMapCard.tsx
 
 import React from 'react';
 import { View, Text, Image, TouchableOpacity } from 'react-native';
-import { Restaurant } from '../../../services/restaurantService';
-import { mapStyles } from '../../../styles/mapScreen.styles';
-import { PLACEHOLDER_IMAGE_URL } from '../../../constants/mapScreen.constants';
+import { mapStyles } from '@/styles/mapScreen.styles';
+import { MAP_PLACEHOLDERS } from '@/constants/map.constants';
+import type { Restaurant } from '@/types/restaurant.types';
 
 /**
  * Props for RestaurantMapCard component
@@ -34,12 +34,15 @@ export const RestaurantMapCard: React.FC<RestaurantMapCardProps> = ({
   restaurant,
   onViewProducts,
 }) => {
+  // ✅ LIMPIEZA: Usamos la función helper del tipo
+  const imageUrl = restaurant.imageUrl || MAP_PLACEHOLDERS.RESTAURANT_IMAGE;
+
   return (
     <View style={mapStyles.restaurantCardContainer}>
       <View style={mapStyles.restaurantCard}>
         {/* Restaurant circular image */}
         <Image
-          source={{ uri: restaurant.imageUrl || PLACEHOLDER_IMAGE_URL }}
+          source={{ uri: imageUrl }}
           style={mapStyles.restaurantImage}
           accessibilityLabel={`${restaurant.name} image`}
         />
@@ -51,7 +54,7 @@ export const RestaurantMapCard: React.FC<RestaurantMapCardProps> = ({
           accessibilityRole="button"
           accessibilityLabel={`View products from ${restaurant.name}`}
         >
-          <Text style={mapStyles.viewProductsButtonText}>View products</Text>
+          <Text style={mapStyles.viewProductsButtonText}>Ver productos</Text>
         </TouchableOpacity>
 
         {/* Restaurant name */}
@@ -62,6 +65,27 @@ export const RestaurantMapCard: React.FC<RestaurantMapCardProps> = ({
         >
           {restaurant.name}
         </Text>
+
+        {/* ✅ OPCIONAL: Mostrar información adicional */}
+        {restaurant.address && (
+          <Text
+            style={mapStyles.restaurantAddress}
+            numberOfLines={1}
+            accessibilityRole="text"
+          >
+            {restaurant.address}
+          </Text>
+        )}
+
+        {/* ✅ OPCIONAL: Mostrar distancia si está disponible */}
+        {restaurant.distance !== undefined && (
+          <Text
+            style={mapStyles.restaurantDistance}
+            accessibilityRole="text"
+          >
+            📍 {restaurant.distance.toFixed(1)} km
+          </Text>
+        )}
       </View>
     </View>
   );

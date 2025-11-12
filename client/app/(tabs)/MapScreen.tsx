@@ -1,59 +1,75 @@
-// screens/MapScreen.tsx
+// app/(tabs)/MapScreen.tsx
 
 import React, { useEffect, useState, useCallback, useRef } from 'react';
-import { View, Text, ActivityIndicator } from 'react-native';
-import MapView, { Marker, Region } from 'react-native-maps';
+import { View, Text, ActivityIndicator, TouchableOpacity } from 'react-native';
+import MapView, { Region } from 'react-native-maps';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 
 // Hooks and services
-import { useLocation } from '../../hooks/useLocation';
-import { restaurantService, Restaurant } from '../../services/restaurantService';
+import { useLocation } from '@/hooks/useLocation';
+import { restaurantService } from '@/services/restaurantService';
 
 // Components
-import { BottomNavigation } from '../../components/ui/BottomNavigation';
-import { UserLocationMarker } from '../../components/ui/map/UserLocationMarker';
-import { RestaurantMapCard } from '../../components/ui/map/RestaurantMapCard';
-import { createNavItems } from '../../utils/navigationHelpers';
+import { BottomNavigation } from '@/components/ui/bottomNavigation';
+import { UserLocationMarker } from '@/components/ui/map/userLocationMarker';
+import { RestaurantMapCard } from '@/components/ui/map/restaurantMapCard';
+import { RestaurantMarkers } from '@/components/ui/map/restaurantMarkers';
+import { MapHeader } from '@/components/ui/map/mapHeader';
 
-// Styles and constants
-import { mapStyles } from '../../styles/mapScreen.styles';
-import { COLORS } from '../../styles/homeScreen.styles';
-import {
-  DEFAULT_SEARCH_RADIUS_KM,
-  MAP_DELTA,
-} from '../../constants/mapScreen.constants';
+// Utils and helpers
+import { createNavItems } from '@/utils/navigationHelpers';
+import { MapUtils } from '@/utils/map.utils';
+
+// Types and constants
+import { MAP_CONFIG, MAP_TEXT } from '@/constants/map.constants';
+import { mapStyles } from '@/styles/mapScreen.styles';
+import type { Restaurant } from '@/types/restaurant.types';
+import { extractStringParam, parseCoordinate } from '@/types/map.types';
 
 /**
  * MapScreen Component
  * 
- * Displays an interactive map showing:
- * - User's current location (blue marker)
- * - Nearby restaurants (standard markers)
- * - Restaurant info card when a marker is selected
- * - Bottom navigation bar
+ * Interactive map displaying user location and nearby restaurants
  * 
- * Fetches restaurants within a specified radius from the user's location.
+ * @responsibilities
+ * - Display user's current location
+ * - Show nearby restaurants as markers
+ * - Handle restaurant selection
+ * - Navigate to restaurant products
+ * - Center map on selected restaurant from HomeScreen
+ * 
+ * @features
+ * - Real-time location tracking
+ * - Restaurant markers with custom colors
+ * - Restaurant info card on selection
+ * - Navigation to ProductsScreen
+ * - Bottom navigation bar
  */
-export default function MapScreen() {
+export default function MapScreen(): React.ReactElement {
+  // ============================================================================
+  // Hooks & Router
+  // ============================================================================
+  
   const router = useRouter();
-  const { restaurantId, latitude, longitude } = useLocalSearchParams();
+  const params = useLocalSearchParams();
   const mapRef = useRef<MapView>(null);
-  
-  // ============================================================================
-  // Navigation
-  // ============================================================================
-  
   const navItems = createNavItems('map', router);
+
+  // Type-safe params extraction using helper functions
+  const restaurantId = extractStringParam(params.restaurantId);
+  const paramLatitude = extractStringParam(params.latitude);
+  const paramLongitude = extractStringParam(params.longitude);
 
   // ============================================================================
   // State Management
   // ============================================================================
 
-  const { location } = useLocation();
+  const { location, error: locationError, loading: locationLoading } = useLocation();
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [selectedRestaurant, setSelectedRestaurant] = useState<Restaurant | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+  const [isLoadingRestaurants, setIsLoadingRestaurants] = useState<boolean>(true);
+  const [restaurantsError, setRestaurantsError] = useState<string | null>(null);
 
   // ============================================================================
   // Data Fetching
@@ -61,53 +77,67 @@ export default function MapScreen() {
 
   /**
    * Loads nearby restaurants based on user's location
-   * Uses the default search radius defined in constants
+   * Handles initial restaurant selection from params
    */
-  useEffect(() => {
-    const loadRestaurants = async () => {
-      if (!location) return;
+  const loadNearbyRestaurants = useCallback(async (): Promise<void> => {
+    if (!location) return;
 
-      try {
-        setIsLoading(true);
-        setError(null);
+    try {
+      setIsLoadingRestaurants(true);
+      setRestaurantsError(null);
 
-        const data = await restaurantService.getNearby({
-          latitude: location.latitude,
-          longitude: location.longitude,
-          radius: DEFAULT_SEARCH_RADIUS_KM,
-        });
+      const nearbyRestaurants = await restaurantService.getNearby({
+        latitude: location.latitude,
+        longitude: location.longitude,
+        radius: MAP_CONFIG.DEFAULT_SEARCH_RADIUS_KM,
+      });
 
-        console.log('🗺️ Nearby restaurants loaded:', data.length);
-        setRestaurants(data);
+      console.log('🗺️ Nearby restaurants loaded:', nearbyRestaurants.length);
+      setRestaurants(nearbyRestaurants);
 
-        // ✅ Si viene un restaurantId desde HomeScreen, seleccionarlo
-        if (restaurantId) {
-          const targetRestaurant = data.find(r => r.id === restaurantId);
-          if (targetRestaurant) {
-            setSelectedRestaurant(targetRestaurant);
-            
-            // Centrar el mapa en el restaurante seleccionado
-            setTimeout(() => {
-              mapRef.current?.animateToRegion({
-                latitude: Number(targetRestaurant.latitude),
-                longitude: Number(targetRestaurant.longitude),
-                latitudeDelta: MAP_DELTA.LATITUDE / 3,
-                longitudeDelta: MAP_DELTA.LONGITUDE / 3,
-              }, 1000);
-            }, 500);
-          }
-        }
-      } catch (err) {
-        const errorMessage = 'Could not load restaurants';
-        console.error('❌ Error loading restaurants:', err);
-        setError(errorMessage);
-      } finally {
-        setIsLoading(false);
+      // Handle pre-selected restaurant from HomeScreen
+      if (restaurantId) {
+        handleInitialRestaurantSelection(nearbyRestaurants, restaurantId);
       }
-    };
-
-    loadRestaurants();
+    } catch (error) {
+      console.error('❌ Error loading restaurants:', error);
+      setRestaurantsError(MAP_TEXT.ERRORS.LOAD_RESTAURANTS_FAILED);
+    } finally {
+      setIsLoadingRestaurants(false);
+    }
   }, [location, restaurantId]);
+
+  /**
+   * Handles initial restaurant selection from route params
+   */
+  const handleInitialRestaurantSelection = useCallback(
+    (restaurantsList: Restaurant[], restaurantId: string): void => {
+      const targetRestaurant = restaurantsList.find(r => r.id === restaurantId);
+      
+      if (targetRestaurant) {
+        setSelectedRestaurant(targetRestaurant);
+        centerMapOnRestaurant(targetRestaurant);
+      }
+    },
+    []
+  );
+
+  /**
+   * Centers map on selected restaurant with animation
+   */
+  const centerMapOnRestaurant = useCallback((restaurant: Restaurant): void => {
+    setTimeout(() => {
+      mapRef.current?.animateToRegion(
+        MapUtils.createRestaurantRegion(restaurant),
+        MAP_CONFIG.ANIMATION_DURATION
+      );
+    }, MAP_CONFIG.INITIAL_ANIMATION_DELAY);
+  }, []);
+
+  // Load restaurants when location is available
+  useEffect(() => {
+    loadNearbyRestaurants();
+  }, [loadNearbyRestaurants]);
 
   // ============================================================================
   // Event Handlers
@@ -115,72 +145,86 @@ export default function MapScreen() {
 
   /**
    * Handles restaurant marker press
-   * Shows the restaurant info card at the bottom
+   * Shows info card and centers map
    */
-  const handleMarkerPress = useCallback((restaurant: Restaurant) => {
+  const handleRestaurantSelect = useCallback((restaurant: Restaurant): void => {
     setSelectedRestaurant(restaurant);
     
-    // Centrar el mapa en el restaurante seleccionado
-    mapRef.current?.animateToRegion({
-      latitude: Number(restaurant.latitude),
-      longitude: Number(restaurant.longitude),
-      latitudeDelta: MAP_DELTA.LATITUDE / 3,
-      longitudeDelta: MAP_DELTA.LONGITUDE / 3,
-    }, 500);
+    mapRef.current?.animateToRegion(
+      MapUtils.createRestaurantRegion(restaurant),
+      MAP_CONFIG.ANIMATION_DURATION
+    );
   }, []);
 
   /**
-   * Handles "View products" button press
-   * Navigates to ProductsScreen with restaurantId
+   * Navigates to ProductsScreen for selected restaurant
    */
-  const handleViewProducts = useCallback((restaurant: Restaurant) => {
+  const handleViewProducts = useCallback((restaurant: Restaurant): void => {
     console.log('📦 Navigating to products from:', restaurant.name);
+    
     router.push({
       pathname: '/(tabs)/ProductsScreen',
       params: { restaurantId: restaurant.id },
     });
   }, [router]);
 
+  /**
+   * Navigates back to previous screen
+   */
+  const handleGoBack = useCallback((): void => {
+    router.back();
+  }, [router]);
+
+  /**
+   * Centers map on user's current location
+   */
+  const handleCenterOnUser = useCallback((): void => {
+    if (!location) return;
+    
+    mapRef.current?.animateToRegion(
+      MapUtils.createUserRegion(location),
+      MAP_CONFIG.ANIMATION_DURATION
+    );
+  }, [location]);
+
   // ============================================================================
   // Map Configuration
   // ============================================================================
 
   /**
-   * Calculates initial map region based on user's location or selected restaurant
+   * Calculates initial map region
+   * Priority: Route params > User location
    */
   const getInitialRegion = useCallback((): Region | undefined => {
-    // Si viene desde HomeScreen con coordenadas específicas
-    if (latitude && longitude) {
-      return {
-        latitude: Number(latitude),
-        longitude: Number(longitude),
-        latitudeDelta: MAP_DELTA.LATITUDE / 2,
-        longitudeDelta: MAP_DELTA.LONGITUDE / 2,
-      };
+    // Try to use coordinates from params
+    if (paramLatitude && paramLongitude) {
+      const lat = parseCoordinate(paramLatitude);
+      const lon = parseCoordinate(paramLongitude);
+      
+      if (lat !== undefined && lon !== undefined) {
+        return MapUtils.createRegionFromCoords(lat, lon);
+      }
     }
 
-    // Ubicación del usuario por defecto
+    // Fallback to user location
     if (location) {
-      return {
-        latitude: location.latitude,
-        longitude: location.longitude,
-        latitudeDelta: MAP_DELTA.LATITUDE,
-        longitudeDelta: MAP_DELTA.LONGITUDE,
-      };
+      return MapUtils.createUserRegion(location);
     }
 
     return undefined;
-  }, [location, latitude, longitude]);
+  }, [location, paramLatitude, paramLongitude]);
 
   // ============================================================================
   // Loading State
   // ============================================================================
 
-  if (isLoading) {
+  if (locationLoading || isLoadingRestaurants) {
     return (
       <View style={mapStyles.centeredContainer}>
-        <ActivityIndicator size="large" color={COLORS.primaryDark} />
-        <Text style={mapStyles.loadingText}>Loading restaurants...</Text>
+        <ActivityIndicator size="large" color={mapStyles.loader.color} />
+        <Text style={mapStyles.loadingText}>
+          {MAP_TEXT.LOADING.MESSAGE}
+        </Text>
       </View>
     );
   }
@@ -189,10 +233,25 @@ export default function MapScreen() {
   // Error State
   // ============================================================================
 
-  if (error) {
+  if (locationError || restaurantsError) {
     return (
       <View style={mapStyles.centeredContainer}>
-        <Text style={mapStyles.errorText}>{error}</Text>
+        <Ionicons 
+          name="alert-circle-outline" 
+          size={64} 
+          color={mapStyles.error.color} 
+        />
+        <Text style={mapStyles.errorText}>
+          {locationError || restaurantsError}
+        </Text>
+        <TouchableOpacity
+          style={mapStyles.retryButton}
+          onPress={loadNearbyRestaurants}
+        >
+          <Text style={mapStyles.retryButtonText}>
+            {MAP_TEXT.BUTTONS.RETRY}
+          </Text>
+        </TouchableOpacity>
         <BottomNavigation items={navItems} />
       </View>
     );
@@ -211,32 +270,31 @@ export default function MapScreen() {
           style={mapStyles.map}
           initialRegion={getInitialRegion()}
           showsUserLocation={false}
-          showsMyLocationButton
-          showsCompass
+          showsMyLocationButton={false}
+          showsCompass={true}
         >
           {/* User Location Marker */}
           <UserLocationMarker
             latitude={location.latitude}
             longitude={location.longitude}
-            title="Your location"
+            title={MAP_TEXT.MARKERS.USER_LOCATION}
           />
 
           {/* Restaurant Markers */}
-          {restaurants.map((restaurant) => (
-            <Marker
-              key={restaurant.id}
-              coordinate={{
-                latitude: Number(restaurant.latitude) || 0,
-                longitude: Number(restaurant.longitude) || 0,
-              }}
-              title={restaurant.name}
-              description={restaurant.description}
-              onPress={() => handleMarkerPress(restaurant)}
-              pinColor={restaurant.id === selectedRestaurant?.id ? '#27AE60' : '#FF6B6B'}
-            />
-          ))}
+          <RestaurantMarkers
+            restaurants={restaurants}
+            selectedRestaurantId={selectedRestaurant?.id}
+            onRestaurantPress={handleRestaurantSelect}
+          />
         </MapView>
       )}
+
+      {/* Header with back button and title */}
+      <MapHeader
+        title={MAP_TEXT.HEADER.TITLE}
+        onBackPress={handleGoBack}
+        onCenterPress={handleCenterOnUser}
+      />
 
       {/* Restaurant Info Card */}
       {selectedRestaurant && (
