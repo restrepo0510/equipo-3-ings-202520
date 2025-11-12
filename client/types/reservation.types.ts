@@ -81,6 +81,8 @@ export interface OrderSummaryParams {
   quantity: string;
   price: string;
   originalPrice?: string;
+  restaurantLatitude?: string;
+  restaurantLongitude?: string;
 }
 
 /**

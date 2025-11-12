@@ -62,10 +62,7 @@ export const RestaurantMapCard: React.FC<RestaurantMapCardProps> = ({
             accessibilityIgnoresInvertColors
           />
           
-          {/* Badge "Ver prod..." sobre la imagen */}
-          <View style={mapStyles.imageBadge}>
-            <Text style={mapStyles.imageBadgeText}>Ver prod...</Text>
-          </View>
+          
         </View>
 
         {/* ========================================
@@ -118,12 +115,8 @@ export const RestaurantMapCard: React.FC<RestaurantMapCardProps> = ({
             SECCIÓN DERECHA: BOTÓN FLECHA
         ======================================== */}
         <View style={mapStyles.buttonSection}>
-          <View style={mapStyles.arrowButton}>
-            <Ionicons 
-              name="chevron-forward" 
-              size={24} 
-              color="#27AE60" 
-            />
+            <View style={mapStyles.viewProductsButton}>
+            <Text style={mapStyles.viewProductsButtonText}>Ver prod...</Text>
           </View>
         </View>
       </TouchableOpacity>

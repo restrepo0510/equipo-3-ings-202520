@@ -27,16 +27,7 @@ export const createNavItems = (
         console.log('🏠 Navegando a el inicio');
         router.push('/(tabs)/HomeScreen');
       },
-      isActive: currentScreen === 'home', // ✅ CORREGIDO: era 'map'
-    },
-    {
-      id: 'map',
-      icon: 'location', // ✅ AGREGADO: botón de mapa
-      onPress: () => {
-        console.log('🗺️ Navegando al mapa');
-        router.push('/(tabs)/MapScreen');
-      },
-      isActive: currentScreen === 'map',
+      isActive: currentScreen === 'home',
     },
     {
       id: 'favorites',
