@@ -8,6 +8,8 @@ import { ProductsModule } from './products/products.module';
 import { PaymentsModule } from './payments/payments.module';
 import { FavoritesModule } from './favorites/favorites.module';
 import { ReviewsModule } from './reviews/reviews.module';
+import { CashReceiptController } from './cash-receipt/cash-receipt.controller';
+import { CashReceiptModule } from './cash-receipt/cash-receipt.module';
 
 
 @Module({
@@ -38,8 +40,9 @@ import { ReviewsModule } from './reviews/reviews.module';
     ReviewsModule,
     ProductsModule,
     FavoritesModule,
+    CashReceiptModule,
   ],
   providers: [],
-  controllers: [],
+  controllers: [CashReceiptController],
 })
 export class AppModule {}
