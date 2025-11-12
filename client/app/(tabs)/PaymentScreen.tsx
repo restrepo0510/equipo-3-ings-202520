@@ -1,6 +1,6 @@
 // app/(tabs)/PaymentScreen.tsx
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -12,31 +12,51 @@ import {
 import { useStripe } from '@stripe/stripe-react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import MapView, { Marker } from 'react-native-maps';
+import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 
 // Services and utils
 import { PaymentService } from '@/services/paymentService';
 import { PaymentUtils } from '@/utils/payment.utils';
 import { PaymentAlertService } from '@/services/paymentAlertService';
 
+// Components
+import {
+  PaymentHeader,
+  DeliveryMap,
+  DeliveryInfo,
+  OrderSummary,
+  PriceBreakdown,
+  PaymentMethodSelector,
+  PaymentButton,
+} from '@/components/ui/payment/paymentComponents';
+
 // Types and constants
 import { PAYMENT_CONFIG, PAYMENT_TEXT } from '@/constants/payment.constants';
 import { styles } from '@/styles/paymentScreen.styles';
-import type { PaymentScreenParams, PaymentMethod } from '@/types/payment.types';
+import type { PaymentMethod, DeliveryLocation } from '@/types/payment.types';
 
 /**
  * PaymentScreen Component
  * 
- * Handles payment processing for confirmed orders
+ * Handles payment processing for confirmed orders with full validation
  * Supports both cash and card payments via Stripe
  * 
  * @responsibilities
- * - Display order summary
- * - Show delivery location on map
- * - Handle payment method selection
- * - Process Stripe payments
- * - Handle cash payments
- * - Navigate on success/failure
+ * - Validate and parse order parameters
+ * - Display order summary with pricing breakdown
+ * - Show delivery location on interactive map
+ * - Handle payment method selection (cash/card)
+ * - Process Stripe payments with proper error handling
+ * - Handle cash payment confirmations
+ * - Navigate on success/failure with appropriate feedback
+ * 
+ * @features
+ * - Type-safe parameter parsing
+ * - Centralized error handling
+ * - Deep link support for Stripe redirects
+ * - Responsive map with proper provider
+ * - Accessibility support
+ * - Loading states
  */
 export default function PaymentScreen(): React.ReactElement {
   // ============================================================================
@@ -48,19 +68,64 @@ export default function PaymentScreen(): React.ReactElement {
   const { initPaymentSheet, presentPaymentSheet } = useStripe();
 
   // ============================================================================
+  // Parse and Validate Order Data
+  // ============================================================================
+
+  /**
+   * Memoized order data parsing
+   * Validates and converts route params to typed order data
+   */
+  const orderData = useMemo(() => {
+    try {
+      const validatedParams = PaymentUtils.validateAndConvertParams(params);
+      return PaymentUtils.parsePaymentParams(validatedParams);
+    } catch (error) {
+      console.error('❌ Error parsing payment params:', error);
+      PaymentAlertService.showError(
+        'Error',
+        'Datos de pago inválidos. Por favor, intenta nuevamente.'
+      );
+      router.back();
+      // Return default values to prevent crashes
+      return {
+        productName: '',
+        quantity: 1,
+        subtotal: 0,
+        discount: 0,
+        total: 0,
+        restaurantName: '',
+        deliveryLocation: PAYMENT_CONFIG.DEFAULT_COORDINATES,
+      };
+    }
+  }, [params, router]);
+
+  // ============================================================================
   // State Management
   // ============================================================================
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<PaymentMethod>('efectivo');
 
-  // Parse order data from params (cast to PaymentScreenParams)
-const orderData = PaymentUtils.parsePaymentParams(PaymentUtils.validateAndConvertParams(params));  // ============================================================================
+  // ============================================================================
+  // Validation
+  // ============================================================================
+
+  /**
+   * Validates order data on mount
+   */
+  useEffect(() => {
+    if (!PaymentUtils.isValidAmount(orderData.total)) {
+      PaymentAlertService.showInvalidAmount();
+      router.back();
+    }
+  }, [orderData.total, router]);
+
+  // ============================================================================
   // Deep Link Handling
   // ============================================================================
 
   /**
-   * Handles deep link redirects from Stripe
+   * Handles deep link redirects from Stripe payment flow
    */
   useEffect(() => {
     const handleDeepLink = (event: { url: string }): void => {
@@ -82,12 +147,15 @@ const orderData = PaymentUtils.parsePaymentParams(PaymentUtils.validateAndConver
   // ============================================================================
 
   /**
-   * Initializes Stripe payment sheet
+   * Initializes Stripe payment sheet with order details
    * 
-   * @returns true if initialization successful
+   * @returns Promise resolving to true if initialization successful
+   * @throws Will show error alert on failure
    */
   const initializeStripePayment = useCallback(async (): Promise<boolean> => {
     try {
+      console.log('💳 Initializing Stripe payment...');
+
       const paymentIntent = await PaymentService.createPaymentIntent(
         orderData.total,
         PAYMENT_CONFIG.CURRENCY
@@ -110,7 +178,9 @@ const orderData = PaymentUtils.parsePaymentParams(PaymentUtils.validateAndConver
       return true;
     } catch (error: any) {
       console.error('❌ Error initializing Stripe:', error);
-      PaymentAlertService.showPaymentError(error.message);
+      PaymentAlertService.showPaymentError(
+        error.message || 'Error al inicializar el pago'
+      );
       return false;
     }
   }, [orderData.total, orderData.restaurantName, initPaymentSheet]);
@@ -121,6 +191,7 @@ const orderData = PaymentUtils.parsePaymentParams(PaymentUtils.validateAndConver
 
   /**
    * Handles cash payment selection
+   * Shows confirmation dialog before proceeding
    */
   const handleCashPayment = useCallback((): void => {
     console.log('💵 Cash payment selected');
@@ -133,6 +204,7 @@ const orderData = PaymentUtils.parsePaymentParams(PaymentUtils.validateAndConver
 
   /**
    * Handles card payment via Stripe
+   * Initializes payment sheet and processes payment
    */
   const handleCardPayment = useCallback(async (): Promise<void> => {
     setIsLoading(true);
@@ -146,7 +218,7 @@ const orderData = PaymentUtils.parsePaymentParams(PaymentUtils.validateAndConver
         return;
       }
 
-      // Present payment sheet
+      // Present payment sheet to user
       const { error } = await presentPaymentSheet();
 
       if (error) {
@@ -158,14 +230,17 @@ const orderData = PaymentUtils.parsePaymentParams(PaymentUtils.validateAndConver
       }
     } catch (error: any) {
       console.error('❌ Error processing card payment:', error);
-      PaymentAlertService.showPaymentError(error.message);
+      PaymentAlertService.showPaymentError(
+        error.message || 'Error al procesar el pago'
+      );
     } finally {
       setIsLoading(false);
     }
   }, [initializeStripePayment, presentPaymentSheet]);
 
   /**
-   * Main payment handler - routes to correct payment method
+   * Main payment handler
+   * Routes to appropriate payment method handler
    */
   const handlePayment = useCallback(async (): Promise<void> => {
     if (selectedPaymentMethod === 'efectivo') {
@@ -176,200 +251,89 @@ const orderData = PaymentUtils.parsePaymentParams(PaymentUtils.validateAndConver
   }, [selectedPaymentMethod, handleCashPayment, handleCardPayment]);
 
   /**
-   * Handles successful payment
+   * Handles successful payment completion
+   * Shows success message and navigates to home
    */
   const handlePaymentSuccess = useCallback((): void => {
     PaymentAlertService.showPaymentSuccess(() => {
-      // Navigate back to home or order history
       router.push('/(tabs)/HomeScreen');
     });
   }, [router]);
 
   /**
-   * Navigates back to order summary
+   * Navigates back to previous screen
    */
   const handleGoBack = useCallback((): void => {
     router.back();
   }, [router]);
 
   // ============================================================================
-  // Render Helpers
-  // ============================================================================
-
-  /**
-   * Renders payment method selector
-   */
-  const renderPaymentMethods = (): React.ReactElement => (
-    <View style={styles.paymentMethods}>
-      {/* Cash Button */}
-      <TouchableOpacity
-        style={[
-          styles.paymentButton,
-          selectedPaymentMethod === 'efectivo' && styles.paymentButtonActive,
-        ]}
-        onPress={() => setSelectedPaymentMethod('efectivo')}
-        accessibilityLabel={PAYMENT_TEXT.ACCESSIBILITY.SELECT_CASH}
-        accessibilityRole="button"
-      >
-        <Ionicons 
-          name="cash-outline" 
-          size={24} 
-          color={selectedPaymentMethod === 'efectivo' ? '#000' : '#666'} 
-        />
-        <Text
-          style={[
-            styles.paymentButtonText,
-            selectedPaymentMethod === 'efectivo' && styles.paymentButtonTextActive,
-          ]}
-        >
-          {PAYMENT_TEXT.METHODS.CASH}
-        </Text>
-      </TouchableOpacity>
-
-      {/* Card Button */}
-      <TouchableOpacity
-        style={[
-          styles.paymentButton,
-          styles.paymentButtonDark,
-          selectedPaymentMethod === 'tarjeta' && styles.paymentButtonActive,
-        ]}
-        onPress={() => setSelectedPaymentMethod('tarjeta')}
-        accessibilityLabel={PAYMENT_TEXT.ACCESSIBILITY.SELECT_CARD}
-        accessibilityRole="button"
-      >
-        <Ionicons name="card-outline" size={24} color="#FFF" />
-        <Text style={styles.paymentButtonTextWhite}>
-          {PAYMENT_TEXT.METHODS.CARD}
-        </Text>
-      </TouchableOpacity>
-    </View>
-  );
-
-  // ============================================================================
   // Main Render
   // ============================================================================
 
+  // Normalize delivery location to ensure required map delta properties exist
+  const normalizedLocation: DeliveryLocation = useMemo(() => {
+    const loc = orderData.deliveryLocation as Partial<DeliveryLocation> & {
+      latitude: number;
+      longitude: number;
+      address?: string;
+      latitudeDelta?: number;
+      longitudeDelta?: number;
+    };
+
+    return {
+      latitude: loc.latitude,
+      longitude: loc.longitude,
+      latitudeDelta: loc.latitudeDelta ?? 0.01,
+      longitudeDelta: loc.longitudeDelta ?? 0.01,
+      address: loc.address ?? '',
+    } as DeliveryLocation;
+  }, [orderData.deliveryLocation]);
+
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView 
+      style={styles.container}
+      showsVerticalScrollIndicator={false}
+    >
       <View style={styles.content}>
-        {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity 
-            style={styles.backButton} 
-            onPress={handleGoBack}
-            accessibilityLabel={PAYMENT_TEXT.ACCESSIBILITY.BACK}
-            accessibilityRole="button"
-          >
-            <Ionicons name="arrow-back" size={28} color="#000" />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>{PAYMENT_TEXT.HEADER.TITLE}</Text>
-          <View style={styles.placeholder} />
-        </View>
+        {/* Header with back button */}
+        <PaymentHeader onBackPress={handleGoBack} />
 
-        {/* Delivery Map */}
-        <View style={styles.mapContainer}>
-          <MapView
-  style={styles.map}
-  initialRegion={{
-    latitude: orderData.deliveryLocation.latitude,
-    longitude: orderData.deliveryLocation.longitude,
-    latitudeDelta: PAYMENT_CONFIG.MAP_DELTA,
-    longitudeDelta: PAYMENT_CONFIG.MAP_DELTA,
-  }}
->
-  <Marker 
-    coordinate={orderData.deliveryLocation}
-    title={PAYMENT_TEXT.MAP.DELIVERY_LOCATION}
-    description={orderData.restaurantName}
-  />
-</MapView>
-        </View>
+        {/* Delivery Map with restaurant marker */}
+        <DeliveryMap
+          location={normalizedLocation}
+          restaurantName={orderData.restaurantName}
+        />
 
-        {/* Delivery Info */}
-        <View style={styles.deliveryInfo}>
-          <View>
-            <Text style={styles.deliveryLabel}>
-              {PAYMENT_TEXT.DELIVERY.ESTIMATED_LABEL}
-            </Text>
-            <Text style={styles.restaurantName}>
-              {orderData.restaurantName}
-            </Text>
-          </View>
-          <View style={styles.deliveryTimeContainer}>
-            <Ionicons name="time-outline" size={20} color="#27AE60" />
-            <Text style={styles.deliveryTime}>
-              {PAYMENT_CONFIG.DEFAULT_DELIVERY_TIME}
-            </Text>
-          </View>
-        </View>
+        {/* Delivery Information */}
+        <DeliveryInfo restaurantName={orderData.restaurantName}
+          restaurantAddress={normalizedLocation.address} // ✅ Pasar la dirección
+         />
 
         {/* Order Summary */}
-        <View style={styles.orderSummary}>
-          <Text style={styles.productName}>{orderData.productName}</Text>
-          <Text style={styles.quantityText}>
-            {PAYMENT_TEXT.ORDER.QUANTITY}: {orderData.quantity}
-          </Text>
-        </View>
+        <OrderSummary
+          productName={orderData.productName}
+          quantity={orderData.quantity}
+        />
 
         {/* Price Breakdown */}
-        <View style={styles.totalsContainer}>
-          <View style={styles.priceRow}>
-            <Text style={styles.priceLabel}>
-              {PAYMENT_TEXT.PRICING.SUBTOTAL}
-            </Text>
-            <Text style={styles.priceValue}>
-              {PaymentUtils.formatCurrency(orderData.subtotal)}
-            </Text>
-          </View>
+        <PriceBreakdown
+          subtotal={orderData.subtotal}
+          discount={orderData.discount}
+          total={orderData.total}
+        />
 
-          {orderData.discount > 0 && (
-            <View style={styles.priceRow}>
-              <Text style={styles.priceLabelDiscount}>
-                {PAYMENT_TEXT.PRICING.DISCOUNT}
-              </Text>
-              <Text style={styles.priceValueDiscount}>
-                -{PaymentUtils.formatCurrency(orderData.discount)}
-              </Text>
-            </View>
-          )}
+        {/* Payment Method Selection */}
+        <PaymentMethodSelector
+          selectedMethod={selectedPaymentMethod}
+          onMethodChange={setSelectedPaymentMethod}
+        />
 
-          <View style={styles.divider} />
-
-          <View style={styles.priceRow}>
-            <Text style={styles.totalLabel}>
-              {PAYMENT_TEXT.PRICING.TOTAL}
-            </Text>
-            <Text style={styles.totalValue}>
-              {PaymentUtils.formatCurrency(orderData.total)}
-            </Text>
-          </View>
-        </View>
-
-        {/* Payment Methods */}
-        {renderPaymentMethods()}
-
-        {/* Proceed Button */}
-        <TouchableOpacity
-          style={[
-            styles.proceedButton,
-            isLoading && styles.proceedButtonDisabled,
-          ]}
+        {/* Proceed to Payment Button */}
+        <PaymentButton
           onPress={handlePayment}
-          disabled={isLoading}
-          accessibilityLabel={PAYMENT_TEXT.ACCESSIBILITY.PROCEED}
-          accessibilityRole="button"
-        >
-          {isLoading ? (
-            <ActivityIndicator color="#FFF" size="small" />
-          ) : (
-            <>
-              <Ionicons name="checkmark-circle" size={24} color="#FFF" />
-              <Text style={styles.proceedButtonText}>
-                {PAYMENT_TEXT.BUTTONS.PROCEED}
-              </Text>
-            </>
-          )}
-        </TouchableOpacity>
+          isLoading={isLoading}
+        />
       </View>
     </ScrollView>
   );

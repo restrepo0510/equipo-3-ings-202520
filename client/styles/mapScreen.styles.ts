@@ -136,31 +136,13 @@ export const mapStyles = StyleSheet.create({
     borderRadius:100,
   },
 
-  imageBadge: {
-    position: 'absolute',
-    top: 14,
-    left: 50,
-    right: 0,
-    backgroundColor: '#27AE60',
-    paddingVertical: 3,
-    paddingHorizontal: 4,
-    borderRadius: 4,
-    alignItems: 'center',
-  },
-
-  imageBadgeText: {
-    color: '#FFFFFF',
-    fontSize: 9,
-    fontWeight: 'bold',
-  },
-
   // ==========================================
   // SECCIÓN CENTRO: INFORMACIÓN
   // ==========================================
   infoSection: {
     flex: 1,
     paddingVertical: 10,
-    paddingHorizontal: 12,
+    paddingLeft: 10,
     justifyContent: 'center',
   },
 
@@ -193,23 +175,17 @@ export const mapStyles = StyleSheet.create({
   // SECCIÓN DERECHA: BOTÓN FLECHA
   // ==========================================
   buttonSection: {
-    width: 50,
+    position: 'absolute',
+    right:-20 ,
+    top:-12,
+    width: 130,
     justifyContent: 'center',
     alignItems: 'center',
     paddingRight: 8,
+    marginLeft:-20,
   },
 
-  arrowButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#F5F5F5',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
-  },
-
+  
   // ==========================================
   // ESTILOS LEGACY (mantener por compatibilidad)
   // ==========================================
@@ -217,7 +193,7 @@ export const mapStyles = StyleSheet.create({
     backgroundColor: '#004226',
     borderRadius: 20,
     paddingHorizontal: 14,
-    paddingVertical: 6,
+    paddingVertical: 10,
     alignSelf: 'flex-end',
     marginRight: 12,
   },
@@ -225,7 +201,8 @@ export const mapStyles = StyleSheet.create({
   viewProductsButtonText: {
     color: '#FFFFFF',
     fontWeight: 'bold',
-    fontSize: 14,
+    fontSize: 16,
+    
   },
 
   // ============================================================================

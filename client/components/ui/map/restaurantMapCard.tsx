@@ -115,8 +115,8 @@ export const RestaurantMapCard: React.FC<RestaurantMapCardProps> = ({
             SECCIÓN DERECHA: BOTÓN FLECHA
         ======================================== */}
         <View style={mapStyles.buttonSection}>
-            <View style={mapStyles.imageBadge}>
-            <Text style={mapStyles.imageBadgeText}>Ver prod...</Text>
+            <View style={mapStyles.viewProductsButton}>
+            <Text style={mapStyles.viewProductsButtonText}>Ver prod...</Text>
           </View>
         </View>
       </TouchableOpacity>

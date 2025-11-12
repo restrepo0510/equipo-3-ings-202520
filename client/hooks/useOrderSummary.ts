@@ -5,6 +5,7 @@ import { useRouter } from 'expo-router';
 import { ReservationAlertService } from '@/services/reservationAlertService';
 import { ReservationUtils } from '@/utils/reservation.utils';
 import type { OrderSummaryParams } from '@/types/reservation.types';
+import {restaurantService} from '@/services/restaurantService';
 
 /**
  * Hook return type
@@ -66,6 +67,7 @@ export const useOrderSummary = (): UseOrderSummaryReturn => {
       setIsProcessing(true);
 
       try {
+        const restaurantDetails = await restaurantService.getById(orderParams.restaurantId);
         // Calculate totals
         const totals = ReservationUtils.parseOrderParams(orderParams);
         
@@ -98,7 +100,8 @@ export const useOrderSummary = (): UseOrderSummaryReturn => {
                 restaurantId: orderParams.restaurantId,
                 restaurantName: orderParams.restaurantName,
                 restaurantAddress: orderParams.restaurantAddress || '',
-                
+                restaurantLatitude: restaurantDetails.latitude.toString(), // ✅ AÑADIR
+                restaurantLongitude: restaurantDetails.longitude.toString(), // ✅ AÑADIR
                 // Pricing
                 quantity: orderParams.quantity,
                 unitPrice: orderParams.price,

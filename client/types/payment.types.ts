@@ -34,6 +34,7 @@ export interface PaymentScreenParams {
   restaurantLatitude?: string;
   restaurantLongitude?: string;
   
+  
   /** Pricing */
   quantity: string;
   unitPrice: string;
@@ -89,6 +90,8 @@ export interface DeliveryLocation {
   latitude: number;
   longitude: number;
   address?: string;
+  latitudeDelta: number;
+  longitudeDelta: number;
 }
 
 /**

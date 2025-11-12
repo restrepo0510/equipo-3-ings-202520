@@ -2,6 +2,24 @@
 
 import { StyleSheet } from 'react-native';
 
+const COLORS = {
+  background: '#F5F5F5',
+  white: '#FFFFFF',
+  black: '#000000',
+  primary: '#1B5E20',
+  secondary: '#9DC183',
+  dark: '#2C2C2C',
+  text: {
+    primary: '#000000',
+    secondary: '#666666',
+    light: '#999999',
+  },
+  accent: '#27AE60',
+  error: '#E74C3C',
+  discount: '#E74C3C',
+  border: '#E0E0E0',
+} as const;
+
 /**
  * PaymentScreen Component Styles
  */
@@ -67,6 +85,17 @@ export const styles = StyleSheet.create({
     flex: 1,
   },
 
+  mapError: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: COLORS.background,
+  },
+
+  mapErrorText: {
+    marginTop: 8,
+    fontSize: 14,
+    color: COLORS.text.light,
+  },
   // ============================================================================
   // Delivery Info
   // ============================================================================
@@ -91,7 +120,33 @@ export const styles = StyleSheet.create({
     color: '#7F8C8D',
     marginBottom: 4,
   },
+// En paymentScreen.styles.ts - agregar estos estilos
+restaurantText: {
+  flex: 1,
+  marginLeft: 12,
+},
 
+restaurantAddress: {
+  fontSize: 14,
+  color: '#7F8C8D',
+  marginTop: 4,
+},
+
+markerContainer: {
+  backgroundColor: 'white',
+  padding: 8,
+  borderRadius: 20,
+  borderWidth: 2,
+  borderColor: '#FF6B6B',
+  shadowColor: '#000',
+  shadowOffset: {
+    width: 0,
+    height: 2,
+  },
+  shadowOpacity: 0.25,
+  shadowRadius: 3.84,
+  elevation: 5,
+},
   restaurantName: {
     fontSize: 16,
     fontWeight: '700',
