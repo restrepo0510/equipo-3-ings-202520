@@ -18,7 +18,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useBusinessProfile } from '@/hooks/useBusinessProfile';
 import { useBusinessProfileImage } from '@/hooks/useBusinessProfileImage';
 import { styles } from '@/styles/editBusinessProfileScreen.styles';
-import { CustomAlertHelper } from '@/components/ui/CustomAlert';
+import { CustomAlertHelper } from '@/components/ui/customAlert';
 import { 
   BUSINESS_PROFILE_TEXT, 
   BUSINESS_PROFILE_ICONS 

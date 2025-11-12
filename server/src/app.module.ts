@@ -6,6 +6,7 @@ import { UsersModule } from './users/users.module';
 import { RestaurantsModule } from './restaurants/restaurants.module';
 import { ProductsModule } from './products/products.module';
 import { FavoritesModule } from './favorites/favorites.module';
+import { ReviewsModule } from './reviews/reviews.module';
 
 
 @Module({
@@ -26,6 +27,7 @@ import { FavoritesModule } from './favorites/favorites.module';
     AuthModule,
     UsersModule,
     RestaurantsModule,
+    ReviewsModule,
     ProductsModule,
     FavoritesModule,
   ],

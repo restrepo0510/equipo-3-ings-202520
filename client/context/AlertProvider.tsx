@@ -1,6 +1,6 @@
 // context/AlertProvider.tsx
 import React, { useState, useRef, useImperativeHandle, forwardRef } from 'react';
-import { CustomAlert, CustomAlertProps, CustomAlertHelper } from '@/components/ui/CustomAlert';
+import { CustomAlert, CustomAlertProps, CustomAlertHelper } from '@/components/ui/customAlert';
 
 interface AlertProviderProps {
   children: React.ReactNode;

@@ -1,6 +1,6 @@
 // services/authAlertService.ts
 
-import { CustomAlertHelper } from '@/components/ui/CustomAlert';
+import { CustomAlertHelper } from '@/components/ui/customAlert';
 import { ERROR_MESSAGES } from '@/constants/auth.constants';
 
 /**

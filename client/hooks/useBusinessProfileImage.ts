@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import * as ImagePicker from 'expo-image-picker';
-import { CustomAlertHelper } from '@/components/ui/CustomAlert';
+import { CustomAlertHelper } from '@/components/ui/customAlert';
 import { BUSINESS_PROFILE_TEXT, BUSINESS_PROFILE_CONSTANTS } from '@/constants/businessProfile.constants';
 
 /**

@@ -23,8 +23,8 @@ export const profileStyles = StyleSheet.create({
         marginBottom: 10,
     },
     headerTitle: {
-        fontSize: 40,
-        fontWeight: "900",
+        fontSize: 30,
+        fontWeight: "700",
         color: "#000",
         letterSpacing: 0,
     },
@@ -34,13 +34,15 @@ export const profileStyles = StyleSheet.create({
         letterSpacing: 4,
         color: "#4A4A4A",
     },
-    divider: {
-        width: "85%",
+  divider: {
+        width: "75%",
         height: 2,
         backgroundColor: "#000",
         marginBottom: 20,
         borderRadius: 20,
+        alignSelf: "center",
     },
+
 
     // Profile Section
     profileSection: {
@@ -126,7 +128,7 @@ export const profileStyles = StyleSheet.create({
         fontWeight: 'bold',
         color: '#FFFFFF',
     },
-
+    
     // Decorative stars
     star1: {
         position: "absolute",

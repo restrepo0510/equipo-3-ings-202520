@@ -1,7 +1,7 @@
 // services/profileAlertService.ts
 
 import { PROFILE_TEXT, ProfileImageError } from '@/constants/profile.constants';
-import { CustomAlertHelper } from '@/components/ui/CustomAlert';
+import { CustomAlertHelper } from '@/components/ui/customAlert';
 
 /**
  * ProfileAlertService

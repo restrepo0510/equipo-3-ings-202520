@@ -17,7 +17,7 @@ import { productService, Product } from "@/services/productService";
 import { restaurantService } from "@/services/restaurantService";
 import { useAuth } from "@/context/AuthContext";
 import { styles } from "@/styles/businessProfileScreen.styles";
-import { CustomAlertHelper } from "@/components/ui/CustomAlert";
+import { CustomAlertHelper } from "@/components/ui/customAlert";
 
 export default function BusinessProfileScreen(): React.ReactElement {
   const router = useRouter();

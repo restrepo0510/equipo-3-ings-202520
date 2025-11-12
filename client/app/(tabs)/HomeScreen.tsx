@@ -1,6 +1,6 @@
-// screens/HomeScreen.tsx
+// app/(tabs)/HomeScreen.tsx
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -9,64 +9,61 @@ import {
   Image,
   TextInput,
   ActivityIndicator,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 
-// Hooks and services
-import { useLocation } from '../../hooks/useLocation';
-import { restaurantService, Restaurant } from '../../services/restaurantService';
+// Contextos y hooks
+import { useRestaurants } from "@/context/RestaurantsContext";
+import { useLocation } from "../../hooks/useLocation";
 
-// Components
-import { BottomNavigation } from '../../components/ui/BottomNavigation';
+// Servicios
+import { restaurantService, Restaurant } from "../../services/restaurantService";
 
-// Styles and constants
-import { styles, COLORS } from '../../styles/homeScreen.styles';
-import { DEFAULT_VALUES, PLACEHOLDER_IMAGES } from '../../constants/homeScreen.constants';
+// Componentes
+import { BottomNavigation } from "../../components/ui/BottomNavigation";
 
-// Navigation helper
-import { createNavItems } from '../../utils/navigationHelpers';
+// Estilos y constantes
+import { styles, COLORS } from "../../styles/homeScreen.styles";
+import {
+  DEFAULT_VALUES,
+  PLACEHOLDER_IMAGES,
+} from "../../constants/homeScreen.constants";
+
+// Navegación
+import { createNavItems } from "../../utils/navigationHelpers";
 
 /**
  * HomeScreen Component
  * 
- * Main screen that displays nearby restaurants in different layouts:
- * - Search bar for filtering restaurants
- * - Grid view for featured restaurants
- * - TOP 1 highlighted restaurant
- * - List view for additional restaurants
- * - Bottom navigation bar
- * 
- * Uses geolocation to fetch restaurants within a specified radius.
+ * Muestra los restaurantes cercanos al usuario, usando su ubicación actual.
+ * Incluye búsqueda, restaurante destacado (TOP 1) y lista de restaurantes.
  */
 export default function HomeScreen() {
-  // ============================================================================
-  // Navigation
-  // ============================================================================
-  
+  // ============================================================
+  // 🔹 Navegación
+  // ============================================================
   const router = useRouter();
-  // HomeScreen doesn't highlight any nav item - user is browsing
-  const navItems = createNavItems('home', router);
+  const navItems = createNavItems("home", router);
 
-  // ============================================================================
-  // State Management
-  // ============================================================================
-  
+  // ============================================================
+  // 🔹 Estados locales
+  // ============================================================
   const { location } = useLocation();
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
-  const [searchText, setSearchText] = useState('');
+  const [searchText, setSearchText] = useState("");
   const [userName] = useState(DEFAULT_VALUES.DEFAULT_USER_NAME);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // ============================================================================
-  // Data Fetching
-  // ============================================================================
+  // ============================================================
+  // 🔹 Contexto global de restaurantes
+  // ============================================================
+  const { setRestaurants: setGlobalRestaurants } = useRestaurants();
 
-  /**
-   * Loads restaurants from the service based on user's location
-   * Fetches restaurants within the default radius
-   */
+  // ============================================================
+  // 🔹 Cargar restaurantes cercanos
+  // ============================================================
   const loadRestaurants = useCallback(async () => {
     if (!location) return;
 
@@ -79,115 +76,104 @@ export default function HomeScreen() {
         longitude: location.longitude,
         radius: DEFAULT_VALUES.SEARCH_RADIUS_KM,
       });
-      
-      console.log('🍽️ Restaurants loaded:', data.length);
+
+      console.log("🍽️ Restaurants loaded:", data.length);
       setRestaurants(data);
+      setGlobalRestaurants(data); // 🔹 Sincroniza globalmente con AddReviewScreen
     } catch (error) {
-      console.error('❌ Error loading restaurants:', error);
-      setError('Could not load restaurants');
+      console.error("❌ Error loading restaurants:", error);
+      setError("No se pudieron cargar los restaurantes cercanos.");
     } finally {
       setIsLoading(false);
     }
-  }, [location]);
+  }, [location, setGlobalRestaurants]);
 
   useEffect(() => {
     loadRestaurants();
   }, [loadRestaurants]);
 
-  // ============================================================================
-  // Data Processing
-  // ============================================================================
-
-  /**
-   * Filters restaurants based on search text
-   * Case-insensitive search on restaurant names
-   */
-  const filteredRestaurants = restaurants.filter(restaurant =>
+  // ============================================================
+  // 🔹 Filtrado de restaurantes
+  // ============================================================
+  const filteredRestaurants = restaurants.filter((restaurant) =>
     restaurant.name.toLowerCase().includes(searchText.toLowerCase())
   );
 
-  /**
-   * Finds the top restaurant (first active one)
-   */
-  const topRestaurant = filteredRestaurants.find(r => r.isActive);
-
-  /**
-   * Gets other restaurants excluding the top one
-   * Only includes active restaurants
-   */
+  const topRestaurant = filteredRestaurants.find((r) => r.isActive);
   const otherRestaurants = filteredRestaurants.filter(
-    r => r.id !== topRestaurant?.id && r.isActive
+    (r) => r.id !== topRestaurant?.id && r.isActive
   );
 
-  // ============================================================================
-  // Event Handlers
-  // ============================================================================
-
-  const handleRestaurantPress = useCallback((restaurant: Restaurant) => {
-  console.log('Restaurant selected:', restaurant.name);
-  router.push({
-    pathname: '/(tabs)/MapScreen',
-    params: {
-      restaurantId: restaurant.id,
-      latitude: restaurant.latitude.toString(),
-      longitude: restaurant.longitude.toString(),
+  // ============================================================
+  // 🔹 Navegación al mapa
+  // ============================================================
+  const handleRestaurantPress = useCallback(
+    (restaurant: Restaurant) => {
+      console.log("Restaurant selected:", restaurant.name);
+      router.push({
+        pathname: "/(tabs)/MapScreen",
+        params: {
+          restaurantId: restaurant.id,
+          latitude: restaurant.latitude.toString(),
+          longitude: restaurant.longitude.toString(),
+        },
+      });
     },
-  });
-}, [router]);
-  // ============================================================================
-  // Render Functions
-  // ============================================================================
+    [router]
+  );
 
+  // ============================================================
+  // 🔹 Render de tarjeta en cuadrícula
+  // ============================================================
+  const renderGridCard = (restaurant: Restaurant, index: number) => (
+    <TouchableOpacity
+      key={restaurant.id}
+      style={[
+        styles.gridCard,
+        index % 2 === 0 ? styles.gridCardLeft : styles.gridCardRight,
+      ]}
+      onPress={() => handleRestaurantPress(restaurant)}
+      accessibilityRole="button"
+      accessibilityLabel={`Restaurant ${restaurant.name}`}
+    >
+      <View style={styles.gridCardInner}>
+        {/* Logo circular */}
+        <View style={styles.gridLogoContainer}>
+          <Image
+            source={{
+              uri:
+                restaurant.imageUrl || PLACEHOLDER_IMAGES.RESTAURANT_LOGO,
+            }}
+            style={styles.gridLogo}
+          />
+        </View>
 
-/**
- * Renders a grid restaurant card
- */
-const renderGridCard = (restaurant: Restaurant, index: number) => (
-  <TouchableOpacity
-    key={restaurant.id}
-    style={[
-      styles.gridCard,
-      index % 2 === 0 ? styles.gridCardLeft : styles.gridCardRight,
-    ]}
-    onPress={() => handleRestaurantPress(restaurant)}
-    accessibilityRole="button"
-    accessibilityLabel={`Restaurant ${restaurant.name}`}
-  >
-    <View style={styles.gridCardInner}>
-      {/* Circular Logo at Top */}
-      <View style={styles.gridLogoContainer}>
-        <Image
-          source={{ uri: restaurant.imageUrl || PLACEHOLDER_IMAGES.RESTAURANT_LOGO }}
-          style={styles.gridLogo}
-        />
-      </View>
-      
-  
-      
-      {/* Restaurant Image with Margins */}
-      <View style={styles.gridImageContainer}>
-        <Image
-          source={{ uri: restaurant.imageUrl || PLACEHOLDER_IMAGES.RESTAURANT_CARD }}
-          style={styles.gridImage}
-        />
-      </View>
-      
-      {/* Restaurant Name */}
-      <View style={styles.gridInfo}>
-        <Text style={styles.gridTitle} numberOfLines={2}>
-          {restaurant.name}
-        </Text>
-      </View>
-    </View>
-  </TouchableOpacity>
-);
+        {/* Imagen principal */}
+        <View style={styles.gridImageContainer}>
+          <Image
+            source={{
+              uri:
+                restaurant.imageUrl || PLACEHOLDER_IMAGES.RESTAURANT_CARD,
+            }}
+            style={styles.gridImage}
+          />
+        </View>
 
-  /**
-   * Renders the TOP 1 restaurant section with images side by side
-   */
+        {/* Nombre */}
+        <View style={styles.gridInfo}>
+          <Text style={styles.gridTitle} numberOfLines={2}>
+            {restaurant.name}
+          </Text>
+        </View>
+      </View>
+    </TouchableOpacity>
+  );
+
+  // ============================================================
+  // 🔹 Render restaurante TOP 1
+  // ============================================================
   const renderTopRestaurant = (restaurant: Restaurant) => (
     <View style={styles.topSection}>
-      {/* TOP 1 Badge */}
       <View style={styles.topBadge}>
         <Ionicons name="trophy" size={20} color="#FFF" />
         <Text style={styles.topBadgeText}>TOP 1</Text>
@@ -196,45 +182,46 @@ const renderGridCard = (restaurant: Restaurant, index: number) => (
       <TouchableOpacity
         style={styles.topCard}
         onPress={() => handleRestaurantPress(restaurant)}
-        accessibilityRole="button"
-        accessibilityLabel={`Top restaurant ${restaurant.name}`}
       >
-        {/* Decorative Leaf - Left */}
+        {/* Decoraciones */}
         <Image
-          source={require('../../assets/img/leaf.png')}
+          source={require("../../assets/img/leaf.png")}
           style={styles.topLeafLeft}
           resizeMode="contain"
         />
-        
-        {/* Decorative Leaf - Right */}
         <Image
-          source={require('../../assets/img/leaf.png')}
+          source={require("../../assets/img/leaf.png")}
           style={styles.topLeafRight}
           resizeMode="contain"
         />
 
-        {/* Images Row - Main image and Logo side by side */}
+        {/* Imagen principal + logo */}
         <View style={styles.topImagesRow}>
-          {/* Main Restaurant Image (Left) */}
           <View style={styles.topImageContainer}>
             <Image
-              source={{ uri: restaurant.imageUrl || PLACEHOLDER_IMAGES.RESTAURANT_TOP }}
+              source={{
+                uri:
+                  restaurant.imageUrl ||
+                  PLACEHOLDER_IMAGES.RESTAURANT_TOP,
+              }}
               style={styles.topImage}
               resizeMode="cover"
             />
           </View>
-          
-          {/* Restaurant Logo (Right, Square) */}
+
           <View style={styles.topLogoContainer}>
             <Image
-              source={{ uri: restaurant.imageUrl || PLACEHOLDER_IMAGES.RESTAURANT_LOGO }}
+              source={{
+                uri:
+                  restaurant.imageUrl ||
+                  PLACEHOLDER_IMAGES.RESTAURANT_LOGO,
+              }}
               style={styles.topLogoImage}
               resizeMode="cover"
             />
           </View>
         </View>
 
-        {/* Restaurant Name (Right aligned) */}
         <View style={styles.topInfo}>
           <Text style={styles.topTitle}>{restaurant.name}</Text>
         </View>
@@ -242,9 +229,9 @@ const renderGridCard = (restaurant: Restaurant, index: number) => (
     </View>
   );
 
-  /**
-   * Renders a list restaurant card
-   */
+  // ============================================================
+  // 🔹 Render lista de restaurantes
+  // ============================================================
   const renderListCard = (restaurant: Restaurant) => (
     <TouchableOpacity
       key={restaurant.id}
@@ -253,7 +240,10 @@ const renderGridCard = (restaurant: Restaurant, index: number) => (
       accessibilityRole="button"
     >
       <Image
-        source={{ uri: restaurant.imageUrl || PLACEHOLDER_IMAGES.RESTAURANT_LIST }}
+        source={{
+          uri:
+            restaurant.imageUrl || PLACEHOLDER_IMAGES.RESTAURANT_LIST,
+        }}
         style={styles.listImage}
       />
       <View style={styles.listInfo}>
@@ -270,34 +260,44 @@ const renderGridCard = (restaurant: Restaurant, index: number) => (
       {restaurant.isActive && <View style={styles.activeIndicator} />}
     </TouchableOpacity>
   );
- 
 
-  // ============================================================================
-  // Main Render
-  // ============================================================================
-
-  // Loading state
+  // ============================================================
+  // 🔹 Render principal
+  // ============================================================
   if (isLoading && restaurants.length === 0) {
     return (
-      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+      <View
+        style={[
+          styles.container,
+          { justifyContent: "center", alignItems: "center" },
+        ]}
+      >
         <ActivityIndicator size="large" color={COLORS.primary} />
         <Text style={{ marginTop: 10, color: COLORS.text.secondary }}>
-          Loading restaurants...
+          Cargando restaurantes...
         </Text>
       </View>
     );
   }
 
-  // Error state
   if (error) {
     return (
-      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+      <View
+        style={[
+          styles.container,
+          { justifyContent: "center", alignItems: "center" },
+        ]}
+      >
         <Text style={{ color: COLORS.error, marginBottom: 10 }}>{error}</Text>
         <TouchableOpacity
           onPress={loadRestaurants}
-          style={{ padding: 10, backgroundColor: COLORS.primary, borderRadius: 8 }}
+          style={{
+            padding: 10,
+            backgroundColor: COLORS.primary,
+            borderRadius: 8,
+          }}
         >
-          <Text style={{ color: COLORS.white }}>Retry</Text>
+          <Text style={{ color: COLORS.white }}>Reintentar</Text>
         </TouchableOpacity>
       </View>
     );
@@ -308,15 +308,14 @@ const renderGridCard = (restaurant: Restaurant, index: number) => (
       {/* Header */}
       <View style={styles.header}>
         <Image
-          source={require('../../assets/img/logo2.png')}
+          source={require("../../assets/img/logo2.png")}
           style={styles.logo}
           resizeMode="contain"
-          accessibilityLabel="App logo"
         />
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Search Bar */}
+        {/* Barra de búsqueda */}
         <View style={styles.searchContainer}>
           <Ionicons
             name="search"
@@ -330,29 +329,28 @@ const renderGridCard = (restaurant: Restaurant, index: number) => (
             value={searchText}
             onChangeText={setSearchText}
             placeholderTextColor={COLORS.text.placeholder}
-            accessibilityLabel="Search restaurants"
           />
         </View>
 
-        {/* Greeting */}
+        {/* Bienvenida */}
         <View style={styles.greetingContainer}>
           <Text style={styles.greetingText}>
-            <Text style={styles.greetingBold}>Bienvenido</Text>{' '}
+            <Text style={styles.greetingBold}>Bienvenido</Text>{" "}
             <Text style={styles.greetingName}>{userName}</Text>
           </Text>
         </View>
 
-        {/* Grid of Featured Restaurants */}
+        {/* Grid de restaurantes */}
         <View style={[styles.gridContainer, { marginTop: 30 }]}>
           {otherRestaurants
             .slice(0, DEFAULT_VALUES.GRID_RESTAURANT_COUNT)
             .map(renderGridCard)}
         </View>
 
-        {/* TOP 1 Restaurant */}
+        {/* Restaurante TOP 1 */}
         {topRestaurant && renderTopRestaurant(topRestaurant)}
 
-        {/* Additional Restaurants List */}
+        {/* Lista de otros restaurantes */}
         <View style={styles.moreSection}>
           {otherRestaurants
             .slice(DEFAULT_VALUES.TOP_RESTAURANT_SLICE_START)

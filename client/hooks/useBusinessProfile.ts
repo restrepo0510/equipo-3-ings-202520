@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { restaurantService } from '@/services/restaurantService';
 import { BusinessProfileValidator, BusinessProfileData } from '@/utils/businessProfile.validators';
-import { CustomAlertHelper } from '@/components/ui/CustomAlert';
+import { CustomAlertHelper } from '@/components/ui/customAlert';
 import { BUSINESS_PROFILE_TEXT } from '@/constants/businessProfile.constants';
 
 /**
