@@ -17,8 +17,8 @@ export const REVIEWS_CONSTANTS = {
   UI: {
     MAX_DROPDOWN_HEIGHT: 250,
     STAR_SIZE: 32,
-    STAR_SIZE_SMALL: 20,
-    STAR_SIZE_MEDIUM: 18,
+    STAR_SIZE_SMALL: 18,
+    STAR_SIZE_MEDIUM: 20,
     PRODUCT_IMAGE_SIZE: 60,
     REVIEW_CARD_IMAGE_SIZE: 50,
     ICON_SIZE: 24,
@@ -42,11 +42,12 @@ export const REVIEWS_TEXT = {
     SUBTITLE: 'Opiniones',
   },
   ADD_REVIEW: {
+    ADD_REVIEW_TITLE: 'Agregar Reseña',
     SELECT_RESTAURANT: 'Selecciona un restaurante',
     SELECT_PRODUCT: 'Selecciona un producto',
     RATE_AND_REVIEW: 'Puntúa y opina',
     WRITE_REVIEW: 'Escribe tu reseña...',
-    RESTAURANT_PLACEHOLDER: 'Seleccione un restaurante',
+    RESTAURANT_PLACEHOLDER: 'Quiero opinar sobre... ',
     PRODUCT_PLACEHOLDER: 'Seleccione un producto',
   },
   READ_REVIEW: {
@@ -84,7 +85,7 @@ export const REVIEWS_TEXT = {
   ACCESSIBILITY: {
     BACK_BUTTON: 'Volver',
     STAR_RATING: 'Calificación de estrellas',
-    SELECT_RESTAURANT: 'Seleccionar restaurante',
+    SELECT_RESTAURANT: 'Quiero opinar sobre...',
     SELECT_PRODUCT: 'Seleccionar producto',
     SUBMIT_REVIEW: 'Enviar reseña',
     VIEW_REVIEW: 'Ver reseña completa',

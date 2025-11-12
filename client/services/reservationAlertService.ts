@@ -1,6 +1,6 @@
 // services/reservationAlertService.ts
 
-import { CustomAlertHelper } from '@/components/ui/CustomAlert';
+import { CustomAlertHelper } from '@/components/ui/customAlert';
 import { RESERVATION_TEXT } from '@/constants/reservations.constants';
 
 /**

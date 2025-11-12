@@ -1,6 +1,6 @@
 // services/favoritesAlertService.ts
 
-import { CustomAlertHelper } from '@/components/ui/CustomAlert';
+import { CustomAlertHelper } from '@/components/ui/customAlert';
 import { FAVORITES_TEXT } from '@/constants/favorites.constants';
 
 /**

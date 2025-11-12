@@ -4,37 +4,53 @@ import { StyleSheet } from "react-native";
 export const profileStyles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#ffffffff",
+    backgroundColor: "#FFFFFF",
+    paddingHorizontal: 10,
+    paddingTop: 40,
   },
+  
+  // Header - ✅ Mismo estilo que ReviewsScreen
   header: {
     flexDirection: "row",
     alignItems: "center",
-    paddingTop: 50,
-    paddingHorizontal: 16,
-    paddingBottom: 16,
-    backgroundColor: "#FFF",
+    justifyContent: "space-between",
+    width: "100%",
+    paddingHorizontal: 20,
+    marginBottom: 10,
   },
-  divider: {
-        width: "80%",
-        height: 2,
-        left:35,
-        backgroundColor: "#000",
-        marginBottom: 20,
-    },
+  
   backButton: {
-    marginRight: 12,
+    marginRight: 0,
   },
+  
   headerTitle: {
-    fontSize: 20,
-    fontWeight: "400",
-    color: "#000",
+    flex: 1,
+    textAlign: "center",
+    fontSize: 30,
+    fontWeight: "600",
+    color: "#1E1E1E",
   },
+  
   yummi: {
-    fontWeight: "700",
-    letterSpacing: 2,
+    fontStyle: "italic",
+    fontWeight: "200",
+    letterSpacing: 4,
+    color: "#4A4A4A",
   },
+  
+  // Divider - ✅ Mismo estilo que ReviewsScreen
+  divider: {
+    width: "85%",
+    height: 2,
+    backgroundColor: "#000",
+    marginBottom: 30,
+    borderRadius: 20,
+    alignSelf: "center",
+  },
+  
   scrollContent: {
     padding: 20,
+    paddingBottom: 100,
   },
   productCard: {
     backgroundColor: "#FFF",
@@ -53,8 +69,8 @@ export const profileStyles = StyleSheet.create({
     position: "relative",
   },
   productImage: {
-    width: 70,
-    height: 70,
+    width: 100,
+    height: 100,
     borderRadius: 12,
     marginRight: 12,
     backgroundColor: "#F0F0F0",
@@ -76,12 +92,12 @@ export const profileStyles = StyleSheet.create({
   visitButton: {
     position: "absolute",
     top: -15,
-    right: -5,
+    right: -10,
     backgroundColor: "#778959",
     borderColor: "#ffffffff",
     borderWidth: 2,
     paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingVertical: 10,
     borderRadius: 16,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
@@ -91,7 +107,7 @@ export const profileStyles = StyleSheet.create({
   },
   visitButtonText: {
     color: "#FFF",
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: "600",
   },
   reviewBox: {
@@ -121,5 +137,6 @@ export const profileStyles = StyleSheet.create({
   starsRow: {
     flexDirection: "row",
     marginBottom: 8,
+    marginLeft: 8,
   },
 });

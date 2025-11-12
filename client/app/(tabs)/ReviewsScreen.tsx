@@ -1,6 +1,6 @@
 // app/(tabs)/ReviewsScreen.tsx
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -25,19 +25,13 @@ import {
   REVIEWS_ICONS, 
   REVIEWS_CONSTANTS 
 } from '@/constants/reviews.constants';
-import { profileStyles as styles } from '@/styles/ReviewsScreen.styles';
+import { profileStyles as styles } from '@/styles/reviewsScreen.styles';
 import type { RestaurantSummary, FormattedReview } from '@/types/reviews.types';
 
 /**
  * ReviewsScreen Component
  * 
  * Displays list of reviews with restaurant filtering
- * 
- * @responsibilities
- * - Display reviews list
- * - Filter by restaurant
- * - Navigate to review details
- * - Navigate to add review
  */
 export default function ReviewsScreen(): React.ReactElement {
   // ============================================================================
@@ -72,6 +66,9 @@ export default function ReviewsScreen(): React.ReactElement {
   );
   const [dropdownVisible, setDropdownVisible] = useState(false);
 
+  // ✅ Ref para evitar cargar reviews múltiples veces
+  const reviewsLoadedRef = useRef(false);
+
   // ============================================================================
   // Effects
   // ============================================================================
@@ -81,7 +78,6 @@ export default function ReviewsScreen(): React.ReactElement {
    */
   useEffect(() => {
     if (globalRestaurants.length > 0) {
-      // Use global restaurants if available
       return;
     }
 
@@ -92,16 +88,24 @@ export default function ReviewsScreen(): React.ReactElement {
 
   /**
    * Load all reviews when restaurants are available
+   * ✅ CORREGIDO: Solo se ejecuta UNA VEZ cuando hay restaurantes
    */
   useEffect(() => {
+    // Si ya se cargaron, no volver a cargar
+    if (reviewsLoadedRef.current) {
+      return;
+    }
+
     const restaurants = globalRestaurants.length > 0 
       ? globalRestaurants 
       : localRestaurants;
 
     if (restaurants.length > 0 && token) {
+      console.log('📥 Loading reviews for', restaurants.length, 'restaurants');
+      reviewsLoadedRef.current = true;
       loadAllReviews(restaurants);
     }
-  }, [localRestaurants, globalRestaurants, token, loadAllReviews]);
+  }, [localRestaurants.length, globalRestaurants.length, token]); // ✅ Solo longitud, no arrays completos
 
   /**
    * Filter reviews when restaurant selection changes
@@ -119,9 +123,10 @@ export default function ReviewsScreen(): React.ReactElement {
     const restaurant = restaurants.find(r => r.name === selectedRestaurant);
     
     if (restaurant) {
+      console.log('🔍 Filtering reviews for:', restaurant.name);
       loadReviewsByRestaurant(restaurant.id);
     }
-  }, [selectedRestaurant, globalRestaurants, localRestaurants]);
+  }, [selectedRestaurant]); // ✅ Solo cuando cambia la selección
 
   // ============================================================================
   // Handlers
@@ -201,47 +206,46 @@ export default function ReviewsScreen(): React.ReactElement {
   /**
    * Renders a single review card
    */
-const renderReviewCard = (review: FormattedReview): React.ReactElement => (
-  <View key={review.id} style={styles.reviewCardContainer}>
-    
-    {/* Estrellas por encima del card */}
-    <View style={styles.starsAbsolute}>
-      {renderStars(review.rating)}
-    </View>
+  const renderReviewCard = (review: FormattedReview): React.ReactElement => (
+    <View key={review.id} style={styles.reviewCardContainer}>
+      {/* Estrellas por encima del card */}
+      <View style={styles.starsAbsolute}>
+        {renderStars(review.rating)}
+      </View>
 
-    {/* Card */}
-    <View style={styles.reviewCard}>
-      <View style={styles.reviewContent}>
-        {review.image && (
-          <Image 
-            source={{ uri: review.image.uri }}
-            style={styles.foodImage}
-          />
-        )}
+      {/* Card */}
+      <View style={styles.reviewCard}>
+        <View style={styles.reviewContent}>
+          {review.image && (
+            <Image 
+              source={{ uri: review.image.uri }}
+              style={styles.foodImage}
+            />
+          )}
 
-        <View style={styles.textContainer}>
-          <Text style={styles.reviewerName}>{review.namep}</Text>
-          <Text style={styles.reviewText} numberOfLines={2}>
-            {review.text}
-          </Text>
+          <View style={styles.textContainer}>
+            <Text style={styles.reviewerName}>{review.namep}</Text>
+            <Text style={styles.reviewText} numberOfLines={2}>
+              {review.text}
+            </Text>
+          </View>
+
+          <TouchableOpacity
+            style={styles.reviewButton}
+            onPress={() => handleViewReview(review)}
+          >
+            <Text style={styles.reviewButtonText}>
+              Ver reseña
+            </Text>
+          </TouchableOpacity>
         </View>
-
-        <TouchableOpacity
-          style={styles.reviewButton}
-          onPress={() => handleViewReview(review)}
-        >
-          <Text style={styles.reviewButtonText}>
-            Ver reseña
-          </Text>
-        </TouchableOpacity>
       </View>
     </View>
-  </View>
-);
+  );
 
-
-  /**
+/**
    * Renders restaurant dropdown
+   * ✅ CORREGIDO: Ahora muestra scroll interno
    */
   const renderRestaurantDropdown = (): React.ReactElement => {
     const restaurants = globalRestaurants.length > 0 
@@ -265,7 +269,11 @@ const renderReviewCard = (review: FormattedReview): React.ReactElement => (
         </TouchableOpacity>
 
         {dropdownVisible && (
-          <View style={styles.dropdownList}>
+          <ScrollView 
+            style={styles.dropdownList}
+            nestedScrollEnabled
+            showsVerticalScrollIndicator={true}
+          >
             {isLoadingRestaurants ? (
               <ActivityIndicator 
                 size="small" 
@@ -287,7 +295,7 @@ const renderReviewCard = (review: FormattedReview): React.ReactElement => (
                 {REVIEWS_TEXT.EMPTY.NO_RESTAURANTS_AVAILABLE}
               </Text>
             )}
-          </View>
+          </ScrollView>
         )}
       </>
     );
@@ -354,15 +362,14 @@ const renderReviewCard = (review: FormattedReview): React.ReactElement => (
         {/* Restaurant Filter */}
         {renderRestaurantDropdown()}
 
-
         {/* Reviews List */}
         {renderReviewsList()}
       </ScrollView>
-<View style={styles.divider2} />
 
+      <View style={styles.divider} />
 
       {/* Add Review Input */}
-      <View style={styles.inputContainerFixed}>
+      <View style={styles.inputContainer}>
         <TouchableOpacity
           style={{ flex: 1 }}
           onPress={handleAddReview}

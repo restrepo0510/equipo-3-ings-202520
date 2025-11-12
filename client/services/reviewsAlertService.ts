@@ -1,6 +1,6 @@
 // services/reviewsAlertService.ts
 
-import { CustomAlertHelper } from '@/components/ui/CustomAlert';
+import { CustomAlertHelper } from '@/components/ui/customAlert';
 import { REVIEWS_TEXT } from '@/constants/reviews.constants';
 
 /**

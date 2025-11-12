@@ -3,65 +3,112 @@ import { StyleSheet } from "react-native";
 export const profileStyles = StyleSheet.create({
   container: { 
     flex: 1, 
-    backgroundColor: "#fffefeff" 
+    backgroundColor: "#FFFFFF",
+    paddingHorizontal: 10,
+    paddingTop: 40,
+    alignContent: "center",
   },
+  
+  // Header - ✅ Mismo estilo que ReviewsScreen
   header: {
     flexDirection: "row",
     alignItems: "center",
-    paddingTop: 50,
+    justifyContent: "space-between",
+    width: "100%",
     paddingHorizontal: 20,
-    paddingBottom: 16,
-    backgroundColor: "#FFF",
-  },
-  backButton: { 
-    marginRight: 12 
-  },
-  headerTitle: { 
-    fontSize: 20, 
-    fontWeight: "600", 
-    color: "#000",
-    letterSpacing: 1,
-  },
-  yummi: { 
-    color: "#000",
-    fontWeight: "700",
-    fontStyle: "italic",
-  },
-  divider: {
-    width: "90%",
-    height: 2,
-    left:20,
-    backgroundColor: "#000",
-    marginVertical: 10,
-  },
-  scrollContent: { 
-    padding: 20,
-    paddingBottom: 100,
-  },
-  section: { 
-    marginBottom: 24 
-  },
-  sectionTitle: { 
-    fontSize: 18, 
-    fontWeight: "700", 
-    marginBottom: 12,
-    color: "#000",
+    marginBottom: 10,
   },
   
-  // Dropdown de restaurante
-   dropdownList: {
-  backgroundColor: "#FFF",
-  borderWidth: 2,
-  borderColor: "#E0E0E0",
-  borderRadius: 12,
-  marginTop: 8,
-  maxHeight: 250, // ← Altura fija con scroll
-  shadowColor: "#000",
-  shadowOffset: { width: 0, height: 2 },
-  shadowOpacity: 0.1,
-  shadowRadius: 4,
-  elevation: 3,
-},
+  backButton: { 
+    marginRight: 0,
+  },
+  
+  headerTitle: { 
+    flex: 1,
+    textAlign: "center",
+    fontSize: 30,
+    fontWeight: "600",
+    color: "#1E1E1E",
+  },
+  
+  yummi: { 
+    fontStyle: "italic",
+    fontWeight: "200",
+    letterSpacing: 4,
+    color: "#4A4A4A",
+  },
+  
+  // Divider -
+  divider: {
+    width: "85%",
+    height: 2,
+    backgroundColor: "#000",
+    marginBottom: 30,
+    borderRadius: 20,
+    alignSelf: "center",
+  },
+  
+  scrollContent: { 
+    padding: 10,
+    paddingBottom: 100,
+  },
+  
+  section: { 
+    marginBottom: 24, 
+    marginTop: -15
+  },
+  
+  sectionTitle: { 
+    fontSize: 28, 
+    fontWeight: "700", 
+    marginBottom: 18,
+    color: "#000",
+    alignSelf: "center",
+  },
+  sectionSubTitle: { 
+    fontSize: 18, 
+    fontWeight: "700", 
+    marginBottom: 18,
+    color: "#000",
+  },
+  dropdown: {
+    backgroundColor: "#E7EBDF",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    borderWidth: 2,
+    borderColor: "#000",
+    borderRadius: 15,
+    paddingHorizontal: 50,
+    paddingVertical: 6,
+    alignSelf: "center",
+    marginBottom: 20,
+  },
+  
+  dropdownText: {
+    fontSize: 18,
+    color: "#333",
+    fontWeight: "600",
+  },
+  
+  // Dropdown 
+  dropdownList: {
+    backgroundColor: "#FFF",
+    borderWidth: 2,
+    borderColor: "#000",
+    borderRadius: 15,
+    marginTop: 8,
+    marginBottom: 20,
+    maxHeight: 200,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 5,
+    zIndex: 1000,
+    position: 'relative',
+  },
+  
   dropdownItem: {
     paddingVertical: 12,
     paddingHorizontal: 16,
@@ -69,42 +116,45 @@ export const profileStyles = StyleSheet.create({
     borderBottomColor: "#F0F0F0",
     backgroundColor: "#FFF",
   },
+  
   dropdownItemText: {
     fontSize: 15,
     color: "#333",
   },
-  // Card de producto
+  
+  // Card 
   productCard: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#FFF",
     borderWidth: 2,
-    borderColor: "#E0E0E0",
+    borderColor: "#A6B89F",
     borderRadius: 16,
     padding: 12,
     marginBottom: 12,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-    elevation: 2,
+    boxShadow: '0px 6px 6px rgba(0, 0, 0, 0.1)',
+
   },
+  
   productImage: {
-    width: 60,
-    height: 60,
+    width:100,
+    height: 100,
     borderRadius: 12,
     marginRight: 12,
     backgroundColor: "#F0F0F0",
   },
+  
   productInfo: {
     flex: 1,
   },
+  
   productName: {
     fontSize: 16,
     fontWeight: "700",
     color: "#000",
     marginBottom: 4,
   },
+  
   productDescription: {
     fontSize: 13,
     color: "#666",
@@ -135,12 +185,14 @@ export const profileStyles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
+  
   input: { 
     flex: 1, 
     height: 40,
     fontSize: 15,
     color: "#333",
   },
+  
   sendButton: {
     backgroundColor: "#000",
     width: 40,

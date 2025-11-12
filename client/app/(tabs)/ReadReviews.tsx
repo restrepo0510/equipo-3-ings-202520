@@ -18,7 +18,7 @@ import {
   REVIEWS_ICONS, 
   REVIEWS_CONSTANTS 
 } from '@/constants/reviews.constants';
-import { profileStyles as styles } from '@/styles/ReadReviews.styles';
+import { profileStyles as styles } from '@/styles/readReviews.styles';
 
 /**
  * ReadReviews Component

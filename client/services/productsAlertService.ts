@@ -1,6 +1,6 @@
 // services/productsAlertService.ts
 
-import { CustomAlertHelper } from '@/components/ui/CustomAlert';
+import { CustomAlertHelper } from '@/components/ui/customAlert';
 import { PRODUCTS_TEXT } from '@/constants/products.constants';
 
 /**

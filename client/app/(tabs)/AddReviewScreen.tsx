@@ -24,7 +24,7 @@ import {
   REVIEWS_ICONS, 
   REVIEWS_CONSTANTS 
 } from '@/constants/reviews.constants';
-import { profileStyles as styles } from '@/styles/AddReviewScreen.styles';
+import { profileStyles as styles } from '@/styles/addReviewScreen.styles';
 import type { RestaurantSummary, ProductSummary } from '@/types/reviews.types';
 
 /**
@@ -170,19 +170,20 @@ export default function AddReviewScreen(): React.ReactElement {
     </View>
   );
 
-  /**
+ /**
    * Renders restaurant dropdown
+   * ✅ ACTUALIZADO: Ahora con scroll interno como ReviewsScreen
    */
   const renderRestaurantDropdown = (): React.ReactElement => (
     <>
       <TouchableOpacity
-        style={styles.dropdownList}
+        style={styles.dropdown}
         onPress={toggleDropdown}
         disabled={isLoadingRestaurants}
         accessibilityLabel={REVIEWS_TEXT.ACCESSIBILITY.SELECT_RESTAURANT}
         accessibilityRole="button"
       >
-        <Text style={styles.dropdownItemText}>
+        <Text style={styles.dropdownText}>
           {selectedRestaurant 
             ? selectedRestaurant.name 
             : REVIEWS_TEXT.ADD_REVIEW.RESTAURANT_PLACEHOLDER}
@@ -195,7 +196,11 @@ export default function AddReviewScreen(): React.ReactElement {
       </TouchableOpacity>
 
       {dropdownVisible && (
-        <ScrollView style={styles.dropdownList} nestedScrollEnabled>
+        <ScrollView 
+          style={styles.dropdownList} 
+          nestedScrollEnabled
+          showsVerticalScrollIndicator={true}
+        >
           {isLoadingRestaurants ? (
             <ActivityIndicator 
               size="small" 
@@ -230,7 +235,7 @@ export default function AddReviewScreen(): React.ReactElement {
 
     return (
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>
+        <Text style={styles.sectionSubTitle}>
           {REVIEWS_TEXT.ADD_REVIEW.SELECT_PRODUCT}
         </Text>
         
@@ -286,7 +291,7 @@ export default function AddReviewScreen(): React.ReactElement {
     return (
       <>
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>
+          <Text style={styles.sectionSubTitle}>
             {REVIEWS_TEXT.ADD_REVIEW.RATE_AND_REVIEW}
           </Text>
           {renderStarRating()}
@@ -359,6 +364,9 @@ export default function AddReviewScreen(): React.ReactElement {
         {/* Select Restaurant */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>
+            {REVIEWS_TEXT.ADD_REVIEW.ADD_REVIEW_TITLE}
+          </Text>
+          <Text style={styles.sectionSubTitle}>
             {REVIEWS_TEXT.ADD_REVIEW.SELECT_RESTAURANT}
           </Text>
           {renderRestaurantDropdown()}
