@@ -3,17 +3,12 @@
 import React, { useEffect } from 'react';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { AuthProvider, useAuth } from '../context/AuthContext';
-<<<<<<< HEAD
 import { ActivityIndicator, View, StyleSheet, Text } from 'react-native';
 
-// 1. IMPORTAR STRIPEPROVIDER
 import { StripeProvider } from '@stripe/stripe-react-native';
-=======
 import { RestaurantsProvider } from '../context/RestaurantsContext';
 import { FavoritesProvider } from '../context/FavoritesContext';
 import { AlertProvider } from '@/context/AlertProvider';
-import { ActivityIndicator, View, StyleSheet } from 'react-native';
->>>>>>> 64ee6b084d5fc9ff8bafc65196de2d709652c996
 
 /**
  * Navigation Guard Component
@@ -92,52 +87,32 @@ export default function RootLayout() {
 
   // 4. ENVOLVER LA APP CON STRIPEPROVIDER
   return (
-<<<<<<< HEAD
     <StripeProvider publishableKey={publishableKey}>
-      <AuthProvider>
-        <NavigationGuard>
-          <Stack
-            screenOptions={{
-              headerShown: false,
-              contentStyle: { backgroundColor: '#FFFFFF' },
-            }}
-          >
-            <Stack.Screen 
-              name="(tabs)" 
-              options={{
+  <AuthProvider>
+    <AlertProvider>
+      <RestaurantsProvider>
+        <FavoritesProvider>
+          <NavigationGuard>
+            <Stack
+              screenOptions={{
                 headerShown: false,
+                contentStyle: { backgroundColor: '#FFFFFF' },
+                animation: 'fade',
               }}
-            />
-          </Stack>
-        </NavigationGuard>
-      </AuthProvider>
-    </StripeProvider>
-=======
-    <AuthProvider>
-      <AlertProvider>
-        <RestaurantsProvider>
-          <FavoritesProvider>
-            <NavigationGuard>
-              <Stack
-                screenOptions={{
+            >
+              <Stack.Screen 
+                name="(tabs)" 
+                options={{
                   headerShown: false,
-                  contentStyle: { backgroundColor: '#FFFFFF' },
-                  animation: 'fade',
                 }}
-              >
-                <Stack.Screen 
-                  name="(tabs)" 
-                  options={{
-                    headerShown: false,
-                  }}
-                />
-              </Stack>
-            </NavigationGuard>
-          </FavoritesProvider>
-        </RestaurantsProvider>
-      </AlertProvider>
-    </AuthProvider>
->>>>>>> 64ee6b084d5fc9ff8bafc65196de2d709652c996
+              />
+            </Stack>
+          </NavigationGuard>
+        </FavoritesProvider>
+      </RestaurantsProvider>
+    </AlertProvider>
+  </AuthProvider>
+</StripeProvider>
   );
 }
 

@@ -6,9 +6,8 @@ import { MAP_CARD } from '@/constants/map.constants';
 const { width } = Dimensions.get('window');
 
 // Constantes para el card
-const CARD_WIDTH = width * 0.9;
-const CARD_HEIGHT = 100;
-const IMAGE_SIZE = 80;
+const CARD_WIDTH = width * 0.85;
+const CARD_HEIGHT = 150;
 
 /**
  * MapScreen Component Styles
@@ -112,7 +111,7 @@ export const mapStyles = StyleSheet.create({
     width: CARD_WIDTH,
     height: CARD_HEIGHT,
     backgroundColor: '#FFFFFF',
-    borderRadius: 12,
+    borderRadius: 20,
     alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -125,8 +124,8 @@ export const mapStyles = StyleSheet.create({
   // SECCIÓN IZQUIERDA: IMAGEN
   // ==========================================
   imageSection: {
-    width: IMAGE_SIZE,
-    height: IMAGE_SIZE,
+    width: MAP_CARD.IMAGE_SIZE,
+    height: MAP_CARD.IMAGE_SIZE,
     position: 'relative',
     marginLeft: 10,
   },
@@ -134,13 +133,13 @@ export const mapStyles = StyleSheet.create({
   restaurantImage: {
     width: '100%',
     height: '100%',
-    borderRadius: 8,
+    borderRadius:100,
   },
 
   imageBadge: {
     position: 'absolute',
-    top: 4,
-    left: 0,
+    top: 14,
+    left: 50,
     right: 0,
     backgroundColor: '#27AE60',
     paddingVertical: 3,
@@ -166,20 +165,20 @@ export const mapStyles = StyleSheet.create({
   },
 
   restaurantName: {
-    fontSize: 16,
+    fontSize: 20,
     fontWeight: 'bold',
     color: '#2C3E50',
     marginBottom: 2,
   },
 
   restaurantCategory: {
-    fontSize: 12,
+    fontSize: 14,
     color: '#95A5A6',
     marginBottom: 2,
   },
 
   restaurantAddress: {
-    fontSize: 11,
+    fontSize: 12,
     color: '#7F8C8D',
     marginBottom: 2,
   },

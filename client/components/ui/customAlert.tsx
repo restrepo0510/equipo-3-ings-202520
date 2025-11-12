@@ -190,11 +190,14 @@ export class CustomAlertHelper {
     hide: () => void;
   } | null = null;
 
- static setAlertRef(ref: any) {
-  console.log('🔔 Alert ref set:', !!ref);
-  this.currentAlert = ref;
-}
+  static setAlertRef(ref: any) {
+    console.log('🔔 Alert ref set:', !!ref);
+    this.currentAlert = ref;
+  }
 
+  /**
+   * Shows a generic alert
+   */
   static alert(
     title: string,
     message?: string,
@@ -202,10 +205,10 @@ export class CustomAlertHelper {
     type: AlertType = 'info'
   ) {
     console.log('🔔 Showing alert:', { title, alertRef: !!this.currentAlert });
-  if (!this.currentAlert) {
-    console.error('❌ Alert ref not initialized!');
-    return;
-  }
+    if (!this.currentAlert) {
+      console.error('❌ Alert ref not initialized!');
+      return;
+    }
     this.currentAlert?.show({
       visible: true,
       title,
@@ -215,14 +218,37 @@ export class CustomAlertHelper {
     });
   }
 
+  /**
+   * Shows a success alert
+   */
   static success(title: string, message?: string, onPress?: () => void) {
     this.alert(title, message, [{ text: 'OK', onPress }], 'success');
   }
 
+  /**
+   * Shows an error alert
+   */
   static error(title: string, message?: string, onPress?: () => void) {
     this.alert(title, message, [{ text: 'OK', onPress }], 'error');
   }
 
+  /**
+   * Shows a warning alert
+   */
+  static warning(title: string, message?: string, onPress?: () => void) {
+    this.alert(title, message, [{ text: 'OK', onPress }], 'warning');
+  }
+
+  /**
+   * Shows an info alert
+   */
+  static info(title: string, message?: string, onPress?: () => void) {
+    this.alert(title, message, [{ text: 'OK', onPress }], 'info');
+  }
+
+  /**
+   * Shows a confirmation dialog
+   */
   static confirm(
     title: string,
     message?: string,
@@ -238,9 +264,5 @@ export class CustomAlertHelper {
       ],
       'confirm'
     );
-  }
-
-  static warning(title: string, message?: string, onPress?: () => void) {
-    this.alert(title, message, [{ text: 'OK', onPress }], 'warning');
   }
 }
