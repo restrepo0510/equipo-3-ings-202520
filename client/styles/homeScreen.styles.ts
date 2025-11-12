@@ -1,7 +1,7 @@
 // styles/homeScreen.styles.ts
 
 import { StyleSheet } from 'react-native';
-import { CARD_WIDTH } from '../constants/homeScreen.constants';
+import { CARD_WIDTH } from '../constants/home.constants';
 
 /**
  * Color palette for the Home Screen
@@ -110,6 +110,7 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingTop: 24,
     paddingBottom: 16,
+    alignSelf: 'center'
   },
   greetingText: {
     fontSize: 24,
@@ -128,6 +129,7 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     paddingHorizontal: 8,
+    alignSelf: 'center'
   },
   gridCard: {
     width: CARD_WIDTH,

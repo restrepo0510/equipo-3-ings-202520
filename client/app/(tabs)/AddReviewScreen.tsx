@@ -12,8 +12,8 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { BottomNavigation } from '@/components/ui/BottomNavigation';
-import { createReviewsNavItems } from '@/utils/navigationHelpers';
+import { BottomNavigation } from '@/components/ui/bottomNavigation';
+import { createNavItems } from '@/utils/navigationHelpers';
 import { useAuth } from '@/context/AuthContext';
 import { useLocation } from '@/hooks/useLocation';
 import { useReviewForm } from '@/hooks/useReviewForm';
@@ -46,7 +46,7 @@ export default function AddReviewScreen(): React.ReactElement {
   const router = useRouter();
   const { token } = useAuth();
   const { location } = useLocation();
-  const navItems = createReviewsNavItems('reviews', router);
+  const navItems = createNavItems('reviews', router);
 
   // Form state management
   const {

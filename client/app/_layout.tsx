@@ -3,6 +3,7 @@
 import React, { useEffect } from 'react';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { AuthProvider, useAuth } from '../context/AuthContext';
+import { RestaurantsProvider } from '../context/RestaurantsContext';
 import { FavoritesProvider } from '../context/FavoritesContext';
 import { AlertProvider } from '@/context/AlertProvider';
 import { ActivityIndicator, View, StyleSheet } from 'react-native';
@@ -56,29 +57,39 @@ function NavigationGuard({ children }: { children: React.ReactNode }) {
 
 /**
  * Root Layout Component
- * Wraps the entire app with AuthProvider and navigation guard
+ * Wraps the entire app with all necessary providers
+ * 
+ * Provider Hierarchy:
+ * 1. AuthProvider - Authentication state
+ * 2. AlertProvider - Global alerts/toasts
+ * 3. RestaurantsProvider - Restaurant data (NEW)
+ * 4. FavoritesProvider - User favorites
+ * 5. NavigationGuard - Route protection
  */
 export default function RootLayout() {
   return (
     <AuthProvider>
       <AlertProvider>
-        <FavoritesProvider>
-          <NavigationGuard>
-            <Stack
-              screenOptions={{
-                headerShown: false,
-                contentStyle: { backgroundColor: '#FFFFFF' },
-              }}
-            >
-              <Stack.Screen 
-                name="(tabs)" 
-                options={{
+        <RestaurantsProvider>
+          <FavoritesProvider>
+            <NavigationGuard>
+              <Stack
+                screenOptions={{
                   headerShown: false,
+                  contentStyle: { backgroundColor: '#FFFFFF' },
+                  animation: 'fade',
                 }}
-              />
-            </Stack>
-          </NavigationGuard>
-        </FavoritesProvider>
+              >
+                <Stack.Screen 
+                  name="(tabs)" 
+                  options={{
+                    headerShown: false,
+                  }}
+                />
+              </Stack>
+            </NavigationGuard>
+          </FavoritesProvider>
+        </RestaurantsProvider>
       </AlertProvider>
     </AuthProvider>
   );

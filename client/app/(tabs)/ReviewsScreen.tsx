@@ -12,8 +12,8 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { BottomNavigation } from '@/components/ui/BottomNavigation';
-import { createReviewsNavItems } from '@/utils/navigationHelpers';
+import { BottomNavigation } from '@/components/ui/bottomNavigation';
+import { createNavItems } from '@/utils/navigationHelpers';
 import { useAuth } from '@/context/AuthContext';
 import { useRestaurants } from '@/context/RestaurantsContext';
 import { useLocation } from '@/hooks/useLocation';
@@ -42,7 +42,7 @@ export default function ReviewsScreen(): React.ReactElement {
   const { token } = useAuth();
   const { location } = useLocation();
   const { restaurants: globalRestaurants, setRestaurants: setGlobalRestaurants } = useRestaurants();
-  const navItems = createReviewsNavItems('reviews', router);
+  const navItems = createNavItems('reviews', router);
 
   // Restaurant loading
   const {

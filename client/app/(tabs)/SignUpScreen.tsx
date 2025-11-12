@@ -17,7 +17,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useRegistrationForm } from '@/hooks/userRegistrationForm';
 import { UserRole } from '@/types/auth.types';
-import { FormField } from '@/components/ui/FormField';
+import { FormField } from '@/components/ui/formField';
 import { ROLE_LABELS } from '@/constants/auth.constants';
 import { AUTH_ICONS, AUTH_UI_TEXT } from '@/constants/auth.constants';
 import {

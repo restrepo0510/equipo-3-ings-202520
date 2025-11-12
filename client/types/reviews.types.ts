@@ -1,4 +1,4 @@
-// types/review.types.ts
+// types/reviews.types.ts
 
 /**
  * Review entity structure (matches backend)
@@ -82,15 +82,27 @@ export interface FormattedReview {
 }
 
 /**
- * Restaurant summary for dropdowns/selection
+ * ✅ CORREGIDO: RestaurantSummary ahora extiende las propiedades mínimas de Restaurant
+ * Esto permite usarlo en contextos donde se espera un Restaurant
  */
 export interface RestaurantSummary {
   id: string;
   name: string;
-  imageUrl?: string;
+  description?: string;
   address?: string;
   latitude?: number;
   longitude?: number;
+  imageUrl?: string;
+  category?: string;
+  phone?: string;
+  email?: string;
+  userId?: string;
+  isActive?: boolean;
+  openingTime?: string;
+  closingTime?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+  distance?: number;
 }
 
 /**
@@ -210,4 +222,29 @@ export const getRatingDistribution = (reviews: Review[]): Record<number, number>
     }
   });
   return distribution;
+};
+
+/**
+ * ✅ NUEVO: Convert Restaurant to RestaurantSummary
+ */
+export const toRestaurantSummary = (restaurant: any): RestaurantSummary => {
+  return {
+    id: restaurant.id,
+    name: restaurant.name,
+    description: restaurant.description,
+    address: restaurant.address,
+    latitude: restaurant.latitude,
+    longitude: restaurant.longitude,
+    imageUrl: restaurant.imageUrl,
+    category: restaurant.category,
+    phone: restaurant.phone,
+    email: restaurant.email,
+    userId: restaurant.userId,
+    isActive: restaurant.isActive,
+    openingTime: restaurant.openingTime,
+    closingTime: restaurant.closingTime,
+    createdAt: restaurant.createdAt,
+    updatedAt: restaurant.updatedAt,
+    distance: restaurant.distance,
+  };
 };

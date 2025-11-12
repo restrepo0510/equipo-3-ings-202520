@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { BottomNavigation } from '@/components/ui/BottomNavigation';
+import { BottomNavigation } from '@/components/ui/bottomNavigation';
 import { createNavItems } from '@/utils/navigationHelpers';
 import { useAuth } from '@/context/AuthContext';
 import { editProfileStyles as styles } from '@/styles/editProfileScreen.styles';

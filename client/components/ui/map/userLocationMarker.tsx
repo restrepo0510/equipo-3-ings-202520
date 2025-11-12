@@ -1,8 +1,8 @@
-// components/map/UserLocationMarker.tsx
+// components/ui/map/UserLocationMarker.tsx
 import React from 'react';
 import { View } from 'react-native';
 import { Marker } from 'react-native-maps';
-import { mapStyles } from '../../../styles/mapScreen.styles';
+import { mapStyles } from '@/styles/mapScreen.styles';
 
 /**
  * Props for UserLocationMarker component
@@ -37,9 +37,23 @@ export const UserLocationMarker: React.FC<UserLocationMarkerProps> = ({
   longitude,
   title = 'Your location',
 }) => {
+  // Validate coordinates
+  const lat = Number(latitude);
+  const lon = Number(longitude);
+
+  if (isNaN(lat) || isNaN(lon)) {
+    console.error('❌ Invalid user location coordinates:', { latitude, longitude });
+    return null;
+  }
+
+  if (lat < -90 || lat > 90 || lon < -180 || lon > 180) {
+    console.error('❌ User coordinates out of range:', { lat, lon });
+    return null;
+  }
+
   return (
     <Marker
-      coordinate={{ latitude, longitude }}
+      coordinate={{ latitude: lat, longitude: lon }}
       title={title}
       identifier="user-location"
       anchor={{ x: 0.5, y: 0.5 }}
