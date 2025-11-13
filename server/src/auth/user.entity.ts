@@ -1,13 +1,29 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+// src/auth/user.entity.ts
+import { 
+  Entity, 
+  PrimaryGeneratedColumn, 
+  Column, 
+  CreateDateColumn, 
+  UpdateDateColumn 
+} from 'typeorm';
 
 /**
- * User entity representing a system user
- * Contains user profile information and authentication data
+ * User roles in the system
+ */
+export enum UserRole {
+  CUSTOMER = 'customer',  // Regular user (can browse and buy)
+  BUSINESS = 'business',  // Restaurant/business owner
+  ADMIN = 'admin'         // System administrator
+}
+
+/**
+ * User entity representing registered users in the system
+ * Supports both customers and business accounts
  */
 @Entity('users')
 export class User {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @Column({
     type: 'varchar',
@@ -22,7 +38,7 @@ export class User {
     length: 255,
     unique: true,
     nullable: false,
-    comment: 'Unique email address for authentication and communication'
+    comment: 'Unique email address for authentication'
   })
   email: string;
 
@@ -38,22 +54,39 @@ export class User {
     type: 'varchar',
     length: 255,
     nullable: false,
-    comment: 'Hashed password for user authentication'
+    select: false, // Don't include password in queries by default
+    comment: 'Hashed password for authentication'
   })
   password: string;
+
+  @Column({
+    type: 'varchar',
+    length: 20,
+    default: UserRole.CUSTOMER,
+    comment: 'User role: customer, business, or admin'
+  })
+  role: UserRole;
+
+  // AGREGAR ESTA PROPIEDAD FALTANTE
+  @Column({
+    type: 'varchar',
+    length: 500,
+    nullable: true,
+    comment: 'URL or path to user profile image'
+  })
+  profileImage: string;
 
   @CreateDateColumn({
     type: 'timestamp',
     default: () => 'CURRENT_TIMESTAMP',
-    comment: 'Timestamp when the user was created'
+    comment: 'Account creation timestamp'
   })
   createdAt: Date;
 
   @UpdateDateColumn({
     type: 'timestamp',
     default: () => 'CURRENT_TIMESTAMP',
-    onUpdate: 'CURRENT_TIMESTAMP',
-    comment: 'Timestamp when the user was last updated'
+    comment: 'Last update timestamp'
   })
   updatedAt: Date;
 }

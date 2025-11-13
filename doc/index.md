@@ -41,6 +41,8 @@ Este proyecto está dirigido a:
 
 | 📁 Carpeta | 📌 Descripción |
 |------------|----------------|
-| [📂 doc](../doc/index.md) | Contiene toda la documentación del proyecto |
+| [📂 doc/](../doc/index.md) | Contiene toda la documentación del proyecto |
 | [📂 analysis/](../doc/analysis/index.md) | Contiene análisis y reportes sobre desperdicio y recuperación de alimentos |
 | [📂 design/](../doc/design/index.md) | Contiene análisis sobre el desarollo Frontend y Backend, incluyendo diagramación, patrones de arquitectura del producto digital y stacks de desarrollo.
+| [📂 client/](../client/README.md) |  Contiene el **código FrontEnd** de la aplicación, es decir, la interfaz con la que interactúan los usuarios finales.
+| [📂 server/](../server/README.md) | Contiene el **código BackEnd** del proyecto, donde se gestionan la lógica de negocio y las conexiones a la base de datos. Garantiza que toda la información fluya correctamente y que las funciones del proyecto funcionen de manera óptima.

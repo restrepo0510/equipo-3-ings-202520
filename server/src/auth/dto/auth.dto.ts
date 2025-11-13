@@ -1,41 +1,89 @@
-import { User } from '../user.entity';
+// src/auth/dto/auth.dto.ts
+import { User, UserRole } from '../user.entity';
+import { IsEmail, IsString, IsEnum, IsOptional, MinLength } from 'class-validator';
 
 /**
- * Data transfer object for user registration
+ * DTO for user registration
  */
+// src/auth/dto/auth.dto.ts
+
 export class RegisterUserDto {
+  @IsString()
+  @MinLength(2)
   name: string;
+
+  @IsEmail()
   email: string;
+
+  @IsString()
+  @MinLength(10)
   phone: string;
+
+  @IsString()
+  @MinLength(6)
   password: string;
+
+  @IsEnum(UserRole)
+  @IsOptional()
+  role?: UserRole;
+
+  // ✅ Nuevo campo opcional para dirección
+  @IsString()
+  @IsOptional()
+  @MinLength(10)
+  address?: string;
 }
 
 /**
- * Data transfer object for user login
+ * DTO for user login
  */
 export class LoginUserDto {
+  @IsEmail()
   email: string;
+
+  @IsString()
+  @MinLength(6)
   password: string;
 }
 
 /**
- * Data transfer object for updating user information
+ * DTO for updating user information
  */
-export class UpdateUserDto {
-  name?: string;
-  email?: string;
-  phone?: string;
-  password?: string;
-}
+// src/auth/dto/auth.dto.ts
 
+export class UpdateUserDto {
+  @IsString()
+  @IsOptional()
+  @MinLength(2)
+  name?: string;
+
+  @IsEmail()
+  @IsOptional()
+  email?: string;
+
+  @IsString()
+  @IsOptional()
+  @MinLength(10)
+  phone?: string;
+
+  @IsString()
+  @IsOptional()
+  @MinLength(6)
+  password?: string;
+
+  @IsString()
+  @IsOptional()
+  profileImage?: string; 
+}
 /**
  * Response DTO for user data (excludes sensitive information)
  */
 export class UserResponseDto {
-  id: number;
+  id: string;
   name: string;
   email: string;
   phone: string;
+  role: UserRole;
   createdAt: Date;
   updatedAt: Date;
 
@@ -44,7 +92,31 @@ export class UserResponseDto {
     this.name = user.name;
     this.email = user.email;
     this.phone = user.phone;
+    this.role = user.role;
     this.createdAt = user.createdAt;
     this.updatedAt = user.updatedAt;
   }
+}
+
+/**
+ * Response DTO for authentication (includes JWT token)
+ * ← ESTE ES EL QUE FALTABA EXPORTAR
+ */
+export class AuthResponseDto {
+  message: string;
+  user: UserResponseDto;
+  accessToken: string;
+
+  constructor(message: string, user: User, accessToken: string) {
+    this.message = message;
+    this.user = new UserResponseDto(user);
+    this.accessToken = accessToken;
+  }
+}
+
+// También exporta la interfaz para el controller
+export interface IAuthResponse {
+  message: string;
+  user: UserResponseDto;
+  accessToken?: string; // Opcional para compatibilidad
 }

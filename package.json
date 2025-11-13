@@ -1,4 +1,5 @@
 {
+<<<<<<< HEAD
   "name": "yummi-app",
   "version": "1.0.0",
   "main": "expo-router/entry",
@@ -25,4 +26,12 @@
     "@types/react-native": "~0.73.0"
   },
   "private": true
+=======
+  "dependencies": {
+    "@nestjs/config": "^4.0.2",
+    "dotenv": "^17.2.3",
+    "reflect-metadata": "^0.2.2",
+    "stripe": "^19.1.0"
+  }
+>>>>>>> 88cf0bff64dc45796733e32b7425fd05109820fa
 }
