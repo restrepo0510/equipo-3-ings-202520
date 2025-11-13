@@ -9,7 +9,9 @@ import { StripeProvider } from '@stripe/stripe-react-native';
 import { RestaurantsProvider } from '../context/RestaurantsContext';
 import { FavoritesProvider } from '../context/FavoritesContext';
 import { AlertProvider } from '@/context/AlertProvider';
+import { LogBox } from 'react-native';
 
+LogBox.ignoreAllLogs(true); 
 /**
  * Navigation Guard Component
  * (Sin cambios en esta función)
