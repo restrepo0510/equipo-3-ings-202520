@@ -5,43 +5,97 @@ import { PAYMENT_TEXT } from '@/constants/payment.constants';
 
 /**
  * PaymentAlertService
- * Centralized alert management for payment feature using CustomAlert
+ * 
+ * Centralized alert management for payment feature
+ * Uses constants for consistency and easy i18n support
  */
 export class PaymentAlertService {
   /**
-   * Shows cash payment confirmation dialog
+   * Show cash payment confirmation
    */
-  static showCashPaymentConfirmation(onConfirm: () => void): void {
+  static showCashPaymentConfirmation(
+    restaurantName: string,
+    amount: string,
+    onConfirm: () => void,
+    onCancel?: () => void
+  ): void {
     CustomAlertHelper.confirm(
-      PAYMENT_TEXT.ALERTS.CASH_TITLE,
-      PAYMENT_TEXT.ALERTS.CASH_MESSAGE,
-      onConfirm
+      PAYMENT_TEXT.ALERTS.CASH_CONFIRM_TITLE,
+      PAYMENT_TEXT.ALERTS.CASH_CONFIRM_MESSAGE(restaurantName, amount),
+      onConfirm,
+      onCancel
     );
   }
 
   /**
-   * Shows payment success alert
+   * Show card payment confirmation
    */
-  static showPaymentSuccess(onDismiss?: () => void): void {
+  static showCardPaymentConfirmation(
+    amount: string,
+    onConfirm: () => void,
+    onCancel?: () => void
+  ): void {
+    CustomAlertHelper.confirm(
+      PAYMENT_TEXT.ALERTS.CARD_CONFIRM_TITLE,
+      PAYMENT_TEXT.ALERTS.CARD_CONFIRM_MESSAGE(amount),
+      onConfirm,
+      onCancel
+    );
+  }
+
+  /**
+   * Show payment success
+   */
+  static showPaymentSuccess(onContinue: () => void): void {
     CustomAlertHelper.success(
       PAYMENT_TEXT.ALERTS.SUCCESS_TITLE,
       PAYMENT_TEXT.ALERTS.SUCCESS_MESSAGE,
-      onDismiss
+      onContinue
     );
   }
 
   /**
-   * Shows payment error alert
+   * Show payment error
    */
-  static showPaymentError(message?: string): void {
+  static showPaymentError(customMessage?: string): void {
     CustomAlertHelper.error(
       PAYMENT_TEXT.ALERTS.ERROR_TITLE,
-      message || PAYMENT_TEXT.ALERTS.ERROR_MESSAGE
+      customMessage || PAYMENT_TEXT.ALERTS.ERROR_MESSAGE
     );
   }
 
   /**
-   * Shows Stripe redirect notification
+   * Show invalid amount error
+   */
+  static showInvalidAmount(): void {
+    CustomAlertHelper.error(
+      PAYMENT_TEXT.ALERTS.INVALID_AMOUNT_TITLE,
+      PAYMENT_TEXT.ALERTS.INVALID_AMOUNT_MESSAGE
+    );
+  }
+
+  /**
+   * Show network error
+   */
+  static showNetworkError(): void {
+    CustomAlertHelper.error(
+      PAYMENT_TEXT.ALERTS.NETWORK_ERROR_TITLE,
+      PAYMENT_TEXT.ALERTS.NETWORK_ERROR_MESSAGE
+    );
+  }
+
+  /**
+   * Show Stripe initialization error
+   */
+  static showStripeInitError(): void {
+    CustomAlertHelper.error(
+      PAYMENT_TEXT.ALERTS.STRIPE_INIT_ERROR_TITLE,
+      PAYMENT_TEXT.ALERTS.STRIPE_INIT_ERROR_MESSAGE
+    );
+  }
+
+  /**
+   * Show Stripe redirect confirmation
    */
   static showStripeRedirect(): void {
     CustomAlertHelper.info(
@@ -51,46 +105,46 @@ export class PaymentAlertService {
   }
 
   /**
-   * Shows invalid amount error
+   * Show payment cancelled
    */
-  static showInvalidAmount(): void {
-    CustomAlertHelper.error(
-      'Monto inválido',
-      'El monto del pedido no es válido.'
+  static showPaymentCancelled(): void {
+    CustomAlertHelper.warning(
+      PAYMENT_TEXT.ALERTS.CANCELLED_TITLE,
+      PAYMENT_TEXT.ALERTS.CANCELLED_MESSAGE
     );
   }
 
   /**
-   * Shows generic error with custom message
+   * Show insufficient data error
+   */
+  static showInsufficientData(): void {
+    CustomAlertHelper.error(
+      PAYMENT_TEXT.ALERTS.INSUFFICIENT_DATA_TITLE,
+      PAYMENT_TEXT.ALERTS.INSUFFICIENT_DATA_MESSAGE
+    );
+  }
+
+  /**
+   * Show location error
+   */
+  static showLocationError(): void {
+    CustomAlertHelper.warning(
+      PAYMENT_TEXT.ALERTS.LOCATION_ERROR_TITLE,
+      PAYMENT_TEXT.ALERTS.LOCATION_ERROR_MESSAGE
+    );
+  }
+
+  /**
+   * Show generic error
    */
   static showError(title: string, message: string): void {
     CustomAlertHelper.error(title, message);
   }
 
   /**
-   * Shows payment processing notification
+   * Show generic success
    */
-  static showProcessing(): void {
-    CustomAlertHelper.info(
-      'Procesando pago',
-      'Por favor espera mientras procesamos tu pago...'
-    );
-  }
-
-  /**
-   * Shows confirmation dialog with custom actions
-   */
-  static showConfirmation(
-    title: string,
-    message: string,
-    onConfirm: () => void,
-    onCancel?: () => void
-  ): void {
-    CustomAlertHelper.confirm(
-      title,
-      message,
-      onConfirm,
-      onCancel
-    );
+  static showSuccess(title: string, message: string, onPress?: () => void): void {
+    CustomAlertHelper.success(title, message, onPress);
   }
 }

@@ -6,19 +6,19 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { User } from './user.entity';
 import { Restaurant } from '../restaurants/restaurant.entity';
-import { JwtStrategy } from './jwt.strategy'; // ← AGREGAR
+import { JwtStrategy } from './guards/jwt.strategy';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([User, Restaurant]),
-    PassportModule.register({ defaultStrategy: 'jwt' }), // ← AGREGAR
+    PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.register({
       secret: process.env.JWT_SECRET || 'your-secret-key',
       signOptions: { expiresIn: '7d' },
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy], // ← AGREGAR JwtStrategy
-  exports: [AuthService, JwtStrategy, PassportModule], // ← AGREGAR exports
+  providers: [AuthService, JwtStrategy], 
+  exports: [AuthService, JwtStrategy, PassportModule],
 })
 export class AuthModule {}
