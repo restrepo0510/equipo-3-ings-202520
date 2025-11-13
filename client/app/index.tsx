@@ -1,4 +1,4 @@
-import React from 'react'; // <-- Añade esta línea, es una buena práctica.
+
 import { View } from 'react-native';
 
 /**
