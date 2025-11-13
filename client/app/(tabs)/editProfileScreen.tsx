@@ -1,6 +1,6 @@
 // app/(tabs)/EditProfileScreen.tsx
 
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -18,16 +18,15 @@ import { editProfileStyles as styles } from '@/styles/editProfileScreen.styles';
 import { useProfileForm } from '@/hooks/useProfileForm';
 import { useProfileImage } from '@/hooks/useProfileImage';
 import { ProfileAlertService } from '@/services/profileAlertService';
-import { 
-  PROFILE_TEXT, 
-  PROFILE_CONSTANTS, 
+import {
+  PROFILE_TEXT,
   PROFILE_ICONS,
   KEYBOARD_TYPES,
-  type ProfileFormField 
+  type ProfileFormField,
 } from '@/constants/profile.constants';
 
 /**
- * Form field configuration
+ * Form field configuration interface
  */
 interface FormFieldConfig {
   label: string;
@@ -39,73 +38,50 @@ interface FormFieldConfig {
 /**
  * EditProfileScreen
  * 
- * Screen that allows authenticated user to edit their profile information.
- * Supports updating user data both locally and on the server.
+ * Screen that allows authenticated users to edit their profile information.
+ * Supports profile data updates (both local and remote) and image changes.
  * 
  * @responsibilities
  * - Manage form state and validation
  * - Handle image selection
  * - Submit profile updates
- * - Show user feedback
+ * - Provide consistent user feedback
  */
 export default function EditProfileScreen(): React.ReactElement {
   // ============================================================================
-  // Hooks
+  // Hooks and State
   // ============================================================================
-  
   const router = useRouter();
   const { user, updateProfile } = useAuth();
   const navItems = createNavItems('profile', router);
-
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const {
-    formData,
-    errors,
-    updateField,
-    validate,
-    getUpdateData,
-  } = useProfileForm(user);
-
-  const {
-    imageUri,
-    pickImage,
-    getImageSource,
-  } = useProfileImage(user);
+  const { formData, errors, updateField, validate, getUpdateData } =
+    useProfileForm(user);
+  const { imageUri, pickImage, getImageSource } = useProfileImage(user);
 
   // ============================================================================
   // Handlers
   // ============================================================================
 
   /**
-   * Handles profile save with validation
+   * Handles profile save after validating data
    */
-  const handleSaveProfile = async (): Promise<void> => {
+  const handleSaveProfile = useCallback(async (): Promise<void> => {
     if (!user) {
       ProfileAlertService.showNotAuthenticatedError();
       return;
     }
 
-    // Validate form
-    if (!validate()) {
-      return;
-    }
+    if (!validate()) return;
 
     try {
       setIsSubmitting(true);
-
-      // Get update data
       const updateData = getUpdateData();
 
-      // Add image if changed
-      if (imageUri) {
-        updateData.profileImage = imageUri;
-      }
+      if (imageUri) updateData.profileImage = imageUri;
 
-      // Call update service
       await updateProfile(updateData);
-
-      // Show success and navigate back
       ProfileAlertService.showProfileUpdateSuccess();
       console.log('✅ Profile updated:', updateData);
       router.back();
@@ -117,29 +93,29 @@ export default function EditProfileScreen(): React.ReactElement {
     } finally {
       setIsSubmitting(false);
     }
-  };
+  }, [user, validate, imageUri, getUpdateData, updateProfile, router]);
 
   /**
-   * Handles text input change
+   * Handles form input changes
    */
-  const handleInputChange = (field: ProfileFormField, value: string): void => {
-    updateField(field, value);
-  };
+  const handleInputChange = useCallback(
+    (field: ProfileFormField, value: string): void => {
+      updateField(field, value);
+    },
+    [updateField]
+  );
 
   /**
-   * Navigates back
+   * Navigates back to previous screen
    */
-  const handleGoBack = (): void => {
+  const handleGoBack = useCallback((): void => {
     router.back();
-  };
+  }, [router]);
 
   // ============================================================================
   // Configuration
   // ============================================================================
 
-  /**
-   * Form fields configuration
-   */
   const formFields: FormFieldConfig[] = [
     {
       label: PROFILE_TEXT.EDIT_PROFILE.FIELDS.NAME,
@@ -169,7 +145,7 @@ export default function EditProfileScreen(): React.ReactElement {
   // ============================================================================
 
   /**
-   * Renders form field
+   * Renders a single form field
    */
   const renderFormField = (config: FormFieldConfig): React.ReactElement => {
     const { label, field, keyboardType, secure } = config;
@@ -189,9 +165,7 @@ export default function EditProfileScreen(): React.ReactElement {
           autoCapitalize="none"
           editable={!isSubmitting}
         />
-        {hasError && (
-          <Text style={styles.errorText}>{errors[field]}</Text>
-        )}
+        {hasError && <Text style={styles.errorText}>{errors[field]}</Text>}
       </View>
     );
   };
@@ -209,16 +183,21 @@ export default function EditProfileScreen(): React.ReactElement {
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={handleGoBack} disabled={isSubmitting}>
-            <Ionicons 
-              name={PROFILE_ICONS.BACK_ARROW} 
-              size={PROFILE_ICONS.SIZE.EXTRA_LARGE} 
-              color={PROFILE_ICONS.COLOR.PRIMARY} 
+            <Ionicons
+              name={PROFILE_ICONS.BACK_ARROW}
+              size={PROFILE_ICONS.SIZE.EXTRA_LARGE}
+              color={PROFILE_ICONS.COLOR.PRIMARY}
             />
           </TouchableOpacity>
+
           <Text style={styles.headerTitle}>
             {PROFILE_TEXT.HEADER.TITLE_PREFIX}{' '}
-            <Text style={styles.yummi}>{PROFILE_TEXT.HEADER.TITLE_HIGHLIGHT}</Text>
+            <Text style={styles.yummi}>
+              {PROFILE_TEXT.HEADER.TITLE_HIGHLIGHT}
+            </Text>
           </Text>
+
+          {/* Spacer for symmetry */}
           <View style={{ width: PROFILE_ICONS.SIZE.EXTRA_LARGE }} />
         </View>
 
@@ -228,29 +207,26 @@ export default function EditProfileScreen(): React.ReactElement {
         {/* Title */}
         <Text style={styles.editTitle}>{PROFILE_TEXT.EDIT_PROFILE.TITLE}</Text>
 
-        {/* Profile Picture */}
+        {/* Profile Picture Section */}
         <View style={styles.profileSection}>
           <View style={styles.profileImageContainer}>
-            {/* Profile Image - Touch to change */}
+            {/* Profile Image */}
             <TouchableOpacity onPress={pickImage} disabled={isSubmitting}>
-              <Image
-                source={getImageSource()}
-                style={styles.profileImage}
-              />
+              <Image source={getImageSource()} style={styles.profileImage} />
             </TouchableOpacity>
 
-            {/* Decorative stars */}
-            <Ionicons 
-              name={PROFILE_ICONS.DECORATIVE_ADD} 
-              size={PROFILE_ICONS.SIZE.LARGE} 
-              color={PROFILE_ICONS.COLOR.DECORATIVE} 
-              style={styles.star1} 
+            {/* Decorative Stars */}
+            <Ionicons
+              name={PROFILE_ICONS.DECORATIVE_ADD}
+              size={PROFILE_ICONS.SIZE.LARGE}
+              color={PROFILE_ICONS.COLOR.DECORATIVE}
+              style={styles.star1}
             />
-            <Ionicons 
-              name={PROFILE_ICONS.DECORATIVE_ADD} 
-              size={PROFILE_ICONS.SIZE.MEDIUM} 
-              color={PROFILE_ICONS.COLOR.DECORATIVE} 
-              style={styles.star2} 
+            <Ionicons
+              name={PROFILE_ICONS.DECORATIVE_ADD}
+              size={PROFILE_ICONS.SIZE.MEDIUM}
+              color={PROFILE_ICONS.COLOR.DECORATIVE}
+              style={styles.star2}
             />
 
             {/* Folder Button */}
@@ -259,16 +235,16 @@ export default function EditProfileScreen(): React.ReactElement {
               onPress={pickImage}
               disabled={isSubmitting}
             >
-              <Ionicons 
-                name={PROFILE_ICONS.FOLDER} 
-                size={PROFILE_ICONS.SIZE.FOLDER} 
-                color={PROFILE_ICONS.COLOR.PRIMARY} 
+              <Ionicons
+                name={PROFILE_ICONS.FOLDER}
+                size={PROFILE_ICONS.SIZE.FOLDER}
+                color={PROFILE_ICONS.COLOR.PRIMARY}
               />
             </TouchableOpacity>
           </View>
         </View>
 
-        {/* Form */}
+        {/* Form Fields */}
         <View style={styles.form}>
           {formFields.map(renderFormField)}
 
@@ -279,8 +255,8 @@ export default function EditProfileScreen(): React.ReactElement {
             disabled={isSubmitting}
           >
             <Text style={styles.saveButtonText}>
-              {isSubmitting 
-                ? PROFILE_TEXT.EDIT_PROFILE.SAVE_BUTTON_LOADING 
+              {isSubmitting
+                ? PROFILE_TEXT.EDIT_PROFILE.SAVE_BUTTON_LOADING
                 : PROFILE_TEXT.EDIT_PROFILE.SAVE_BUTTON}
             </Text>
           </TouchableOpacity>
