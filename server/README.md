@@ -83,7 +83,9 @@ The following defines 5 critical backend points for the "smoke test" to run on e
     An integration test (using a *mocked* or *test mode* payment gateway API) sends a request with an amount and asserts a valid, successful response from the external service.
 * **What type of test proves it?**
     Integration.
-```
+
+
+---
 
 ##  5 **Configure environment variables**:
 
