@@ -5,11 +5,8 @@ import { useRouter } from 'expo-router';
 import { ReservationAlertService } from '@/services/reservationAlertService';
 import { ReservationUtils } from '@/utils/reservation.utils';
 import type { OrderSummaryParams } from '@/types/reservation.types';
-import {restaurantService} from '@/services/restaurantService';
+import { restaurantService } from '@/services/restaurantService';
 
-/**
- * Hook return type
- */
 interface UseOrderSummaryReturn {
   isProcessing: boolean;
   handleCancel: () => void;
@@ -20,22 +17,10 @@ interface UseOrderSummaryReturn {
   ) => Promise<void>;
 }
 
-/**
- * useOrderSummary Hook
- * 
- * Manages order summary actions (cancel, proceed to payment)
- * Handles navigation and confirmation dialogs
- * 
- * @returns Order summary actions and state
- */
 export const useOrderSummary = (): UseOrderSummaryReturn => {
   const router = useRouter();
   const [isProcessing, setIsProcessing] = useState(false);
 
-  /**
-   * Handles cancellation of reservation
-   * Shows confirmation dialog before canceling
-   */
   const handleCancel = useCallback((): void => {
     ReservationAlertService.showCancelConfirmation(
       () => {
@@ -48,17 +33,12 @@ export const useOrderSummary = (): UseOrderSummaryReturn => {
     );
   }, [router]);
 
-  /**
-   * Handles proceeding to payment
-   * Validates time remaining and navigates to payment screen
-   */
   const handleProceedToPayment = useCallback(
     async (
       orderParams: OrderSummaryParams,
       timeLeft: number,
       token: string
     ): Promise<void> => {
-      // Validate time remaining
       if (timeLeft <= 0) {
         ReservationAlertService.showExpiredError();
         return;
@@ -67,51 +47,77 @@ export const useOrderSummary = (): UseOrderSummaryReturn => {
       setIsProcessing(true);
 
       try {
-        const restaurantDetails = await restaurantService.getById(orderParams.restaurantId);
-        // Calculate totals
-        const totals = ReservationUtils.parseOrderParams(orderParams);
+        console.log('🔍 Fetching restaurant details...');
         
-        // Format time remaining
-        const timeRemaining = ReservationUtils.formatTime(timeLeft);
-
-        console.log('✅ Proceeding to payment:', {
-          product: orderParams.productName,
-          total: totals.total,
-          timeLeft: timeRemaining,
+        const restaurantDetails = await restaurantService.getById(orderParams.restaurantId);
+        
+        console.log('🏪 Restaurant details:', {
+          name: restaurantDetails.name,
+          address: restaurantDetails.address,
+          latitude: restaurantDetails.latitude,
+          longitude: restaurantDetails.longitude,
         });
 
-        // Show confirmation alert
+        // ✅ Calculate totals CORRECTLY
+        const totals = ReservationUtils.parseOrderParams(orderParams);
+        
+        console.log('💰 Calculated totals:', {
+          quantity: totals.quantity,
+          unitPrice: totals.unitPrice,
+          originalPrice: totals.originalPrice,
+          subtotal: totals.subtotal,
+          discount: totals.discount,
+          total: totals.total,
+        });
+        
+        const timeRemaining = ReservationUtils.formatTime(timeLeft);
+
+        console.log('✅ Proceeding to payment with correct values');
+
         ReservationAlertService.showReservationConfirmed(
           timeRemaining,
           () => {
-            // Navigate to payment screen with all order data
+            // ✅ CRÍTICO: Pasar los valores NUMÉRICOS calculados, no los strings originales
+            const paymentParams = {
+              orderId: `order_${Date.now()}`,
+              
+              // Product info
+              productId: orderParams.productId,
+              productName: orderParams.productName,
+              productImage: orderParams.productImage || '',
+              
+              // Restaurant info
+              restaurantId: orderParams.restaurantId,
+              restaurantName: restaurantDetails.name,
+              restaurantAddress: restaurantDetails.address || '',
+              restaurantLatitude: restaurantDetails.latitude.toString(),
+              restaurantLongitude: restaurantDetails.longitude.toString(),
+              
+              // ✅ FIXED: Usar los valores CALCULADOS (numbers) convertidos a strings
+              // Esto asegura que los cálculos sean correctos
+              quantity: totals.quantity.toString(),
+              unitPrice: totals.unitPrice.toString(),
+              subtotal: totals.subtotal.toString(),
+              discount: totals.discount.toString(),
+              total: totals.total.toString(),
+              
+              // Time remaining
+              timeRemaining,
+            };
+
+            console.log('🚀 Navigation params:', paymentParams);
+            console.log('🔢 Numeric validation:', {
+              quantityNum: totals.quantity,
+              unitPriceNum: totals.unitPrice,
+              subtotalNum: totals.subtotal,
+              discountNum: totals.discount,
+              totalNum: totals.total,
+            });
+            
+
             router.push({
               pathname: '/(tabs)/PaymentScreen',
-              params: {
-                // Generate order ID (you might want to get this from backend)
-                orderId: `order_${Date.now()}`,
-                
-                // Product info
-                productId: orderParams.productId,
-                productName: orderParams.productName,
-                productImage: orderParams.productImage || '',
-                
-                // Restaurant info
-                restaurantId: orderParams.restaurantId,
-                restaurantName: orderParams.restaurantName,
-                restaurantAddress: orderParams.restaurantAddress || '',
-                restaurantLatitude: restaurantDetails.latitude.toString(), // ✅ AÑADIR
-                restaurantLongitude: restaurantDetails.longitude.toString(), // ✅ AÑADIR
-                // Pricing
-                quantity: orderParams.quantity,
-                unitPrice: orderParams.price,
-                subtotal: totals.subtotal.toString(),
-                discount: totals.discount.toString(),
-                total: totals.total.toString(),
-                
-                // Time remaining
-                timeRemaining,
-              },
+              params: paymentParams,
             });
           }
         );

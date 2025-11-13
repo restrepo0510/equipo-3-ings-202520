@@ -151,31 +151,65 @@ export class PaymentUtils {
    * Parses payment parameters from navigation
    * Now with improved coordinate extraction
    */
-  static parsePaymentParams(params: PaymentScreenParams) {
-    console.log('🔍 Parsing payment params:', {
-      deliveryLat: params.deliveryLatitude,
-      deliveryLon: params.deliveryLongitude,
-      restaurantLat: params.restaurantLatitude,
-      restaurantLon: params.restaurantLongitude,
-    });
+static parsePaymentParams(params: PaymentScreenParams) {
+  console.log('🔍 Parsing payment params:', {
+    quantityStr: params.quantity,
+    subtotalStr: params.subtotal,
+    discountStr: params.discount,
+    totalStr: params.total,
+  });
 
-    const deliveryLocation = this.extractDeliveryLocation(params);
+  const deliveryLocation = this.extractDeliveryLocation(params);
 
-    const parsed = {
-      productName: params.productName || 'Producto sin nombre',
-      quantity: parseInt(params.quantity) || 1,
-      subtotal: parseFloat(params.subtotal) || 0,
-      discount: parseFloat(params.discount) || 0,
-      total: parseFloat(params.total) || 0,
-      restaurantName: params.restaurantName || 'Restaurante',
-      deliveryLocation,
-    };
+  // ✅ Parse numeric values with validation
+  const quantity = parseInt(params.quantity) || 1;
+  const subtotal = parseFloat(params.subtotal) || 0;
+  const discount = parseFloat(params.discount) || 0;
+  const total = parseFloat(params.total) || 0;
 
-    console.log('✅ Parsed payment params:', parsed);
+  const parsed = {
+    productName: params.productName || 'Producto sin nombre',
+    quantity,
+    subtotal,
+    discount,
+    total,
+    restaurantName: params.restaurantName || 'Restaurante',
+    deliveryLocation,
+  };
 
-    return parsed;
+  console.log('✅ Parsed payment params (NUMERIC):', {
+    quantity: parsed.quantity,
+    subtotal: parsed.subtotal,
+    discount: parsed.discount,
+    total: parsed.total,
+    types: {
+      quantity: typeof parsed.quantity,
+      subtotal: typeof parsed.subtotal,
+      discount: typeof parsed.discount,
+      total: typeof parsed.total,
+    }
+  });
+
+  // ✅ VALIDATION: Ensure all values are valid numbers
+  if (isNaN(parsed.quantity) || parsed.quantity <= 0) {
+    console.error('❌ Invalid quantity:', params.quantity);
+    parsed.quantity = 1;
+  }
+  if (isNaN(parsed.subtotal) || parsed.subtotal < 0) {
+    console.error('❌ Invalid subtotal:', params.subtotal);
+    parsed.subtotal = 0;
+  }
+  if (isNaN(parsed.discount) || parsed.discount < 0) {
+    console.error('❌ Invalid discount:', params.discount);
+    parsed.discount = 0;
+  }
+  if (isNaN(parsed.total) || parsed.total <= 0) {
+    console.error('❌ Invalid total:', params.total);
+    parsed.total = 0;
   }
 
+  return parsed;
+}
   /**
    * Formats currency for display
    */
@@ -254,8 +288,7 @@ static createFocusedRegion(latitude: number, longitude: number): DeliveryLocatio
   return {
     latitude,
     longitude,
-    latitudeDelta: 0.5,  // Más zoom que el default
-    longitudeDelta: 0.5, // Más zoom que el default
+   
   };
 }
 

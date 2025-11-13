@@ -28,42 +28,46 @@ import type { Restaurant } from '@/types/restaurant.types';
 import { extractStringParam, parseCoordinate } from '@/types/map.types';
 
 /**
+ * =============================================================
  * MapScreen Component
- * 
- * Interactive map displaying user location and nearby restaurants
- * 
- * @responsibilities
- * - Display user's current location
- * - Show nearby restaurants as markers
- * - Handle restaurant selection
- * - Navigate to restaurant products
- * - Center map on selected restaurant from HomeScreen
- * 
+ * =============================================================
+ * Interactive map displaying user location and nearby restaurants.
+ *
+ * @description
+ * This screen manages:
+ * - User current location tracking
+ * - Restaurant markers display
+ * - Restaurant info card selection
+ * - Navigation to the Products screen
+ * - Map centering animations and error/loading states
+ *
  * @features
- * - Real-time location tracking
- * - Restaurant markers with custom colors
- * - Restaurant info card on selection
- * - Navigation to ProductsScreen
- * - Bottom navigation bar
+ * - Real-time geolocation updates
+ * - Marker-based restaurant selection
+ * - Contextual restaurant details
+ * - Navigation to related products
+ * - Responsive UI with bottom navigation
  */
 export default function MapScreen(): React.ReactElement {
-  // ============================================================================
-  // Hooks & Router
-  // ============================================================================
-  
+  // =============================================================
+  // 🔹 Hooks & Router
+  // =============================================================
+
   const router = useRouter();
   const params = useLocalSearchParams();
   const mapRef = useRef<MapView>(null);
+
+  // Create bottom navigation items for "Map" context
   const navItems = createNavItems('map', router);
 
-  // Type-safe params extraction using helper functions
+  // Extract parameters safely from route using helper functions
   const restaurantId = extractStringParam(params.restaurantId);
   const paramLatitude = extractStringParam(params.latitude);
   const paramLongitude = extractStringParam(params.longitude);
 
-  // ============================================================================
-  // State Management
-  // ============================================================================
+  // =============================================================
+  // 🔹 State Management
+  // =============================================================
 
   const { location, error: locationError, loading: locationLoading } = useLocation();
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
@@ -71,13 +75,13 @@ export default function MapScreen(): React.ReactElement {
   const [isLoadingRestaurants, setIsLoadingRestaurants] = useState<boolean>(true);
   const [restaurantsError, setRestaurantsError] = useState<string | null>(null);
 
-  // ============================================================================
-  // Data Fetching
-  // ============================================================================
+  // =============================================================
+  // 🔹 Data Fetching Logic
+  // =============================================================
 
   /**
-   * Loads nearby restaurants based on user's location
-   * Handles initial restaurant selection from params
+   * Load nearby restaurants based on user's geolocation.
+   * Handles automatic selection if a restaurantId param exists.
    */
   const loadNearbyRestaurants = useCallback(async (): Promise<void> => {
     if (!location) return;
@@ -86,16 +90,18 @@ export default function MapScreen(): React.ReactElement {
       setIsLoadingRestaurants(true);
       setRestaurantsError(null);
 
+      // Fetch nearby restaurants using location coordinates
       const nearbyRestaurants = await restaurantService.getNearby({
         latitude: location.latitude,
         longitude: location.longitude,
         radius: MAP_CONFIG.DEFAULT_SEARCH_RADIUS_KM,
       });
 
+      // Debug log (disabled in production)
       console.log('🗺️ Nearby restaurants loaded:', nearbyRestaurants.length);
       setRestaurants(nearbyRestaurants);
 
-      // Handle pre-selected restaurant from HomeScreen
+      // Handle case when user navigates from Home with a restaurant selected
       if (restaurantId) {
         handleInitialRestaurantSelection(nearbyRestaurants, restaurantId);
       }
@@ -108,12 +114,14 @@ export default function MapScreen(): React.ReactElement {
   }, [location, restaurantId]);
 
   /**
-   * Handles initial restaurant selection from route params
+   * Handles initial selection of restaurant when navigating from Home.
+   * @param restaurantsList - List of fetched nearby restaurants
+   * @param restaurantId - The ID received from route params
    */
   const handleInitialRestaurantSelection = useCallback(
     (restaurantsList: Restaurant[], restaurantId: string): void => {
       const targetRestaurant = restaurantsList.find(r => r.id === restaurantId);
-      
+
       if (targetRestaurant) {
         setSelectedRestaurant(targetRestaurant);
         centerMapOnRestaurant(targetRestaurant);
@@ -123,7 +131,7 @@ export default function MapScreen(): React.ReactElement {
   );
 
   /**
-   * Centers map on selected restaurant with animation
+   * Smoothly center map on the given restaurant coordinates.
    */
   const centerMapOnRestaurant = useCallback((restaurant: Restaurant): void => {
     setTimeout(() => {
@@ -134,22 +142,21 @@ export default function MapScreen(): React.ReactElement {
     }, MAP_CONFIG.INITIAL_ANIMATION_DELAY);
   }, []);
 
-  // Load restaurants when location is available
+  // Load restaurants once user location becomes available
   useEffect(() => {
     loadNearbyRestaurants();
   }, [loadNearbyRestaurants]);
 
-  // ============================================================================
-  // Event Handlers
-  // ============================================================================
+  // =============================================================
+  // 🔹 Event Handlers
+  // =============================================================
 
   /**
-   * Handles restaurant marker press
-   * Shows info card and centers map
+   * Handle marker press: show restaurant card and re-center map.
    */
   const handleRestaurantSelect = useCallback((restaurant: Restaurant): void => {
     setSelectedRestaurant(restaurant);
-    
+
     mapRef.current?.animateToRegion(
       MapUtils.createRestaurantRegion(restaurant),
       MAP_CONFIG.ANIMATION_DURATION
@@ -157,11 +164,11 @@ export default function MapScreen(): React.ReactElement {
   }, []);
 
   /**
-   * Navigates to ProductsScreen for selected restaurant
+   * Navigate to the Products screen for selected restaurant.
    */
   const handleViewProducts = useCallback((restaurant: Restaurant): void => {
     console.log('📦 Navigating to products from:', restaurant.name);
-    
+
     router.push({
       pathname: '/(tabs)/ProductsScreen',
       params: { restaurantId: restaurant.id },
@@ -169,44 +176,44 @@ export default function MapScreen(): React.ReactElement {
   }, [router]);
 
   /**
-   * Navigates back to previous screen
+   * Go back to the previous screen.
    */
   const handleGoBack = useCallback((): void => {
     router.back();
   }, [router]);
 
   /**
-   * Centers map on user's current location
+   * Center the map on the user's current location.
    */
   const handleCenterOnUser = useCallback((): void => {
     if (!location) return;
-    
+
     mapRef.current?.animateToRegion(
       MapUtils.createUserRegion(location),
       MAP_CONFIG.ANIMATION_DURATION
     );
   }, [location]);
 
-  // ============================================================================
-  // Map Configuration
-  // ============================================================================
+  // =============================================================
+  // 🔹 Map Configuration Helpers
+  // =============================================================
 
   /**
-   * Calculates initial map region
-   * Priority: Route params > User location
+   * Determine the initial map region to display.
+   * Priority order:
+   *  1. Coordinates from navigation params
+   *  2. User's geolocation
    */
   const getInitialRegion = useCallback((): Region | undefined => {
-    // Try to use coordinates from params
     if (paramLatitude && paramLongitude) {
       const lat = parseCoordinate(paramLatitude);
       const lon = parseCoordinate(paramLongitude);
-      
+
       if (lat !== undefined && lon !== undefined) {
         return MapUtils.createRegionFromCoords(lat, lon);
       }
     }
 
-    // Fallback to user location
     if (location) {
       return MapUtils.createUserRegion(location);
     }
@@ -214,9 +221,9 @@ export default function MapScreen(): React.ReactElement {
     return undefined;
   }, [location, paramLatitude, paramLongitude]);
 
-  // ============================================================================
-  // Loading State
-  // ============================================================================
+  // =============================================================
+  // 🔹 Loading State
+  // =============================================================
 
   if (locationLoading || isLoadingRestaurants) {
     return (
@@ -229,21 +236,23 @@ export default function MapScreen(): React.ReactElement {
     );
   }
 
-  // ============================================================================
-  // Error State
-  // ============================================================================
+  // =============================================================
+  // 🔹 Error State
+  // =============================================================
 
   if (locationError || restaurantsError) {
     return (
       <View style={mapStyles.centeredContainer}>
-        <Ionicons 
-          name="alert-circle-outline" 
-          size={64} 
-          color={mapStyles.error.color} 
+        <Ionicons
+          name="alert-circle-outline"
+          size={64}
+          color={mapStyles.error.color}
         />
         <Text style={mapStyles.errorText}>
           {locationError || restaurantsError}
         </Text>
+
+        {/* Retry button to reload restaurants */}
         <TouchableOpacity
           style={mapStyles.retryButton}
           onPress={loadNearbyRestaurants}
@@ -252,18 +261,20 @@ export default function MapScreen(): React.ReactElement {
             {MAP_TEXT.BUTTONS.RETRY}
           </Text>
         </TouchableOpacity>
+
+        {/* Persistent bottom navigation */}
         <BottomNavigation items={navItems} />
       </View>
     );
   }
 
-  // ============================================================================
-  // Main Render
-  // ============================================================================
+  // =============================================================
+  // 🔹 Main Render
+  // =============================================================
 
   return (
     <View style={mapStyles.container}>
-      {/* Map View */}
+      {/* Map container */}
       {location && (
         <MapView
           ref={mapRef}
@@ -273,14 +284,14 @@ export default function MapScreen(): React.ReactElement {
           showsMyLocationButton={false}
           showsCompass={true}
         >
-          {/* User Location Marker */}
+          {/* User marker */}
           <UserLocationMarker
             latitude={location.latitude}
             longitude={location.longitude}
             title={MAP_TEXT.MARKERS.USER_LOCATION}
           />
 
-          {/* Restaurant Markers */}
+          {/* Restaurant markers */}
           <RestaurantMarkers
             restaurants={restaurants}
             selectedRestaurantId={selectedRestaurant?.id}
@@ -289,14 +300,14 @@ export default function MapScreen(): React.ReactElement {
         </MapView>
       )}
 
-      {/* Header with back button and title */}
+      {/* Header with navigation and centering controls */}
       <MapHeader
         title={MAP_TEXT.HEADER.TITLE}
         onBackPress={handleGoBack}
         onCenterPress={handleCenterOnUser}
       />
 
-      {/* Restaurant Info Card */}
+      {/* Restaurant detail card */}
       {selectedRestaurant && (
         <RestaurantMapCard
           restaurant={selectedRestaurant}
@@ -304,7 +315,7 @@ export default function MapScreen(): React.ReactElement {
         />
       )}
 
-      {/* Bottom Navigation */}
+      {/* Bottom persistent navigation bar */}
       <BottomNavigation items={navItems} />
     </View>
   );

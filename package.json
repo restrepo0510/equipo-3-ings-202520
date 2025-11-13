@@ -1,8 +1,6 @@
 {
-  "dependencies": {
-    "@nestjs/config": "^4.0.2",
-    "dotenv": "^17.2.3",
-    "reflect-metadata": "^0.2.2",
-    "stripe": "^19.1.0"
-  }
+  "name": "yummi-monorepo-root",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Root for Yummi client and server"
 }
