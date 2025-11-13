@@ -1,0 +1,55 @@
+{
+  "expo": {
+    "name": "Yummi",
+    "slug": "Yummi",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/img/logo.png",
+    "scheme": "yummi", 
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#E6F4FE",
+        "foregroundImage": "./assets/img/logo.png" 
+      },
+      "edgeToEdgeEnabled": true,
+      "predictiveBackGestureEnabled": false,
+      "package": "com.alexsklx.Yummi"
+    },
+    "web": {
+      "output": "static",
+      "favicon": "./assets/img/logo.png" 
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/img/logo.png",
+          "imageWidth": 300,
+          "resizeMode": "contain",
+          "backgroundColor": "#ffffff",
+          "dark": {
+            "backgroundColor": "#000000"
+          }
+        }
+      ],
+      "expo-font",
+      "expo-web-browser"
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "a1d3d469-8f61-4fcd-9567-8f3b70fe0c3c"
+      }
+    }
+  }
+}

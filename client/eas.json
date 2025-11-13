@@ -1,0 +1,24 @@
+{
+  "cli": {
+    "version": ">= 16.27.0",
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "projectRoot": "./client"
+    },
+    "preview": {
+      "distribution": "internal",
+      "projectRoot": "./client"
+    },
+    "production": {
+      "autoIncrement": true,
+      "projectRoot": "./client"
+    }
+  },
+  "submit": {
+    "production": {}
+  }
+}
