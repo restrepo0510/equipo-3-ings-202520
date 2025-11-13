@@ -1,3 +1,4 @@
+import React from 'react'; // <-- Añade esta línea, es una buena práctica.
 import { View } from 'react-native';
 
 /**
@@ -7,6 +8,5 @@ import { View } from 'react-native';
  * y redirigirá al Login o al Home.
  */
 export default function Index() {
-  // Se deja vacío a propósito.
   return <View />;
 }
