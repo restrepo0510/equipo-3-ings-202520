@@ -1,58 +1,72 @@
+// ✅ File: styles/editProfileScreen.styles.ts
+// -------------------------------------------------------------
+// This stylesheet defines the visual design for the Edit Profile Screen.
+// It manages layout, headers, form fields, images, and button styles.
+// Comments are in English for clarity, while visible text remains in Spanish.
+// -------------------------------------------------------------
+
 import { StyleSheet } from "react-native";
 
 export const editProfileStyles = StyleSheet.create({
+
+  // ======== MAIN CONTAINER ========
   container: { 
     flex: 1, 
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#FAFAFA",
   },
+
   scrollContent: {
-    paddingTop: 50,
-    paddingBottom: 120, // Space for bottom nav
+    paddingTop: 60,
+    paddingBottom: 120,
     alignItems: "center",
   },
   
-  // Header
+  // ======== HEADER SECTION ========
   header: { 
     flexDirection: "row", 
     alignItems: "center", 
     justifyContent: "space-between",
     width: "100%",
-    paddingHorizontal: 20,
-    marginBottom: 10,
-  },
-    headerTitle: {
-        fontSize: 40,
-        fontWeight: "900",
-        color: "#000",
-        letterSpacing: 0,
-    },
-    yummi: {
-        fontStyle: "italic",
-        fontWeight: "200",
-        letterSpacing: 4,
-        color: "#4A4A4A",
-    },
-    divider: {
-        width: "85%",
-        height: 2,
-        backgroundColor: "#000",
-        marginBottom: 20,
-        borderRadius: 20,
-    },
-  
-  // Edit Profile Title
-  editTitle: {
-    fontSize: 35,
-    fontWeight: "semibold",
-    color: "#000",
+    paddingHorizontal: 24,
     marginBottom: 10,
   },
 
-  // Profile Section
+  headerTitle: {
+    fontSize: 40,
+    fontWeight: "900",
+    color: "#1C2833",
+    letterSpacing: 0.3,
+  },
+
+  yummi: {
+    fontStyle: "italic",
+    fontWeight: "300",
+    letterSpacing: 3,
+    color: "#2C3E50",
+  },
+
+  divider: {
+    width: "85%",
+    height: 2,
+    backgroundColor: "#004226",
+    marginVertical: 20,
+    borderRadius: 10,
+  },
+  
+  // ======== TITLE SECTION ========
+  editTitle: {
+    fontSize: 34,
+    fontWeight: "700",
+    color: "#1C2833",
+    marginBottom: 12,
+  },
+
+  // ======== PROFILE IMAGE SECTION ========
   profileSection: {
     alignItems: "center",
     marginBottom: 30,
   },
+
   profileImageContainer: {
     position: "relative",
     alignItems: "center",
@@ -65,22 +79,20 @@ export const editProfileStyles = StyleSheet.create({
     borderRadius: 100,
     zIndex: 2,
     shadowColor: "#000",
-    shadowOffset: {
-        width: 0,
-        height: 12, 
-    },
-    shadowOpacity: 0.5, 
-    shadowRadius: 20, 
-    elevation: 20, 
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3, 
+    shadowRadius: 12, 
+    elevation: 10, 
   },
   
-  // Decorative stars
+  // --- Decorative Stars ---
   star1: {
     position: "absolute",
     top: 15,
     right: 10,
     zIndex: 3,
   },
+
   star2: {
     position: "absolute",
     bottom: 35,
@@ -88,7 +100,7 @@ export const editProfileStyles = StyleSheet.create({
     zIndex: 3,
   },
   
-  // Folder Button
+  // ======== FOLDER BUTTON (Image Picker) ========
   folderButton: {
     position: "absolute",
     right: -35,
@@ -100,56 +112,54 @@ export const editProfileStyles = StyleSheet.create({
     zIndex: 3,
   },
 
-  // Form
+  // ======== FORM SECTION ========
   form: {
     width: "85%",
     marginTop: -10,
   },
+
   inputGroup: {
     marginBottom: 20,
   },
+
   label: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: "700",
-    color: "#1B5E20",
+    color: "#145625",
     marginBottom: 8,
     marginLeft: 5,
+    letterSpacing: 0.4,
   },
+
   input: {
     borderWidth: 1.5,
-    borderColor: "#000",
+    borderColor: "#C5C6C7",
     borderRadius: 25,
     paddingVertical: 12,
     paddingHorizontal: 20,
     fontSize: 16,
     backgroundColor: "#FFFFFF",
-    color: "#000",
+    color: "#2C3E50",
     shadowColor: "#000",
-    shadowOffset: {
-        width: 0,
-        height: 2, 
-    },
-    shadowOpacity: 0.5, 
-    shadowRadius: 5, 
-    elevation: 5, 
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 3,
   },
 
-  // Input Error State
+  // --- Input Error State ---
   inputError: {
     borderColor: "#E74C3C",
     borderWidth: 2,
     backgroundColor: "#FDEDEC",
     shadowColor: "#E74C3C",
-    shadowOffset: {
-        width: 0,
-        height: 2,
-    },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
     elevation: 3,
   },
 
-  // Error Text
+  // --- Error Text ---
   errorText: {
     color: "#E74C3C",
     fontSize: 14,
@@ -158,38 +168,37 @@ export const editProfileStyles = StyleSheet.create({
     marginLeft: 12,
   },
 
-  // Image Hint
+  // --- Image Hint Text ---
   imageHint: {
     fontSize: 12,
-    color: '#7F8C8D',
-    textAlign: 'center',
+    color: "#7F8C8D",
+    textAlign: "center",
     marginTop: 8,
-    fontStyle: 'italic',
+    fontStyle: "italic",
   },
 
-  // Save Button
+  // ======== SAVE BUTTON SECTION ========
   saveButton: {
-    backgroundColor: "#1B5E20",
-    borderRadius: 25,
-    paddingVertical: 14,
-    paddingHorizontal: 40,
+    backgroundColor: "#004226",
+    borderRadius: 50,
+    paddingVertical: 16,
+    paddingHorizontal: 50,
     alignItems: "center",
     justifyContent: "center",
     marginTop: 20,
     alignSelf: "center",
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 3 },
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
+    shadowRadius: 5,
+    elevation: 6,
   },
 
-  // Save Button Disabled State
   saveButtonDisabled: {
     backgroundColor: "#95A5A6",
-    borderRadius: 25,
-    paddingVertical: 14,
-    paddingHorizontal: 40,
+    borderRadius: 50,
+    paddingVertical: 16,
+    paddingHorizontal: 50,
     alignItems: "center",
     justifyContent: "center",
     marginTop: 20,
@@ -203,17 +212,15 @@ export const editProfileStyles = StyleSheet.create({
 
   saveButtonText: {
     color: "#FFFFFF",
-    fontSize: 18,
-    fontWeight: "bold",
-    letterSpacing: 1,
+    fontSize: 17,
+    fontWeight: "700",
+    letterSpacing: 0.5,
   },
 
-  // Save Button Text Disabled State
   saveButtonTextDisabled: {
     color: "#ECF0F1",
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: "600",
-    letterSpacing: 1,
+    letterSpacing: 0.5,
   },
-
 });

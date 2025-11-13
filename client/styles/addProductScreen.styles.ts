@@ -1,17 +1,32 @@
+// styles/addProductScreen.styles.ts
+// ============================================================
+// 📘 Form Screen Styles
+// Styles used for form screens with image picker and buttons.
+// ============================================================
+
 import { StyleSheet } from "react-native";
 
+/**
+ * Stylesheet for form-based screens.
+ * Includes header, form controls, image picker, toggles, and action buttons.
+ */
 export const styles = StyleSheet.create({
+  // ============================================================
+  // 🔹 Layout & Scroll
+  // ============================================================
   container: {
     flex: 1,
     backgroundColor: "#FFFFFF",
   },
   scrollContent: {
     paddingTop: 50,
-    paddingBottom: 120, // Space for bottom nav
+    paddingBottom: 120, // Space for bottom navigation
     alignItems: "center",
   },
 
-  // Header
+  // ============================================================
+  // 🔹 Header Section
+  // ============================================================
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -42,7 +57,9 @@ export const styles = StyleSheet.create({
     marginVertical: 20,
   },
 
-  // Form
+  // ============================================================
+  // 🔹 Form Elements
+  // ============================================================
   form: {
     width: "85%",
     marginTop: 10,
@@ -72,7 +89,9 @@ export const styles = StyleSheet.create({
     textAlignVertical: "top",
   },
 
-  // Image Picker
+  // ============================================================
+  // 🔹 Image Picker
+  // ============================================================
   imagePickerButton: {
     borderWidth: 3,
     borderColor: "#000",
@@ -90,7 +109,9 @@ export const styles = StyleSheet.create({
     fontWeight: "500",
   },
 
-  // Image Preview
+  // ============================================================
+  // 🔹 Image Preview
+  // ============================================================
   imagePreviewContainer: {
     position: "relative",
     width: "100%",
@@ -137,7 +158,10 @@ export const styles = StyleSheet.create({
     fontWeight: "600",
     marginLeft: 6,
   },
-  // Row Layout
+
+  // ============================================================
+  // 🔹 Layout Utilities
+  // ============================================================
   row: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -146,7 +170,9 @@ export const styles = StyleSheet.create({
     width: "48%",
   },
 
-  // Toggle Switch
+  // ============================================================
+  // 🔹 Toggle Switch
+  // ============================================================
   toggleContainer: {
     flexDirection: "row",
     alignItems: "center",
@@ -175,7 +201,9 @@ export const styles = StyleSheet.create({
     alignSelf: "flex-end",
   },
 
-  // Buttons
+  // ============================================================
+  // 🔹 Buttons
+  // ============================================================
   submitButton: {
     backgroundColor: "#1B5E20",
     flexDirection: "row",
@@ -199,7 +227,6 @@ export const styles = StyleSheet.create({
     fontWeight: "bold",
     marginLeft: 10,
   },
-
   cancelButton: {
     backgroundColor: "#FFF",
     borderColor: "#1B5E20",
