@@ -30,9 +30,9 @@ import type { RestaurantSummary, ProductSummary } from '@/types/reviews.types';
 /**
  * AddReviewScreen Component
  * 
- * Allows users to create and submit reviews for products
+ * Allows users to create and submit reviews for products.
  * 
- * @responsibilities
+ * Responsibilities:
  * - Render review creation form
  * - Handle restaurant and product selection
  * - Collect rating and review text
@@ -40,7 +40,7 @@ import type { RestaurantSummary, ProductSummary } from '@/types/reviews.types';
  */
 export default function AddReviewScreen(): React.ReactElement {
   // ============================================================================
-  // Hooks
+  // Hooks & State
   // ============================================================================
   
   const router = useRouter();
@@ -48,7 +48,7 @@ export default function AddReviewScreen(): React.ReactElement {
   const { location } = useLocation();
   const navItems = createNavItems('reviews', router);
 
-  // Form state management
+  // Review form state management
   const {
     selectedRestaurant,
     selectedProduct,
@@ -63,7 +63,7 @@ export default function AddReviewScreen(): React.ReactElement {
     resetForm,
   } = useReviewForm();
 
-  // Restaurant and products loading
+  // Restaurant and products fetching
   const {
     restaurants,
     products,
@@ -72,7 +72,6 @@ export default function AddReviewScreen(): React.ReactElement {
     loadProducts,
   } = useRestaurantProducts(location, token);
 
-  // Local UI state
   const [dropdownVisible, setDropdownVisible] = useState(false);
 
   // ============================================================================
@@ -80,7 +79,7 @@ export default function AddReviewScreen(): React.ReactElement {
   // ============================================================================
 
   /**
-   * Load products when restaurant is selected
+   * Loads products when a restaurant is selected
    */
   useEffect(() => {
     if (selectedRestaurant) {
@@ -92,32 +91,24 @@ export default function AddReviewScreen(): React.ReactElement {
   // Handlers
   // ============================================================================
 
-  /**
-   * Handles restaurant selection
-   */
+  /** Handles restaurant selection */
   const handleSelectRestaurant = (restaurant: RestaurantSummary): void => {
     setSelectedRestaurant(restaurant);
     setSelectedProduct(null);
     setDropdownVisible(false);
   };
 
-  /**
-   * Handles product selection
-   */
+  /** Handles product selection */
   const handleSelectProduct = (product: ProductSummary): void => {
     setSelectedProduct(product);
   };
 
-  /**
-   * Handles star rating selection
-   */
+  /** Handles star rating selection */
   const handleSelectRating = (star: number): void => {
     setRating(star);
   };
 
-  /**
-   * Handles review submission
-   */
+  /** Handles review submission */
   const handleSubmit = async (): Promise<void> => {
     await validateAndSubmit(token!, () => {
       resetForm();
@@ -125,16 +116,12 @@ export default function AddReviewScreen(): React.ReactElement {
     });
   };
 
-  /**
-   * Navigates back
-   */
+  /** Handles navigation back */
   const handleGoBack = (): void => {
     router.back();
   };
 
-  /**
-   * Toggles dropdown visibility
-   */
+  /** Toggles dropdown visibility */
   const toggleDropdown = (): void => {
     if (!isLoadingRestaurants) {
       setDropdownVisible(!dropdownVisible);
@@ -145,9 +132,7 @@ export default function AddReviewScreen(): React.ReactElement {
   // Render Helpers
   // ============================================================================
 
-  /**
-   * Renders star rating selector
-   */
+  /** Renders star rating selector */
   const renderStarRating = (): React.ReactElement => (
     <View style={styles.starRow}>
       {ReviewsUtils.getStarIndices().map((star) => (
@@ -170,10 +155,7 @@ export default function AddReviewScreen(): React.ReactElement {
     </View>
   );
 
- /**
-   * Renders restaurant dropdown
-   * ✅ ACTUALIZADO: Ahora con scroll interno como ReviewsScreen
-   */
+  /** Renders restaurant dropdown selector */
   const renderRestaurantDropdown = (): React.ReactElement => (
     <>
       <TouchableOpacity
@@ -199,7 +181,7 @@ export default function AddReviewScreen(): React.ReactElement {
         <ScrollView 
           style={styles.dropdownList} 
           nestedScrollEnabled
-          showsVerticalScrollIndicator={true}
+          showsVerticalScrollIndicator
         >
           {isLoadingRestaurants ? (
             <ActivityIndicator 
@@ -227,9 +209,7 @@ export default function AddReviewScreen(): React.ReactElement {
     </>
   );
 
-  /**
-   * Renders product selection
-   */
+  /** Renders product selection list */
   const renderProductSelection = (): React.ReactElement | null => {
     if (!selectedRestaurant) return null;
 
@@ -282,9 +262,7 @@ export default function AddReviewScreen(): React.ReactElement {
     );
   };
 
-  /**
-   * Renders review input section
-   */
+  /** Renders review input and submission button */
   const renderReviewInput = (): React.ReactElement | null => {
     if (!selectedProduct) return null;
 
@@ -339,7 +317,7 @@ export default function AddReviewScreen(): React.ReactElement {
 
   return (
     <View style={styles.container}>
-      {/* Header */}
+      {/* Header Section */}
       <View style={styles.header}>
         <TouchableOpacity 
           onPress={handleGoBack} 
@@ -358,10 +336,11 @@ export default function AddReviewScreen(): React.ReactElement {
           {REVIEWS_TEXT.HEADER.SUBTITLE}
         </Text>
       </View>
-<View style={styles.divider} />
+
+      <View style={styles.divider} />
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* Select Restaurant */}
+        {/* Restaurant Selection */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>
             {REVIEWS_TEXT.ADD_REVIEW.ADD_REVIEW_TITLE}
@@ -372,10 +351,10 @@ export default function AddReviewScreen(): React.ReactElement {
           {renderRestaurantDropdown()}
         </View>
 
-        {/* Select Product */}
+        {/* Product Selection */}
         {renderProductSelection()}
 
-        {/* Rate and Review */}
+        {/* Rating & Review */}
         {renderReviewInput()}
       </ScrollView>
 

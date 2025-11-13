@@ -19,11 +19,27 @@ import { useAuth } from "@/context/AuthContext";
 import { styles } from "@/styles/businessProfileScreen.styles";
 import { CustomAlertHelper } from "@/components/ui/customAlert";
 
+/**
+ * BusinessProfileScreen Component
+ * 
+ * Displays the restaurant’s profile with its products.
+ * 
+ * @responsibilities
+ * - Load and display business information
+ * - Handle product management (edit, delete, quantity)
+ * - Allow logout and profile edit actions
+ */
 export default function BusinessProfileScreen(): React.ReactElement {
+  // ============================================================================
+  // Hooks & Context
+  // ============================================================================
   const router = useRouter();
   const { token, user, logout } = useAuth();
   const navItems = createBusinessNavItems("profile", router);
 
+  // ============================================================================
+  // State
+  // ============================================================================
   const [products, setProducts] = useState<Product[]>([]);
   const [restaurantImage, setRestaurantImage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -31,7 +47,14 @@ export default function BusinessProfileScreen(): React.ReactElement {
 
   const restaurantId = user?.id;
 
-  const loadRestaurantData = useCallback(async () => {
+  // ============================================================================
+  // Data Loading
+  // ============================================================================
+
+  /**
+   * Loads restaurant data (image, name, etc.)
+   */
+  const loadRestaurantData = useCallback(async (): Promise<void> => {
     if (!restaurantId) return;
 
     try {
@@ -43,7 +66,10 @@ export default function BusinessProfileScreen(): React.ReactElement {
     }
   }, [restaurantId]);
 
-  const loadProducts = useCallback(async () => {
+  /**
+   * Loads products associated with the restaurant
+   */
+  const loadProducts = useCallback(async (): Promise<void> => {
     if (!token) {
       setError("No authentication token");
       setIsLoading(false);
@@ -75,10 +101,18 @@ export default function BusinessProfileScreen(): React.ReactElement {
     }
   }, [token, restaurantId, loadRestaurantData]);
 
+  // Load data on mount
   useEffect(() => {
     loadProducts();
   }, [loadProducts]);
 
+  // ============================================================================
+  // Handlers
+  // ============================================================================
+
+  /**
+   * Handles user logout confirmation and process
+   */
   const handleLogout = async (): Promise<void> => {
     CustomAlertHelper.confirm(
       "Cerrar Sesión",
@@ -95,10 +129,16 @@ export default function BusinessProfileScreen(): React.ReactElement {
     );
   };
 
+  /**
+   * Navigates to Edit Business Profile screen
+   */
   const handleEditProfile = (): void => {
     router.push("/(tabs)/EditBusinessProfileScreen");
   };
 
+  /**
+   * Opens product editing screen
+   */
   const handleEditProduct = (product: Product): void => {
     router.push({
       pathname: "/(tabs)/EditProductScreen",
@@ -106,6 +146,9 @@ export default function BusinessProfileScreen(): React.ReactElement {
     });
   };
 
+  /**
+   * Updates product stock quantity
+   */
   const handleUpdateQuantity = async (
     product: Product,
     change: number
@@ -129,6 +172,9 @@ export default function BusinessProfileScreen(): React.ReactElement {
     }
   };
 
+  /**
+   * Deletes a product after confirmation
+   */
   const handleDeleteProduct = async (product: Product): Promise<void> => {
     if (!token) return;
 
@@ -147,6 +193,10 @@ export default function BusinessProfileScreen(): React.ReactElement {
       }
     );
   };
+
+  // ============================================================================
+  // Conditional Rendering
+  // ============================================================================
 
   if (isLoading) {
     return (
@@ -175,12 +225,17 @@ export default function BusinessProfileScreen(): React.ReactElement {
     );
   }
 
+  // ============================================================================
+  // Render
+  // ============================================================================
+
   return (
     <View style={styles.container}>
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
+        {/* Header Section */}
         <View style={styles.header}>
           <View style={styles.headerTitleContainer}>
             <Text style={styles.headerTitle}>
@@ -196,6 +251,7 @@ export default function BusinessProfileScreen(): React.ReactElement {
 
         <View style={styles.divider} />
 
+        {/* Company Info Section */}
         <View style={styles.companySection}>
           <View style={styles.companyImageContainer}>
             <View style={styles.companyImage}>
@@ -225,6 +281,7 @@ export default function BusinessProfileScreen(): React.ReactElement {
           <Text style={styles.companyName}>{user?.name || "Company Name"}</Text>
         </View>
 
+        {/* Products Section */}
         {products.length === 0 ? (
           <View style={styles.emptyContainer}>
             <Ionicons name="restaurant-outline" size={80} color="#BDC3C7" />
@@ -291,11 +348,13 @@ export default function BusinessProfileScreen(): React.ReactElement {
           </View>
         )}
 
+        {/* Logout Button */}
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
           <Text style={styles.logoutButtonText}>Cerrar Sesión</Text>
         </TouchableOpacity>
       </ScrollView>
 
+      {/* Bottom Navigation */}
       <BottomNavigation items={navItems} />
     </View>
   );

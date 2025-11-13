@@ -1,15 +1,32 @@
 // ReadReviews.styles.ts
 import { StyleSheet } from "react-native";
 
+/**
+ * ===========================================================
+ * ReadReviews Screen Styles
+ * ===========================================================
+ * Stylesheet for the ReadReviews screen.
+ * Focused on clean layout, visual hierarchy, and reusability.
+ *
+ * @features
+ * - Consistent with ReviewsScreen
+ * - Includes product cards, headers, and review sections
+ * - Designed for readability and mobile optimization
+ */
 export const profileStyles = StyleSheet.create({
+  // ===========================================================
+  // 🔹 Base Container
+  // ===========================================================
   container: {
     flex: 1,
     backgroundColor: "#FFFFFF",
     paddingHorizontal: 10,
     paddingTop: 40,
   },
-  
-  // Header - ✅ Mismo estilo que ReviewsScreen
+
+  // ===========================================================
+  // 🔹 Header Section (Same style as ReviewsScreen)
+  // ===========================================================
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -18,11 +35,13 @@ export const profileStyles = StyleSheet.create({
     paddingHorizontal: 20,
     marginBottom: 10,
   },
-  
+
+  // Back button for navigation
   backButton: {
     marginRight: 0,
   },
-  
+
+  // Main title in header
   headerTitle: {
     flex: 1,
     textAlign: "center",
@@ -30,15 +49,18 @@ export const profileStyles = StyleSheet.create({
     fontWeight: "600",
     color: "#1E1E1E",
   },
-  
+
+  // “Yummi” accent text (brand style)
   yummi: {
     fontStyle: "italic",
     fontWeight: "200",
     letterSpacing: 4,
     color: "#4A4A4A",
   },
-  
-  // Divider - ✅ Mismo estilo que ReviewsScreen
+
+  // ===========================================================
+  // 🔹 Divider (Same style as ReviewsScreen)
+  // ===========================================================
   divider: {
     width: "85%",
     height: 2,
@@ -47,11 +69,18 @@ export const profileStyles = StyleSheet.create({
     borderRadius: 20,
     alignSelf: "center",
   },
-  
+
+  // ===========================================================
+  // 🔹 Scrollable Content
+  // ===========================================================
   scrollContent: {
     padding: 20,
     paddingBottom: 100,
   },
+
+  // ===========================================================
+  // 🔹 Product Card Section
+  // ===========================================================
   productCard: {
     backgroundColor: "#FFF",
     borderWidth: 1,
@@ -68,6 +97,8 @@ export const profileStyles = StyleSheet.create({
     alignItems: "center",
     position: "relative",
   },
+
+  // Product image thumbnail
   productImage: {
     width: 100,
     height: 100,
@@ -75,20 +106,28 @@ export const profileStyles = StyleSheet.create({
     marginRight: 12,
     backgroundColor: "#F0F0F0",
   },
+
+  // Text container for product info
   productInfo: {
     flex: 1,
   },
+
+  // Product name (bold title)
   productName: {
     fontSize: 16,
     fontWeight: "700",
     color: "#000",
     marginBottom: 4,
   },
+
+  // Product short description
   productDescription: {
     fontSize: 13,
     color: "#666",
     lineHeight: 18,
   },
+
+  // Visit button (top-right corner)
   visitButton: {
     position: "absolute",
     top: -15,
@@ -105,11 +144,17 @@ export const profileStyles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
+
+  // Text inside the visit button
   visitButtonText: {
     color: "#FFF",
     fontSize: 14,
     fontWeight: "600",
   },
+
+  // ===========================================================
+  // 🔹 Review Box Section
+  // ===========================================================
   reviewBox: {
     backgroundColor: "#FFF",
     borderWidth: 1,
@@ -122,18 +167,25 @@ export const profileStyles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
+
+  // Reviewer name text
   reviewerName: {
     fontSize: 18,
     fontWeight: "600",
     color: "#000",
     marginBottom: 12,
   },
+
+  // Main review text content
   reviewText: {
     fontSize: 15,
     color: "#333",
     lineHeight: 22,
   },
-    // Star row container
+
+  // ===========================================================
+  // 🔹 Star Rating Section
+  // ===========================================================
   starsRow: {
     flexDirection: "row",
     marginBottom: 8,

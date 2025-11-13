@@ -1,6 +1,19 @@
+// addReviewScreen.styles.ts
+// ============================================================
+// 🎨 Add Review Screen Styles
+// Styles for the screen where users can add a review and rate a product
+// ============================================================
+
 import { StyleSheet } from "react-native";
 
+/**
+ * Styles for AddReviewScreen — organized by functional sections:
+ * Header, Dropdown, Product Card, Review Input, etc.
+ */
 export const profileStyles = StyleSheet.create({
+  // ==========================
+  // 🔹 Layout & Container
+  // ==========================
   container: { 
     flex: 1, 
     backgroundColor: "#FFFFFF",
@@ -8,8 +21,15 @@ export const profileStyles = StyleSheet.create({
     paddingTop: 40,
     alignContent: "center",
   },
-  
-  // Header - ✅ Mismo estilo que ReviewsScreen
+
+  scrollContent: { 
+    padding: 10,
+    paddingBottom: 100,
+  },
+
+  // ==========================
+  // 🔹 Header Section
+  // ==========================
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -18,11 +38,11 @@ export const profileStyles = StyleSheet.create({
     paddingHorizontal: 20,
     marginBottom: 10,
   },
-  
+
   backButton: { 
     marginRight: 0,
   },
-  
+
   headerTitle: { 
     flex: 1,
     textAlign: "center",
@@ -30,15 +50,15 @@ export const profileStyles = StyleSheet.create({
     fontWeight: "600",
     color: "#1E1E1E",
   },
-  
+
   yummi: { 
     fontStyle: "italic",
     fontWeight: "200",
     letterSpacing: 4,
     color: "#4A4A4A",
   },
-  
-  // Divider -
+
+  // Divider line used between header and main content
   divider: {
     width: "85%",
     height: 2,
@@ -47,17 +67,15 @@ export const profileStyles = StyleSheet.create({
     borderRadius: 20,
     alignSelf: "center",
   },
-  
-  scrollContent: { 
-    padding: 10,
-    paddingBottom: 100,
-  },
-  
+
+  // ==========================
+  // 🔹 Sections & Titles
+  // ==========================
   section: { 
     marginBottom: 24, 
-    marginTop: -15
+    marginTop: -15,
   },
-  
+
   sectionTitle: { 
     fontSize: 28, 
     fontWeight: "700", 
@@ -65,12 +83,17 @@ export const profileStyles = StyleSheet.create({
     color: "#000",
     alignSelf: "center",
   },
+
   sectionSubTitle: { 
     fontSize: 18, 
     fontWeight: "700", 
     marginBottom: 18,
     color: "#000",
   },
+
+  // ==========================
+  // 🔹 Dropdown Menu
+  // ==========================
   dropdown: {
     backgroundColor: "#E7EBDF",
     flexDirection: "row",
@@ -84,14 +107,13 @@ export const profileStyles = StyleSheet.create({
     alignSelf: "center",
     marginBottom: 20,
   },
-  
+
   dropdownText: {
     fontSize: 18,
     color: "#333",
     fontWeight: "600",
   },
-  
-  // Dropdown 
+
   dropdownList: {
     backgroundColor: "#FFF",
     borderWidth: 2,
@@ -106,9 +128,9 @@ export const profileStyles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 5,
     zIndex: 1000,
-    position: 'relative',
+    position: "relative",
   },
-  
+
   dropdownItem: {
     paddingVertical: 12,
     paddingHorizontal: 16,
@@ -116,13 +138,15 @@ export const profileStyles = StyleSheet.create({
     borderBottomColor: "#F0F0F0",
     backgroundColor: "#FFF",
   },
-  
+
   dropdownItemText: {
     fontSize: 15,
     color: "#333",
   },
-  
-  // Card 
+
+  // ==========================
+  // 🔹 Product Card
+  // ==========================
   productCard: {
     flexDirection: "row",
     alignItems: "center",
@@ -132,43 +156,46 @@ export const profileStyles = StyleSheet.create({
     borderRadius: 16,
     padding: 12,
     marginBottom: 12,
-    boxShadow: '0px 6px 6px rgba(0, 0, 0, 0.1)',
-
+    boxShadow: "0px 6px 6px rgba(0, 0, 0, 0.1)",
   },
-  
+
   productImage: {
-    width:100,
+    width: 100,
     height: 100,
     borderRadius: 12,
     marginRight: 12,
     backgroundColor: "#F0F0F0",
   },
-  
+
   productInfo: {
     flex: 1,
   },
-  
+
   productName: {
     fontSize: 16,
     fontWeight: "700",
     color: "#000",
     marginBottom: 4,
   },
-  
+
   productDescription: {
     fontSize: 13,
     color: "#666",
     lineHeight: 18,
   },
-  
-  // Estrellas
+
+  // ==========================
+  // 🔹 Rating Stars
+  // ==========================
   starRow: {
     flexDirection: "row",
     gap: 8,
     marginTop: 8,
   },
-  
-  // Input de reseña
+
+  // ==========================
+  // 🔹 Review Input
+  // ==========================
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
@@ -185,14 +212,14 @@ export const profileStyles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
-  
+
   input: { 
     flex: 1, 
     height: 40,
     fontSize: 15,
     color: "#333",
   },
-  
+
   sendButton: {
     backgroundColor: "#000",
     width: 40,
@@ -202,7 +229,7 @@ export const profileStyles = StyleSheet.create({
     alignItems: "center",
     marginLeft: 8,
   },
-  
+
   emptyText: { 
     color: "#999", 
     fontStyle: "italic",
