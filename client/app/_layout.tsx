@@ -1,4 +1,4 @@
-// app/_layout.tsx
+// app/_layout.tsx (CORREGIDO)
 
 import React, { useEffect } from 'react';
 import { Stack, useRouter, useSegments } from 'expo-router';
@@ -12,9 +12,10 @@ import { AlertProvider } from '@/context/AlertProvider';
 import { LogBox } from 'react-native';
 
 LogBox.ignoreAllLogs(true); 
+
 /**
  * Navigation Guard Component
- * (Sin cambios en esta función)
+ * (¡AQUÍ ESTÁ LA CORRECCIÓN!)
  */
 function NavigationGuard({ children }: { children: React.ReactNode }) {
   const { isLoading, isAuthenticated } = useAuth();
@@ -22,32 +23,47 @@ function NavigationGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
 
   useEffect(() => {
-    if (isLoading) return;
+    if (isLoading) {
+      console.log('Auth: Cargando estado...');
+      return; // Espera a que termine de cargar
+    }
 
-    const inTabsGroup = segments[0] === '(tabs)';
-    
-    if (!inTabsGroup) return;
-
-    const currentScreen = segments[1];
+    // Mover estas definiciones aquí arriba
+    const currentScreen = segments[1]; // Puede ser 'LoginScreen', 'HomeScreen', o undefined
     const isAuthScreen = currentScreen === 'LoginScreen' || currentScreen === 'SignUpScreen';
 
     console.log('🔍 Navigation Check:', {
       isAuthenticated,
-      currentScreen,
+      segments,
       isAuthScreen,
     });
 
-    // Redirect logic
-    if (!isAuthenticated && !isAuthScreen) {
-      console.log('🔒 Redirecting to Login (not authenticated)');
-      router.replace('/(tabs)/LoginScreen');
-    } else if (isAuthenticated && (isAuthScreen || !currentScreen)) {
-      console.log('✅ Redirecting to Home (already authenticated)');
-      router.replace('/(tabs)/HomeScreen');
+    // --- LÓGICA CORREGIDA ---
+    
+    // 1. Si el usuario NO está autenticado
+    if (!isAuthenticated) {
+      // Y no está ya en una pantalla de auth, mándalo a Login.
+      if (!isAuthScreen) {
+        console.log('🔒 Redirigiendo a Login (no autenticado)');
+        router.replace('/(tabs)/LoginScreen');
+      }
+      // Si no está autenticado Y SÍ está en 'LoginScreen', no hace nada y lo deja ahí.
+    } 
+    // 2. Si el usuario SÍ está autenticado
+    else {
+      // Y está en una pantalla de Auth (Login/Signup) O en la raíz (segments.length === 0)
+      if (isAuthScreen || segments.length === 0) {
+        console.log('✅ Redirigiendo a Home (autenticado)');
+        router.replace('/(tabs)/HomeScreen');
+      }
+      // Si está autenticado y NO está en una pantalla de auth (ej. en 'HomeScreen'),
+      // no hace nada y lo deja donde está.
     }
+    // --- FIN DE LA CORRECCIÓN ---
+
   }, [isAuthenticated, segments, isLoading, router]);
 
-  // Show loading screen while checking auth state
+  // Muestra un loader mientras se decide la ruta
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
@@ -56,26 +72,19 @@ function NavigationGuard({ children }: { children: React.ReactNode }) {
     );
   }
 
+  // Muestra los hijos (la app) solo cuando ya no está cargando
   return <>{children}</>;
 }
 
+
 /**
  * Root Layout Component
- * Wraps the entire app with all necessary providers
- * 
- * Provider Hierarchy:
- * 1. AuthProvider - Authentication state
- * 2. AlertProvider - Global alerts/toasts
- * 3. RestaurantsProvider - Restaurant data (NEW)
- * 4. FavoritesProvider - User favorites
- * 5. NavigationGuard - Route protection
+ * (El resto de tu archivo está perfecto, lo dejamos igual)
  */
 export default function RootLayout() {
 
-  // 2. OBTENER LA CLAVE PUBLICABLE DE TU .env
   const publishableKey = process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY;
 
-  // 3. VALIDAR QUE LA CLAVE EXISTA
   if (!publishableKey) {
     console.error('🔴 ¡ERROR CRÍTICO! Falta EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY en el archivo .env de la carpeta /client');
     return (
@@ -87,34 +96,33 @@ export default function RootLayout() {
     );
   }
 
-  // 4. ENVOLVER LA APP CON STRIPEPROVIDER
   return (
     <StripeProvider publishableKey={publishableKey}>
-  <AuthProvider>
-    <AlertProvider>
-      <RestaurantsProvider>
-        <FavoritesProvider>
-          <NavigationGuard>
-            <Stack
-              screenOptions={{
-                headerShown: false,
-                contentStyle: { backgroundColor: '#FFFFFF' },
-                animation: 'fade',
-              }}
-            >
-              <Stack.Screen 
-                name="(tabs)" 
-                options={{
-                  headerShown: false,
-                }}
-              />
-            </Stack>
-          </NavigationGuard>
-        </FavoritesProvider>
-      </RestaurantsProvider>
-    </AlertProvider>
-  </AuthProvider>
-</StripeProvider>
+      <AuthProvider>
+        <AlertProvider>
+          <RestaurantsProvider>
+            <FavoritesProvider>
+              <NavigationGuard>
+                <Stack
+                  screenOptions={{
+                    headerShown: false,
+                    contentStyle: { backgroundColor: '#FFFFFF' },
+                    animation: 'fade',
+                  }}
+                >
+                  <Stack.Screen 
+                    name="(tabs)" 
+                    options={{
+                      headerShown: false,
+                    }}
+                  />
+                </Stack>
+              </NavigationGuard>
+            </FavoritesProvider>
+          </RestaurantsProvider>
+        </AlertProvider>
+      </AuthProvider>
+    </StripeProvider>
   );
 }
 
