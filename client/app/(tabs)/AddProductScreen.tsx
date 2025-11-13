@@ -1,4 +1,5 @@
 // app/(tabs)/ProductsScreen.tsx
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { 
   View, 
@@ -14,27 +15,44 @@ import { Ionicons } from '@expo/vector-icons';
 import { BottomNavigation } from '@/components/ui/bottomNavigation';
 import { createNavItems } from '@/utils/navigationHelpers';
 import { productService } from '@/services/productService';
-import { Product } from '@/types/product.types';
 import { restaurantService } from '@/services/restaurantService';
 import { useFavorites } from '@/context/FavoritesContext';
 import { useAuth } from '@/context/AuthContext';
+import { Product } from '@/types/product.types';
 import { styles } from '@/styles/productsScreen.styles';
 
+/**
+ * Products Screen
+ * Displays the list of products from a selected restaurant.
+ * Supports loading states, error handling, and favorite management.
+ */
 export default function ProductsScreen() {
+  // ==============================
+  // Hooks & Contexts
+  // ==============================
   const router = useRouter();
   const { restaurantId } = useLocalSearchParams();
   const { token } = useAuth();
   const { isFavorite, addFavorite, removeFavorite, loadFavorites } = useFavorites();
   const navItems = createNavItems('map', router);
 
+  // ==============================
+  // Local State
+  // ==============================
   const [products, setProducts] = useState<Product[]>([]);
   const [restaurantName, setRestaurantName] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [loadingFavorites, setLoadingFavorites] = useState<Set<string>>(new Set());
 
+  // ==============================
+  // Data Fetching Functions
+  // ==============================
+
+  /** Fetch restaurant info by ID */
   const loadRestaurantInfo = useCallback(async () => {
     if (!restaurantId) return;
+
     try {
       const restaurant = await restaurantService.getById(restaurantId as string);
       setRestaurantName(restaurant.name);
@@ -43,6 +61,7 @@ export default function ProductsScreen() {
     }
   }, [restaurantId]);
 
+  /** Fetch product list for a restaurant */
   const loadProducts = useCallback(async () => {
     if (!restaurantId) {
       setError('No se especificó un restaurante');
@@ -69,12 +88,20 @@ export default function ProductsScreen() {
     }
   }, [token, restaurantId]);
 
+  // ==============================
+  // Effects
+  // ==============================
   useEffect(() => {
     loadRestaurantInfo();
     loadProducts();
     loadFavorites();
   }, [loadRestaurantInfo, loadProducts, loadFavorites]);
 
+  // ==============================
+  // Handlers
+  // ==============================
+
+  /** Toggle favorite status for a given product */
   const toggleFavorite = async (productId: string) => {
     if (!token) {
       Alert.alert('Error', 'Debes iniciar sesión para agregar favoritos');
@@ -102,14 +129,19 @@ export default function ProductsScreen() {
     }
   };
 
-  const formatPrice = (price: number) => {
-    return `$ ${price.toLocaleString('es-CO')}`;
-  };
+  /** Format product price in Colombian currency */
+  const formatPrice = (price: number) => `$ ${price.toLocaleString('es-CO')}`;
 
+  /** Handle press on a product card */
   const handleProductPress = (product: Product) => {
     console.log('Product pressed:', product.name);
   };
 
+  // ==============================
+  // UI Rendering States
+  // ==============================
+
+  // Loading State
   if (isLoading) {
     return (
       <View style={styles.container}>
@@ -122,6 +154,7 @@ export default function ProductsScreen() {
     );
   }
 
+  // Error State
   if (error) {
     return (
       <View style={styles.container}>
@@ -137,10 +170,12 @@ export default function ProductsScreen() {
     );
   }
 
+  // Empty State (no products)
   if (products.length === 0) {
     return (
       <View style={styles.container}>
         <ScrollView contentContainerStyle={styles.scrollContent}>
+          {/* Header */}
           <View style={styles.header}>
             <TouchableOpacity onPress={() => router.back()}>
               <Ionicons name="arrow-back" size={24} color="#000" />
@@ -150,8 +185,12 @@ export default function ProductsScreen() {
             </View>
             <View style={{ width: 24 }} />
           </View>
+
           <View style={styles.divider} />
+
           {restaurantName && <Text style={styles.restaurantName}>{restaurantName}</Text>}
+
+          {/* Empty message */}
           <View style={styles.emptyContainer}>
             <Ionicons name="fast-food-outline" size={80} color="#BDC3C7" />
             <Text style={styles.emptyText}>No hay productos disponibles</Text>
@@ -160,14 +199,19 @@ export default function ProductsScreen() {
             </Text>
           </View>
         </ScrollView>
+
         <BottomNavigation items={navItems} />
       </View>
     );
   }
 
+  // ==============================
+  // Main Render
+  // ==============================
   return (
     <View style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+        {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.back()}>
             <Ionicons name="arrow-back" size={24} color="#000" />
@@ -182,6 +226,7 @@ export default function ProductsScreen() {
 
         <View style={styles.divider} />
 
+        {/* Restaurant Info */}
         {restaurantName && (
           <View style={styles.restaurantHeader}>
             <Ionicons name="restaurant" size={24} color="#27AE60" />
@@ -189,11 +234,13 @@ export default function ProductsScreen() {
           </View>
         )}
 
+        {/* Section Header */}
         <Text style={styles.sectionTitle}>Productos Disponibles</Text>
         <Text style={styles.sectionSubtitle}>
           {products.length} {products.length === 1 ? 'producto' : 'productos'}
         </Text>
 
+        {/* Product List */}
         <View style={styles.productsList}>
           {products.map((product) => (
             <TouchableOpacity
@@ -202,6 +249,7 @@ export default function ProductsScreen() {
               onPress={() => handleProductPress(product)}
               activeOpacity={0.7}
             >
+              {/* Product Image */}
               <View style={styles.imageContainer}>
                 <Image
                   source={{ uri: product.imageUrl || 'https://via.placeholder.com/150' }}
@@ -215,6 +263,7 @@ export default function ProductsScreen() {
                 )}
               </View>
 
+              {/* Product Info */}
               <View style={styles.productInfo}>
                 <Text style={styles.productName} numberOfLines={1}>{product.name}</Text>
                 <Text style={styles.productDescription} numberOfLines={2}>
@@ -224,6 +273,7 @@ export default function ProductsScreen() {
                 <Text style={styles.stockText}>Stock: {product.stock} unidades</Text>
               </View>
 
+              {/* Price or Availability */}
               {product.isAvailable ? (
                 <View style={styles.priceBadge}>
                   {product.originalPrice && product.originalPrice > product.price && (
@@ -237,6 +287,7 @@ export default function ProductsScreen() {
                 </View>
               )}
 
+              {/* Favorite Button */}
               <TouchableOpacity
                 style={styles.favoriteButton}
                 onPress={() => toggleFavorite(product.id)}
