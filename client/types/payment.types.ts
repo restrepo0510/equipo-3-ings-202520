@@ -34,7 +34,6 @@ export interface PaymentScreenParams {
   restaurantLatitude?: string;
   restaurantLongitude?: string;
   
-  
   /** Pricing */
   quantity: string;
   unitPrice: string;
@@ -63,14 +62,13 @@ export interface PaymentOrderSummary {
 }
 
 /**
- * ✅ CORREGIDO: Payment intent response from backend
- * Incluye todas las propiedades necesarias para paymentService
+ * Payment intent response from backend
  */
 export interface PaymentIntentResponse {
   /** Client secret for Stripe payment sheet */
   clientSecret: string;
   
-  /** Payment intent ID (opcional) */
+  /** Payment intent ID (optional) */
   paymentIntentId?: string;
   
   /** Amount in smallest currency unit */
@@ -79,19 +77,18 @@ export interface PaymentIntentResponse {
   /** Currency code (e.g., 'cop') */
   currency: string;
   
-  /** Status of the payment intent (opcional) */
+  /** Status of the payment intent (optional) */
   status?: string;
 }
 
 /**
- * Delivery location
+ * Delivery location coordinates
+ * Simple version without deltas - deltas are added by map components
  */
 export interface DeliveryLocation {
   latitude: number;
   longitude: number;
   address?: string;
-  latitudeDelta: number;
-  longitudeDelta: number;
 }
 
 /**

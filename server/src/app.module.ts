@@ -8,8 +8,8 @@ import { ProductsModule } from './products/products.module';
 import { PaymentsModule } from './payments/payments.module';
 import { FavoritesModule } from './favorites/favorites.module';
 import { ReviewsModule } from './reviews/reviews.module';
-import { CashReceiptController } from './cash-receipt/cash-receipt.controller';
-import { CashReceiptModule } from './cash-receipt/cash-receipt.module';
+import { CashReceiptsController } from './cash-receipt/cash-receipt.controller';
+import { CashReceiptsModule } from './cash-receipt/cash-receipt.module';
 
 
 @Module({
@@ -40,9 +40,9 @@ import { CashReceiptModule } from './cash-receipt/cash-receipt.module';
     ReviewsModule,
     ProductsModule,
     FavoritesModule,
-    CashReceiptModule,
+    CashReceiptsModule,
   ],
   providers: [],
-  controllers: [CashReceiptController],
+  controllers: [CashReceiptsController],
 })
 export class AppModule {}

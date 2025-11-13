@@ -13,6 +13,7 @@ import { CashReceiptStatus } from '../entities/cash-receipt.entity';
 
 /**
  * Create Cash Receipt DTO
+ * ✅ UPDATED: Added restaurantAddress field
  */
 export class CreateCashReceiptDto {
   @ApiProperty({ example: '123e4567-e89b-12d3-a456-426614174000' })
@@ -59,6 +60,16 @@ export class CreateCashReceiptDto {
   @Min(0)
   totalAmount: number;
 
+  // ✅ NUEVO: Restaurant address field
+  @ApiProperty({ 
+    example: 'Calle 10 #43-15, El Poblado',
+    required: false,
+    description: 'Restaurant address (optional, will be fetched from restaurant if not provided)'
+  })
+  @IsOptional()
+  @IsString()
+  restaurantAddress?: string;
+
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
@@ -88,6 +99,7 @@ export class ValidateCashReceiptDto {
 
 /**
  * Cash Receipt Response DTO
+ * ✅ UPDATED: Added missing fields
  */
 export class CashReceiptResponseDto {
   @ApiProperty()
@@ -105,11 +117,27 @@ export class CashReceiptResponseDto {
   @ApiProperty()
   restaurantName: string;
 
+  // ✅ ADDED
+  @ApiProperty()
+  restaurantAddress: string;
+
   @ApiProperty()
   productName: string;
 
   @ApiProperty()
   quantity: number;
+
+  // ✅ ADDED
+  @ApiProperty()
+  unitPrice: number;
+
+  // ✅ ADDED
+  @ApiProperty()
+  subtotal: number;
+
+  // ✅ ADDED
+  @ApiProperty()
+  discount: number;
 
   @ApiProperty()
   totalAmount: number;

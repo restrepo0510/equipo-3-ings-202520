@@ -30,8 +30,8 @@ export class CashReceiptsController {
   constructor(private readonly cashReceiptsService: CashReceiptsService) {}
 
   /**
-   * Create a new cash receipt
-   * Used when user selects "pay with cash"
+   * ✅ FIXED: Create a new cash receipt
+   * Now returns ALL fields including unitPrice, subtotal, discount, and restaurantAddress
    */
   @Post()
   @UseGuards(JwtAuthGuard)
@@ -46,6 +46,14 @@ export class CashReceiptsController {
     const userId = req.user.id;
     const receipt = await this.cashReceiptsService.create(userId, createDto);
 
+    console.log('📋 Receipt created in controller:', {
+      id: receipt.id,
+      unitPrice: receipt.unitPrice,
+      subtotal: receipt.subtotal,
+      discount: receipt.discount,
+      restaurantAddress: receipt.restaurant.address,
+    });
+
     return {
       success: true,
       message: 'Receipt created successfully',
@@ -55,8 +63,12 @@ export class CashReceiptsController {
         orderId: receipt.orderId,
         restaurantId: receipt.restaurantId,
         restaurantName: receipt.restaurant.name,
+        restaurantAddress: receipt.restaurant.address, // ✅ ADDED
         productName: receipt.productName,
         quantity: receipt.quantity,
+        unitPrice: receipt.unitPrice,                   // ✅ ADDED
+        subtotal: receipt.subtotal,                     // ✅ ADDED
+        discount: receipt.discount,                     // ✅ ADDED
         totalAmount: receipt.totalAmount,
         status: receipt.status,
         expiresAt: receipt.expiresAt,
@@ -90,8 +102,12 @@ export class CashReceiptsController {
         id: receipt.id,
         receiptCode: receipt.receiptCode,
         restaurantName: receipt.restaurant.name,
+        restaurantAddress: receipt.restaurant.address,  // ✅ ADDED
         productName: receipt.productName,
         quantity: receipt.quantity,
+        unitPrice: receipt.unitPrice,                   // ✅ ADDED
+        subtotal: receipt.subtotal,                     // ✅ ADDED
+        discount: receipt.discount,                     // ✅ ADDED
         totalAmount: receipt.totalAmount,
         status: receipt.status,
         expiresAt: receipt.expiresAt,
@@ -226,7 +242,12 @@ export class CashReceiptsController {
         isExpired: receipt.isExpired(),
         canBeValidated: receipt.canBeValidated(),
         restaurantName: receipt.restaurant.name,
+        restaurantAddress: receipt.restaurant.address,  // ✅ ADDED
         productName: receipt.productName,
+        quantity: receipt.quantity,                     // ✅ ADDED
+        unitPrice: receipt.unitPrice,                   // ✅ ADDED
+        subtotal: receipt.subtotal,                     // ✅ ADDED
+        discount: receipt.discount,                     // ✅ ADDED
         totalAmount: receipt.totalAmount,
         expiresAt: receipt.expiresAt,
       },

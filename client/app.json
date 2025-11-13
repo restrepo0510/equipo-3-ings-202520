@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "client",
-    "slug": "client",
+    "name": "Yummi",
+    "slug": "Yummi",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
-    "scheme": "client",  
+    "icon": "./assets/images/logo.png",
+    "scheme": "Yummi",  
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
@@ -41,6 +41,7 @@
       ],
       "expo-font",
       "expo-web-browser"
+      
     ],
     "experiments": {
       "typedRoutes": true,
