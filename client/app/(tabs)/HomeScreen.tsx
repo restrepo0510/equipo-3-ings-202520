@@ -41,15 +41,15 @@ import { createHomeNavItems } from "@/utils/navigationHelpers";
  * HomeScreen Component
  * 
  * Main screen displaying nearby restaurants based on user location.
- * 
+ *
  * Features:
  * - Real-time location tracking
- * - Search with multiple fields (name, address, category)
+ * - Search by multiple fields (name, address, category)
  * - TOP 1 featured restaurant
  * - Grid and list layouts
  * - Pull-to-refresh
  * - Error handling with retry
- * - Optimized re-renders with useMemo
+ * - Optimized rendering with useMemo and useCallback
  * 
  * @component
  */
@@ -58,6 +58,7 @@ export default function HomeScreen() {
   // 🔹 Navigation
   // ============================================================
   const router = useRouter();
+
   const navItems = useMemo(
     () => createHomeNavItems("home", router),
     [router]
@@ -66,7 +67,7 @@ export default function HomeScreen() {
   // ============================================================
   // 🔹 Hooks
   // ============================================================
-  const { user } = useAuth(); // Obtener usuario autenticado
+  const { user } = useAuth(); // Get authenticated user
 
   const { 
     location, 
@@ -89,15 +90,11 @@ export default function HomeScreen() {
   // 🔹 Local State
   // ============================================================
   const [searchText, setSearchText] = useState("");
-  
-  // Obtener nombre del usuario autenticado o usar valor por defecto
+
+  // Compute user's display name or fallback to default
   const userName = useMemo(() => {
-    // Intenta obtener el nombre del usuario de diferentes formas
     if (user?.name) return user.name;
-    if (user?.email) {
-      // Si solo tiene email, mostrar la parte antes del @
-      return user.email.split('@')[0];
-    }
+    if (user?.email) return user.email.split("@")[0];
     return DEFAULT_VALUES.DEFAULT_USER_NAME;
   }, [user]);
 
@@ -118,7 +115,7 @@ export default function HomeScreen() {
 
   const { topRestaurant, gridRestaurants, listRestaurants } = useMemo(() => {
     const active = filteredRestaurants.filter((r) => r.isActive);
-    const top = active[0]; // First active restaurant is TOP 1
+    const top = active[0]; // First active restaurant as TOP 1
     const others = active.filter((r) => r.id !== top?.id);
 
     return {
@@ -168,9 +165,9 @@ export default function HomeScreen() {
   const showEmptyState = !hasRestaurants && !isLoading && !restaurantsError;
 
   // ============================================================
-  // 🔹 Error States
+  // 🔹 Conditional Rendering (Error & Loading States)
   // ============================================================
-  
+
   // Location error
   if (locationError) {
     return (
@@ -194,7 +191,7 @@ export default function HomeScreen() {
     );
   }
 
-  // Restaurants error (with no cached data)
+  // Restaurants error (no cached data)
   if (restaurantsError && !hasRestaurants) {
     return (
       <View style={styles.container}>
@@ -205,7 +202,7 @@ export default function HomeScreen() {
   }
 
   // ============================================================
-  //  Main Render
+  // 🔹 Main Render
   // ============================================================
   return (
     <View style={styles.container}>
