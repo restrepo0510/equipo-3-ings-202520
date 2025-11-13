@@ -1,5 +1,6 @@
 // app/(tabs)/EditProductScreen.tsx
-import React, { useState, useEffect } from 'react';
+
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -13,22 +14,24 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { useAuth } from '@/context/AuthContext';
-import { productService, Product } from '@/services/productService';
+import { productService } from '@/services/productService';
 import { CustomAlertHelper } from '@/components/ui/customAlert';
 import { styles } from '@/styles/editProductScreen.styles';
 
 /**
  * EditProductScreen
  * 
- * Allows business users to edit existing products
- * Uses CustomAlert for all user feedback
+ * Screen that allows business users to edit existing products.
+ * Uses CustomAlertHelper for all user feedback (success, error, confirmation).
  */
 export default function EditProductScreen() {
   const router = useRouter();
   const { productId } = useLocalSearchParams();
   const { token } = useAuth();
 
-  // Form state
+  // ==============================
+  // Component State
+  // ==============================
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState('');
@@ -36,20 +39,16 @@ export default function EditProductScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
-  /**
-   * Load product data on mount
-   */
-  useEffect(() => {
-    loadProduct();
-  }, [productId]);
-
-  const loadProduct = async () => {
+  // ==============================
+  // Load Product Data
+  // ==============================
+  const loadProduct = useCallback(async () => {
     if (!productId || !token) return;
 
     try {
       setIsLoading(true);
       const product = await productService.getById(productId as string, token);
-      
+
       setName(product.name);
       setDescription(product.description || '');
       setPrice(product.price.toString());
@@ -64,15 +63,19 @@ export default function EditProductScreen() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [productId, token]);
 
-  /**
-   * Pick image from gallery
-   */
+  useEffect(() => {
+    loadProduct();
+  }, [loadProduct]);
+
+  // ==============================
+  // Image Picker Handler
+  // ==============================
   const handlePickImage = async () => {
     try {
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      
+
       if (status !== 'granted') {
         CustomAlertHelper.warning(
           'Permisos necesarios',
@@ -101,9 +104,9 @@ export default function EditProductScreen() {
     }
   };
 
-  /**
-   * Save product changes
-   */
+  // ==============================
+  // Save Product Changes
+  // ==============================
   const handleSave = async () => {
     // Validation
     if (!name.trim()) {
@@ -154,18 +157,15 @@ export default function EditProductScreen() {
     }
   };
 
-  /**
-   * Delete product with confirmation
-   */
+  // ==============================
+  // Delete Product Confirmation
+  // ==============================
   const handleDelete = () => {
     CustomAlertHelper.alert(
       'Eliminar Producto',
       '¿Estás seguro de que deseas eliminar este producto? Esta acción no se puede deshacer.',
       [
-        {
-          text: 'Cancelar',
-          style: 'cancel',
-        },
+        { text: 'Cancelar', style: 'cancel' },
         {
           text: 'Eliminar',
           style: 'destructive',
@@ -193,6 +193,9 @@ export default function EditProductScreen() {
     );
   };
 
+  // ==============================
+  // Loading State UI
+  // ==============================
   if (isLoading) {
     return (
       <View style={styles.container}>
@@ -204,13 +207,16 @@ export default function EditProductScreen() {
     );
   }
 
+  // ==============================
+  // Main Render
+  // ==============================
   return (
     <View style={styles.container}>
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        {/* Header */}
+        {/* Header Section */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.back()}>
             <Ionicons name="arrow-back" size={24} color="#000" />
@@ -222,7 +228,7 @@ export default function EditProductScreen() {
 
         <View style={styles.divider} />
 
-        {/* Form Title */}
+        {/* Title */}
         <Text style={styles.formTitle}>Editar Producto</Text>
 
         {/* Product Name */}
@@ -254,9 +260,9 @@ export default function EditProductScreen() {
           />
         </View>
 
-        {/* Image and Price Row */}
+        {/* Image & Price Row */}
         <View style={styles.row}>
-          {/* Product Image */}
+          {/* Image Section */}
           <View style={styles.imageSection}>
             <Text style={styles.imageText}>Imagen{'\n'}Producto</Text>
             <TouchableOpacity
@@ -269,7 +275,9 @@ export default function EditProductScreen() {
               ) : (
                 <View style={styles.imagePlaceholder}>
                   <Ionicons name="image-outline" size={32} color="#BDC3C7" />
-                  <Text style={styles.imagePlaceholderText}>Toca para{'\n'}agregar</Text>
+                  <Text style={styles.imagePlaceholderText}>
+                    Toca para{'\n'}agregar
+                  </Text>
                 </View>
               )}
             </TouchableOpacity>
@@ -284,7 +292,7 @@ export default function EditProductScreen() {
             </TouchableOpacity>
           </View>
 
-          {/* Price Section */}
+          {/* Price & Actions */}
           <View style={styles.priceSection}>
             <Text style={styles.label}>Precio</Text>
             <TextInput
@@ -312,7 +320,7 @@ export default function EditProductScreen() {
               <TouchableOpacity
                 style={[
                   styles.saveButtonCircle,
-                  isSaving && styles.saveButtonDisabled
+                  isSaving && styles.saveButtonDisabled,
                 ]}
                 onPress={handleSave}
                 disabled={isSaving}

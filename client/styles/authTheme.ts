@@ -1,74 +1,80 @@
 // styles/authTheme.ts
+// ============================================================
+// 🎨 Authentication Theme
+// Centralized design tokens for authentication screens.
+// Defines consistent colors, typography, spacing, radii,
+// shadows, and animation durations across the UI.
+// ============================================================
+
+import { Dimensions } from "react-native";
+
+// ==========================
+// 📏 Screen Dimensions
+// ==========================
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
+
 /**
- * Authentication Theme
- * 
- * Design system constants for authentication screens
- * Colors, typography, spacing, and other design tokens
- */
-
-import { Dimensions } from 'react-native';
-
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
-
-/**
- * Color Palette
+ * 🎨 Color Palette
+ * Defines all color tokens used throughout authentication screens.
+ * Includes primary, background, text, border, and status colors.
  */
 export const COLORS = {
   // Primary Colors
-  primary: '#556B2F',
-  primaryDark: '#004226',
-  primaryLight: '#768959',
-  
+  primary: "#556B2F",
+  primaryDark: "#004226",
+  primaryLight: "#768959",
+
   // Background Colors
-  background: '#f2f2f2',
-  white: '#ffffff',
-  black: '#000000',
-  
+  background: "#f2f2f2",
+  white: "#ffffff",
+  black: "#000000",
+
   // Text Colors
-  text: '#222222',
-  textLight: '#E8F5E9', 
-  textSecondary: '#7F8C8D',
-  placeholder: '#999999',
-  placeholderLight: '#bbbbbb',
-  
+  text: "#222222",
+  textLight: "#E8F5E9",
+  textSecondary: "#7F8C8D",
+  placeholder: "#999999",
+  placeholderLight: "#bbbbbb",
+
   // Status Colors
-  error: '#e8c423ff',
-  success: '#27AE60',
-  warning: '#FDFFD1',
-  warningText: '#6b6b3f',
-  
+  error: "#e8c423ff",
+  success: "#27AE60",
+  warning: "#FDFFD1",
+  warningText: "#6b6b3f",
+
   // Border Colors
-  border: '#3E400E',
-  borderLight: '#E5E7EB',
-  separator: '#0C1706',
-  
+  border: "#3E400E",
+  borderLight: "#E5E7EB",
+  separator: "#0C1706",
+
   // Other
-  transparent: 'transparent',
+  transparent: "transparent",
 } as const;
 
 /**
- * Typography Scale
+ * ✍️ Typography Scale
+ * Consistent font sizes and weights for authentication text elements.
  */
 export const TYPOGRAPHY = {
   title: {
     fontSize: 35,
-    fontWeight: '700' as const,
+    fontWeight: "700" as const,
     letterSpacing: 2,
   },
   subtitle: {
     fontSize: 22,
-    fontWeight: 'bold' as const,
+    fontWeight: "bold" as const,
   },
   label: {
     fontSize: 16,
-    fontWeight: '600' as const,
+    fontWeight: "600" as const,
   },
   body: {
     fontSize: 14,
   },
   button: {
     fontSize: 16,
-    fontWeight: '700' as const,
+    fontWeight: "700" as const,
     letterSpacing: 1.5,
   },
   small: {
@@ -77,7 +83,8 @@ export const TYPOGRAPHY = {
 } as const;
 
 /**
- * Spacing Scale
+ * 📐 Spacing Scale
+ * Defines a consistent spacing system for margins and paddings.
  */
 export const SPACING = {
   xs: 4,
@@ -89,7 +96,8 @@ export const SPACING = {
 } as const;
 
 /**
- * Border Radius Scale
+ * 🟢 Border Radius Scale
+ * Defines standard corner radius sizes for UI elements.
  */
 export const RADIUS = {
   sm: 8,
@@ -101,7 +109,8 @@ export const RADIUS = {
 } as const;
 
 /**
- * Shadow Styles
+ * 🌫️ Shadow Styles
+ * Provides a hierarchy of shadow effects for elevation consistency.
  */
 export const SHADOWS = {
   small: {
@@ -128,12 +137,13 @@ export const SHADOWS = {
 } as const;
 
 /**
- * Screen Dimensions
+ * 📱 Screen Dimensions
+ * Provides device-specific screen metrics and common layout widths.
  */
 export const DIMENSIONS = {
   screenWidth: SCREEN_WIDTH,
   screenHeight: SCREEN_HEIGHT,
-  
+
   // Common widths
   cardWidth: SCREEN_WIDTH * 0.9,
   maxCardWidth: 400,
@@ -141,7 +151,8 @@ export const DIMENSIONS = {
 } as const;
 
 /**
- * Animation Durations
+ * ⏱️ Animation Durations
+ * Standardized transition times for UI animations.
  */
 export const DURATIONS = {
   fast: 150,

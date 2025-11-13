@@ -29,22 +29,19 @@ import type { Product } from '@/types/product.types';
 /**
  * FavoritesScreen Component
  * 
- * Displays user's favorite products with ability to remove them
- * Shows loading state, empty state, and error handling
+ * Displays user's favorite products and allows removing them.
+ * Includes loading state, empty state, and optimistic UI updates.
  */
 export default function FavoritesScreen(): React.ReactElement {
   // ============================================================================
   // Hooks
   // ============================================================================
-  
+
   const router = useRouter();
   const { token } = useAuth();
   const navItems = createNavItems('favorites', router);
-
-  // ✅ Usar SOLO el contexto de favoritos
   const { removeFavorite } = useFavorites();
-  
-  // ✅ Estado local para la lista de favoritos completa (con detalles de producto)
+
   const [favoritesList, setFavoritesList] = useState<Favorite[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -53,14 +50,14 @@ export default function FavoritesScreen(): React.ReactElement {
   // ============================================================================
 
   /**
-   * Load favorites with product details on mount
+   * Load favorites with product details on component mount or token change
    */
   useEffect(() => {
     loadFavorites();
   }, [token]);
 
   /**
-   * Load favorites from API
+   * Fetch user favorites from API
    */
   const loadFavorites = async (): Promise<void> => {
     if (!token) {
@@ -72,7 +69,7 @@ export default function FavoritesScreen(): React.ReactElement {
       setIsLoading(true);
       const data = await FavoritesApiService.getUserFavorites(token);
       setFavoritesList(data);
-      console.log('✅ Favorites loaded:', data.length);
+      console.log(`✅ Favorites loaded: ${data.length}`);
     } catch (error) {
       console.error('❌ Error loading favorites:', error);
     } finally {
@@ -92,7 +89,7 @@ export default function FavoritesScreen(): React.ReactElement {
   };
 
   /**
-   * Navigates to product's restaurant screen
+   * Navigates to the restaurant screen of the selected product
    */
   const handleProductPress = (product: Product): void => {
     router.push({
@@ -102,25 +99,23 @@ export default function FavoritesScreen(): React.ReactElement {
   };
 
   /**
-   * Removes product from favorites
-   * ✅ Actualización optimista con rollback
+   * Removes a product from favorites (Optimistic UI with rollback)
    */
   const handleRemoveFavorite = async (productId: string): Promise<void> => {
-    // Store original state for rollback
     const originalList = [...favoritesList];
 
     try {
-      // 1. Optimistic update - remove from local list
+      // 1️⃣ Optimistic update
       setFavoritesList(prev => prev.filter(f => f.product.id !== productId));
 
-      // 2. Update global context (this updates ProductsScreen)
+      // 2️⃣ Update global context
       await removeFavorite(productId);
 
       console.log('✅ Favorite removed successfully');
     } catch (error) {
       console.error('❌ Error removing favorite:', error);
-      
-      // Rollback on error
+
+      // Rollback in case of failure
       setFavoritesList(originalList);
     }
   };
@@ -130,22 +125,17 @@ export default function FavoritesScreen(): React.ReactElement {
   // ============================================================================
 
   /**
-   * Renders loading state
+   * Renders loading indicator
    */
   const renderLoading = (): React.ReactElement => (
     <View style={styles.loadingContainer}>
-      <ActivityIndicator 
-        size="large" 
-        color={FAVORITES_ICONS.COLOR.SUCCESS} 
-      />
-      <Text style={styles.loadingText}>
-        {FAVORITES_TEXT.LOADING.MESSAGE}
-      </Text>
+      <ActivityIndicator size="large" color={FAVORITES_ICONS.COLOR.SUCCESS} />
+      <Text style={styles.loadingText}>{FAVORITES_TEXT.LOADING.MESSAGE}</Text>
     </View>
   );
 
   /**
-   * Renders empty state
+   * Renders empty state message when there are no favorites
    */
   const renderEmpty = (): React.ReactElement => (
     <View style={styles.emptyContainer}>
@@ -154,17 +144,13 @@ export default function FavoritesScreen(): React.ReactElement {
         size={FAVORITES_ICONS.SIZE.EXTRA_LARGE} 
         color={FAVORITES_ICONS.COLOR.EMPTY} 
       />
-      <Text style={styles.emptyTitle}>
-        {FAVORITES_TEXT.EMPTY.TITLE}
-      </Text>
-      <Text style={styles.emptySubtitle}>
-        {FAVORITES_TEXT.EMPTY.SUBTITLE}
-      </Text>
+      <Text style={styles.emptyTitle}>{FAVORITES_TEXT.EMPTY.TITLE}</Text>
+      <Text style={styles.emptySubtitle}>{FAVORITES_TEXT.EMPTY.SUBTITLE}</Text>
     </View>
   );
 
   /**
-   * Renders a single favorite card
+   * Renders a single favorite card item
    */
   const renderFavoriteCard = (favorite: Favorite): React.ReactElement => {
     const { product } = favorite;
@@ -183,9 +169,7 @@ export default function FavoritesScreen(): React.ReactElement {
           {/* Product Image */}
           <View style={styles.imageContainer}>
             <Image 
-              source={{ 
-                uri: FavoritesUtils.getImageSource(product.imageUrl) 
-              }}
+              source={{ uri: FavoritesUtils.getImageSource(product.imageUrl) }}
               style={styles.productImage}
               resizeMode="cover"
             />
@@ -193,10 +177,18 @@ export default function FavoritesScreen(): React.ReactElement {
 
           {/* Product Info */}
           <View style={styles.productInfo}>
-            <Text style={styles.productName} numberOfLines={1} ellipsizeMode="tail">
+            <Text 
+              style={styles.productName} 
+              numberOfLines={1} 
+              ellipsizeMode="tail"
+            >
               {product.name}
             </Text>
-            <Text style={styles.productDescription} numberOfLines={2} ellipsizeMode="tail">
+            <Text 
+              style={styles.productDescription} 
+              numberOfLines={2} 
+              ellipsizeMode="tail"
+            >
               {FavoritesUtils.getProductDescription(
                 product, 
                 FAVORITES_TEXT.PRODUCT.NO_DESCRIPTION
@@ -204,7 +196,7 @@ export default function FavoritesScreen(): React.ReactElement {
             </Text>
           </View>
 
-          {/* Price or Unavailable Badge */}
+          {/* Price or Unavailable Tag */}
           <View style={styles.priceContainer}>
             {isAvailable ? (
               <View style={styles.priceTag}>
@@ -222,7 +214,7 @@ export default function FavoritesScreen(): React.ReactElement {
           </View>
         </View>
 
-        {/* Remove Favorite Button */}
+        {/* Remove from Favorites Button */}
         <TouchableOpacity
           style={styles.heartButton}
           onPress={() => handleRemoveFavorite(product.id)}
@@ -262,12 +254,8 @@ export default function FavoritesScreen(): React.ReactElement {
         </TouchableOpacity>
 
         <View style={styles.headerCenter}>
-          <Text style={styles.yummi}>
-            {FAVORITES_TEXT.HEADER.TITLE}
-          </Text>
-          <Text style={styles.headerTitle}>
-            {FAVORITES_TEXT.HEADER.SUBTITLE}
-          </Text>
+          <Text style={styles.yummi}>{FAVORITES_TEXT.HEADER.TITLE}</Text>
+          <Text style={styles.headerTitle}>{FAVORITES_TEXT.HEADER.SUBTITLE}</Text>
         </View>
 
         <View style={styles.headerSpacer} />
@@ -282,13 +270,11 @@ export default function FavoritesScreen(): React.ReactElement {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {isLoading ? (
-          renderLoading()
-        ) : favoritesList.length > 0 ? (
-          favoritesList.map(renderFavoriteCard)
-        ) : (
-          renderEmpty()
-        )}
+        {isLoading 
+          ? renderLoading() 
+          : favoritesList.length > 0 
+            ? favoritesList.map(renderFavoriteCard) 
+            : renderEmpty()}
       </ScrollView>
 
       {/* Bottom Navigation */}
