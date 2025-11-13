@@ -3,11 +3,18 @@
 import React, { useEffect } from 'react';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { AuthProvider, useAuth } from '../context/AuthContext';
-import { ActivityIndicator, View, StyleSheet } from 'react-native';
+import { ActivityIndicator, View, StyleSheet, Text } from 'react-native';
 
+import { StripeProvider } from '@stripe/stripe-react-native';
+import { RestaurantsProvider } from '../context/RestaurantsContext';
+import { FavoritesProvider } from '../context/FavoritesContext';
+import { AlertProvider } from '@/context/AlertProvider';
+import { LogBox } from 'react-native';
+
+LogBox.ignoreAllLogs(true); 
 /**
  * Navigation Guard Component
- * Handles automatic redirection based on authentication state
+ * (Sin cambios en esta función)
  */
 function NavigationGuard({ children }: { children: React.ReactNode }) {
   const { isLoading, isAuthenticated } = useAuth();
@@ -54,27 +61,60 @@ function NavigationGuard({ children }: { children: React.ReactNode }) {
 
 /**
  * Root Layout Component
- * Wraps the entire app with AuthProvider and navigation guard
+ * Wraps the entire app with all necessary providers
+ * 
+ * Provider Hierarchy:
+ * 1. AuthProvider - Authentication state
+ * 2. AlertProvider - Global alerts/toasts
+ * 3. RestaurantsProvider - Restaurant data (NEW)
+ * 4. FavoritesProvider - User favorites
+ * 5. NavigationGuard - Route protection
  */
 export default function RootLayout() {
+
+  // 2. OBTENER LA CLAVE PUBLICABLE DE TU .env
+  const publishableKey = process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY;
+
+  // 3. VALIDAR QUE LA CLAVE EXISTA
+  if (!publishableKey) {
+    console.error('🔴 ¡ERROR CRÍTICO! Falta EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY en el archivo .env de la carpeta /client');
+    return (
+      <View style={styles.loadingContainer}>
+        <Text style={{ color: 'red', padding: 20, textAlign: 'center' }}>
+          Error: La clave publicable de Stripe no está configurada.
+        </Text>
+      </View>
+    );
+  }
+
+  // 4. ENVOLVER LA APP CON STRIPEPROVIDER
   return (
-    <AuthProvider>
-      <NavigationGuard>
-        <Stack
-          screenOptions={{
-            headerShown: false,
-            contentStyle: { backgroundColor: '#FFFFFF' },
-          }}
-        >
-          <Stack.Screen 
-            name="(tabs)" 
-            options={{
-              headerShown: false,
-            }}
-          />
-        </Stack>
-      </NavigationGuard>
-    </AuthProvider>
+    <StripeProvider publishableKey={publishableKey}>
+  <AuthProvider>
+    <AlertProvider>
+      <RestaurantsProvider>
+        <FavoritesProvider>
+          <NavigationGuard>
+            <Stack
+              screenOptions={{
+                headerShown: false,
+                contentStyle: { backgroundColor: '#FFFFFF' },
+                animation: 'fade',
+              }}
+            >
+              <Stack.Screen 
+                name="(tabs)" 
+                options={{
+                  headerShown: false,
+                }}
+              />
+            </Stack>
+          </NavigationGuard>
+        </FavoritesProvider>
+      </RestaurantsProvider>
+    </AlertProvider>
+  </AuthProvider>
+</StripeProvider>
   );
 }
 

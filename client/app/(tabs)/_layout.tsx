@@ -1,20 +1,21 @@
 // app/(tabs)/_layout.tsx
 
+import React from 'react';
 import { Stack } from 'expo-router';
-import { ActivityIndicator, View } from 'react-native';
+import { ActivityIndicator, View, StyleSheet } from 'react-native';
 import { useAuth } from '../../context/AuthContext';
 
 /**
- * Tab Layout with Stack Navigation
- * Protected routes that require authentication
+ * Tab Layout Component
+ * Handles navigation stack and authentication-based access control
  */
 export default function TabLayout() {
   const { isAuthenticated, isLoading } = useAuth();
 
-  // Loading State
+  // Display loading spinner while authentication state is being determined
   if (isLoading) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#27AE60" />
       </View>
     );
@@ -24,66 +25,62 @@ export default function TabLayout() {
     <Stack
       screenOptions={{
         headerShown: false,
-        contentStyle: { backgroundColor: '#FFFFFF' },
+        contentStyle: styles.contentBackground,
       }}
     >
-      {/* Auth Screens - Always accessible */}
+      {/* Public Screens - Accessible without authentication */}
       <Stack.Screen 
         name="LoginScreen" 
-        options={{
-          animation: 'fade',
-        }}
+        options={{ animation: 'fade' }}
       />
       <Stack.Screen 
         name="SignUpScreen" 
-        options={{
-          animation: 'slide_from_right',
-        }}
+        options={{ animation: 'fade' }}
       />
 
-      {/* Protected Screens - Always declared but guarded by navigation */}
+      {/* Protected Screens - Declared but guarded by navigation logic */}
       <Stack.Screen 
         name="HomeScreen" 
-        options={{
-          animation: 'fade',
-        }}
+        options={{ animation: 'fade' }}
       />
       <Stack.Screen 
         name="MapScreen" 
-        options={{
-          animation: 'slide_from_right',
-        }}
+        options={{ animation: 'fade' }}
       />
       <Stack.Screen 
         name="FavoritesScreen" 
-        options={{
-          animation: 'slide_from_right',
-        }}
+        options={{ animation: 'fade' }}
       />
       <Stack.Screen 
         name="ProfileScreen" 
-        options={{
-          animation: 'slide_from_right',
-        }}
+        options={{ animation: 'fade' }}
       />
       <Stack.Screen 
         name="EditProfileScreen" 
-        options={{
-          animation: 'slide_from_bottom',
-        }}
+        options={{ animation: 'fade' }}
       />
       <Stack.Screen 
         name="ProductsScreen" 
-        options={{
-          animation: 'slide_from_right',
-        }}
+        options={{ animation: 'fade' }}
       />
       <Stack.Screen 
-        name="OrdersScreen" 
-        options={{
-          animation: 'slide_from_right',
-        }}
+        name="OrderSummaryScreen" 
+        options={{ animation: 'fade' }}
       />
     </Stack>
   );
 }
+
+// ==============================
+// Styles
+// ==============================
+const styles = StyleSheet.create({
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  contentBackground: {
+    backgroundColor: '#FFFFFF',
+  },
+});

@@ -1,10 +1,9 @@
 // styles/homeScreen.styles.ts
-
 import { StyleSheet } from 'react-native';
-import { CARD_WIDTH } from '../constants/homeScreen.constants';
+import { CARD_WIDTH } from '../constants/home.constants';
 
 /**
- * Color palette for the Home Screen
+ * 🎨 Color palette (exportable across the app)
  */
 export const COLORS = {
   primary: '#27AE60',
@@ -12,22 +11,22 @@ export const COLORS = {
   secondary: '#7F8C8D',
   background: '#F8F9FA',
   white: '#FFFFFF',
+  border: '#E8E8E8',
+  shadow: '#000000',
+  search: '#E8EDF2',
+  error: '#E74C3C',
+  badge: {
+    top: '#1B5E20',
+  },
   text: {
     primary: '#2C3E50',
     secondary: '#7F8C8D',
     placeholder: '#95A5A6',
   },
-  border: '#E8E8E8',
-  search: '#E8EDF2',
-  badge: {
-    top: '#1B5E20',
-  },
-  shadow: '#000',
-  error: '#E74C3C',
 } as const;
 
 /**
- * Shadow presets for consistent elevation
+ * 🌫️ Shadow presets for elevation consistency
  */
 const SHADOWS = {
   small: {
@@ -58,58 +57,67 @@ const SHADOWS = {
     shadowRadius: 8,
     elevation: 8,
   },
-};
+} as const;
+
+/**
+ * 📱 Spacing constants to maintain rhythm
+ */
+const SPACING = {
+  small: 8,
+  medium: 16,
+  large: 24,
+  xlarge: 32,
+} as const;
 
 export const styles = StyleSheet.create({
-  // Main container
+  // ─── Main Container ────────────────────────────────
   container: {
     flex: 1,
     backgroundColor: COLORS.white,
   },
 
-  // Header section
+  // ─── Header ────────────────────────────────────────
   header: {
     backgroundColor: COLORS.white,
-    paddingTop: 20,
+    paddingTop: SPACING.large,
     alignItems: 'center',
   },
   logo: {
     width: 120,
     height: 120,
+    resizeMode: 'contain',
   },
   underline: {
     height: 2,
-    backgroundColor: '#0C1706',
+    backgroundColor: COLORS.primaryDark,
     width: 350,
     alignSelf: 'center',
     borderRadius: 2,
   },
-  
-  // Search bar
+
+  // ─── Search Bar ────────────────────────────────────
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: COLORS.search,
-    marginHorizontal: 16,
-    marginTop: 16,
+    marginHorizontal: SPACING.medium,
+    marginTop: SPACING.medium,
     borderRadius: 25,
-    paddingHorizontal: 16,
+    paddingHorizontal: SPACING.medium,
     height: 50,
   },
-  searchIcon: {
-    marginRight: 8,
-  },
+  searchIcon: { marginRight: SPACING.small },
   searchInput: {
     flex: 1,
     fontSize: 16,
     color: COLORS.text.primary,
   },
 
-  // Greeting section
+  // ─── Greeting Section ───────────────────────────────
   greetingContainer: {
-    paddingHorizontal: 24,
-    paddingTop: 24,
-    paddingBottom: 16,
+    paddingHorizontal: SPACING.large,
+    paddingVertical: SPACING.medium,
+    alignSelf: 'center',
   },
   greetingText: {
     fontSize: 24,
@@ -123,38 +131,30 @@ export const styles = StyleSheet.create({
     fontWeight: '400',
   },
 
-  // Grid section
+  // ─── Grid Section ──────────────────────────────────
   gridContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    paddingHorizontal: 8,
+    paddingHorizontal: SPACING.small,
+    alignSelf: 'center',
   },
   gridCard: {
     width: CARD_WIDTH,
-    marginBottom: 16,
-  },
-  gridCardLeft: {
-    paddingLeft: 8,
-    paddingRight: 4,
-  },
-  gridCardRight: {
-    paddingLeft: 4,
-    paddingRight: 8,
+    marginBottom: SPACING.medium,
   },
   gridCardInner: {
     backgroundColor: COLORS.white,
     borderRadius: 20,
-    paddingTop: 30, // Space for the logo
-    paddingBottom: 16,
+    paddingTop: 30,
+    paddingBottom: SPACING.medium,
     ...SHADOWS.medium,
   },
-  
-  // Circular logo at top center
+
   gridLogoContainer: {
     position: 'absolute',
     top: -25,
     left: '50%',
-    marginLeft: -30, // Half of logo width to center
+    marginLeft: -30,
     zIndex: 10,
   },
   gridLogo: {
@@ -166,8 +166,8 @@ export const styles = StyleSheet.create({
     borderColor: COLORS.white,
     ...SHADOWS.medium,
   },
-  
-  // Badge (category)
+
+  // Badge
   badge: {
     position: 'absolute',
     top: 40,
@@ -184,34 +184,11 @@ export const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: COLORS.text.primary,
   },
-  
-  // Image with margins
-  gridImageContainer: {
-    paddingHorizontal: 12,
-    marginBottom: 8,
-  },
-  gridImage: {
-    width: '100%',
-    height: 140,
-    borderRadius: 16,
-    backgroundColor: COLORS.border,
-  },
-  
-  gridInfo: {
-    paddingHorizontal: 12,
-  },
-  gridTitle: {
-    fontSize: 15,
-    fontWeight: 'bold',
-    color: COLORS.text.primary,
-    textAlign: 'center',
-  },
 
-  // TOP 1 section
+  // ─── Top Section ───────────────────────────────────
   topSection: {
-    paddingHorizontal: 16,
-    marginTop: 8,
-    marginBottom: 16,
+    paddingHorizontal: SPACING.medium,
+    marginVertical: SPACING.medium,
   },
   topBadge: {
     flexDirection: 'row',
@@ -222,7 +199,7 @@ export const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 30,
     marginBottom: -15,
-    marginLeft: 20,
+    marginLeft: SPACING.medium,
     zIndex: 10,
     ...SHADOWS.medium,
   },
@@ -235,21 +212,19 @@ export const styles = StyleSheet.create({
   topCard: {
     backgroundColor: COLORS.white,
     borderRadius: 20,
-    overflow: 'visible',
     paddingTop: 25,
     paddingBottom: 16,
     paddingHorizontal: 12,
     ...SHADOWS.large,
   },
-  
-  // Decorative leaves - Positioned like in the image
+
+  // ─── Decorative Elements ────────────────────────────
   topLeafLeft: {
     position: 'absolute',
     bottom: 20,
     left: -30,
     width: 80,
     height: 80,
-    zIndex: 1,
     opacity: 0.9,
   },
   topLeafRight: {
@@ -258,59 +233,12 @@ export const styles = StyleSheet.create({
     right: -20,
     width: 90,
     height: 90,
-    zIndex: 1,
     opacity: 0.9,
   },
-  
-  // Container for both images side by side
-  topImagesRow: {
-    flexDirection: 'row',
-    paddingHorizontal: 12,
-    marginBottom: 12,
-    gap: 12,
-  },
-  
-  // Main restaurant image (left side)
-  topImageContainer: {
-    flex: 1,
-  },
-  topImage: {
-    width: '100%',
-    height: 180,
-    borderRadius: 16,
-    backgroundColor: COLORS.border,
-  },
-  
-  // Restaurant logo container (right side, square)
-  topLogoContainer: {
-    width: 180,
-    height: 180,
-    borderRadius: 16,
-    backgroundColor: COLORS.white,
-    justifyContent: 'center',
-    alignItems: 'center',
-    ...SHADOWS.medium,
-  },
-  topLogoImage: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 16,
-  },
-  
-  topInfo: {
-    paddingHorizontal: 8,
-    paddingTop: 8,
-  },
-  topTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: COLORS.text.primary,
-    textAlign: 'right',
-  },
 
-  // List section
+  // ─── List Section ──────────────────────────────────
   moreSection: {
-    paddingHorizontal: 16,
+    paddingHorizontal: SPACING.medium,
     paddingBottom: 100,
   },
   listCard: {
@@ -318,7 +246,7 @@ export const styles = StyleSheet.create({
     backgroundColor: COLORS.white,
     borderRadius: 16,
     marginBottom: 12,
-    padding: 12,
+    padding: SPACING.medium,
     alignItems: 'center',
     ...SHADOWS.medium,
   },
@@ -330,7 +258,7 @@ export const styles = StyleSheet.create({
   },
   listInfo: {
     flex: 1,
-    marginLeft: 12,
+    marginLeft: SPACING.medium,
   },
   listTitle: {
     fontSize: 16,
@@ -347,12 +275,5 @@ export const styles = StyleSheet.create({
     fontSize: 12,
     color: COLORS.primary,
     fontWeight: '600',
-  },
-  activeIndicator: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: COLORS.primary,
-    marginLeft: 8,
   },
 });

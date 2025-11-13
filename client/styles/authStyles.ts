@@ -95,7 +95,7 @@ export const BASE_STYLES = StyleSheet.create({
   },
   
   subtitle: {
-    color: COLORS.white,
+    color: COLORS.black,
     ...TYPOGRAPHY.title,
     borderBottomWidth: 2,
     borderBottomColor: COLORS.primaryDark,

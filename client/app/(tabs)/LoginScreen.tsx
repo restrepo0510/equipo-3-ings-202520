@@ -1,9 +1,4 @@
-/**
- * Login Screen
- * 
- * User authentication screen with email and password
- * Handles user login and navigation to registration
- */
+// app/(tabs)/LoginScreen.tsx
 
 import React, { useCallback } from 'react';
 import {
@@ -19,7 +14,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useLoginForm } from '@/hooks/useLoginForm';
-import { FormField } from '@/components/ui/FormField';
+import { FormField } from '@/components/ui/formField';
 import {
   COLORS,
   BASE_STYLES,
@@ -31,13 +26,11 @@ import {
  * LoginScreen Component
  * 
  * Renders login form with email and password fields
- * Uses custom hook for form state management
- * Automatically redirects on successful authentication
+ * IMPROVED: Better keyboard handling to prevent input overlap
  */
 const LoginScreen: React.FC = () => {
   const router = useRouter();
   
-  // Custom hook handles all form logic
   const {
     formData,
     errors,
@@ -59,11 +52,14 @@ const LoginScreen: React.FC = () => {
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={BASE_STYLES.keyboardAvoidingView}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20} // IMPROVED
       >
         <ScrollView
           contentContainerStyle={LOGIN_STYLES.scrollViewContent}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
+          bounces={false} // IMPROVED: Disable bounce for better keyboard experience
+          automaticallyAdjustKeyboardInsets={true} // IMPROVED: iOS automatic adjustment
         >
           {/* App Logo */}
           <Image
@@ -98,6 +94,7 @@ const LoginScreen: React.FC = () => {
                 autoComplete="email"
                 textContentType="emailAddress"
                 autoCapitalize="none"
+                returnKeyType="next" // IMPROVED: Better navigation
                 accessibilityLabel="Email input field"
                 accessibilityHint="Enter your email address"
               />
@@ -113,6 +110,8 @@ const LoginScreen: React.FC = () => {
                 secureTextEntry
                 autoComplete="password"
                 textContentType="password"
+                returnKeyType="done" // IMPROVED: Submit on enter
+                onSubmitEditing={handleSubmit} // IMPROVED: Submit on enter
                 accessibilityLabel="Password input field"
                 accessibilityHint="Enter your password"
               />

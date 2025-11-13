@@ -118,7 +118,7 @@ Puntos: 5
 ---
 ## RF-07: Reserva temporal de productos
 
-Descripción: Permite al usuario reservar un producto por un tiempo limitado, como 30 minutos, mientras decide o se desplaza.
+Descripción: Permite al usuario reservar un producto por un tiempo limitado, como 5 minutos, mientras decide pagar.
 
 Criterios de aceptación:
 

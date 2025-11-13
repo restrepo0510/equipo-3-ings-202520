@@ -1,10 +1,4 @@
-/**
- client/constants/auth.constants.ts
- * Authentication Constants
- * 
- * Centralized configuration values for authentication feature
- * Prevents magic numbers and strings throughout the codebase
- */
+// constants/auth.constants.ts
 
 /**
  * Validation rules for authentication forms
@@ -14,6 +8,7 @@ export const VALIDATION_RULES = {
   MIN_NAME_LENGTH: 2,
   MIN_ADDRESS_LENGTH: 10,
   MIN_PHONE_LENGTH: 10,
+  PHONE_EXACT_LENGTH: 10, // NUEVO: Exactamente 10 dígitos
 } as const;
 
 /**
@@ -22,6 +17,7 @@ export const VALIDATION_RULES = {
 export const VALIDATION_PATTERNS = {
   EMAIL: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
   PHONE: /^[\+]?[0-9\s\-\(\)]{10,}$/,
+  PHONE_DIGITS_ONLY: /^\d{10}$/, // NUEVO: Solo 10 dígitos
 } as const;
 
 /**
@@ -54,14 +50,15 @@ export const ERROR_MESSAGES = {
   
   // Format validation
   INVALID_EMAIL: 'Por favor ingresa un correo electrónico válido',
-  INVALID_PHONE: 'Por favor ingresa un número de teléfono válido',
+  INVALID_PHONE: 'El teléfono debe contener solo números',
+  INVALID_PHONE_LENGTH: 'El teléfono debe tener exactamente 10 dígitos', // NUEVO
   
   // Length validation
   PASSWORD_TOO_SHORT: `La contraseña debe tener al menos ${VALIDATION_RULES.MIN_PASSWORD_LENGTH} caracteres`,
   NAME_TOO_SHORT: `El nombre debe tener al menos ${VALIDATION_RULES.MIN_NAME_LENGTH} caracteres`,
   ADDRESS_TOO_SHORT: 'Por favor ingresa una dirección completa',
   
-  // Authentication errors - MÁS ESPECÍFICOS
+  // Authentication errors
   LOGIN_FAILED: 'No se pudo iniciar sesión',
   INVALID_CREDENTIALS: 'Correo o contraseña incorrectos',
   USER_NOT_FOUND: 'No existe una cuenta con este correo',
@@ -94,4 +91,46 @@ export const SUCCESS_MESSAGES = {
 export const ROLE_LABELS = {
   customer: '👤 Usuario',
   business: '🏢 Empresa',
+} as const;
+
+/**
+ * Auth UI Constants
+ * Visual elements and icons for authentication screens
+ */
+
+export const AUTH_ICONS = {
+  BACK_ARROW: 'arrow-back' as const,
+  EYE_OPEN: 'eye-outline' as const,
+  EYE_CLOSED: 'eye-off-outline' as const,
+  
+  SIZE: {
+    SMALL: 16,
+    MEDIUM: 20,
+    LARGE: 24,
+    EXTRA_LARGE: 28,
+  },
+  
+  COLOR: {
+    PRIMARY: '#000',
+    SECONDARY: '#FFF',
+    GRAY: '#7F8C8D',
+    SUCCESS: '#27AE60',
+    ERROR: '#E74C3C',
+  },
+} as const;
+
+/**
+ * Auth screen text content
+ */
+export const AUTH_UI_TEXT = {
+  LOGIN: {
+    TITLE: 'Iniciar Sesión',
+    BUTTON: 'Entrar',
+    SIGNUP_LINK: '¿No estás registrado?',
+  },
+  SIGNUP: {
+    TITLE: 'Registro',
+    BUTTON: 'Registrarse',
+    ROLE_LABEL: 'Tipo de cuenta:',
+  },
 } as const;

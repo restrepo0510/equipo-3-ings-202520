@@ -13,11 +13,12 @@ export enum UserRole {
  * User data structure
  */
 export interface User {
-  id: string; // UUID
+  id: string;
   name: string;
   email: string;
   phone: string;
   role: UserRole;
+  profileImage?: string | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -40,7 +41,7 @@ export interface LoginCredentials {
 }
 
 /**
- * Registration data (alias for backward compatibility)
+ * Registration data (for UI forms - role is optional)
  */
 export interface RegisterData {
   name: string;
@@ -49,10 +50,11 @@ export interface RegisterData {
   password: string;
   role?: UserRole;
   address?: string;
+  profileImage?: string;
 }
 
 /**
- * Registration data (new naming convention)
+ * Registration data for API (role is required)
  */
 export interface RegistrationData {
   name: string;
@@ -60,12 +62,33 @@ export interface RegistrationData {
   phone: string;
   password: string;
   role: UserRole;
-  address?: string; // Required for business accounts
+  address?: string;
+  profileImage?: string;
+}
+
+/**
+ * Update profile data
+ */
+export interface UpdateProfileData {
+  name?: string;
+  email?: string;
+  phone?: string;
+  password?: string;
+  profileImage?: string;
+}
+
+/**
+ * Update profile data
+ */
+export interface UpdateProfileData {
+  name?: string;
+  email?: string;
+  phone?: string;
+  password?: string;
 }
 
 /**
  * Validation errors for a form
- * Generic type allows errors for any form structure
  */
 export type ValidationErrors<T> = {
   [K in keyof T]?: string;
@@ -97,6 +120,7 @@ export interface AuthContextValue extends AuthState {
   register: (data: RegisterData) => Promise<void>;
   logout: () => Promise<void>;
   updateUser: (user: User) => Promise<void>;
+  updateProfile: (data: UpdateProfileData) => Promise<void>;
 }
 
 /**
