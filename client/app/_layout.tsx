@@ -1,3 +1,4 @@
+// app/_layout.tsx (CORREGIDO)
 
 import React, { useEffect } from 'react';
 import { Stack, useRouter, useSegments } from 'expo-router';
@@ -46,7 +47,6 @@ function NavigationGuard({ children }: { children: React.ReactNode }) {
         console.log('🔒 Redirigiendo a Login (no autenticado)');
         router.replace('/(tabs)/LoginScreen');
       }
-      // Si no está autenticado Y SÍ está en 'LoginScreen', no hace nada y lo deja ahí.
     } 
     // 2. Si el usuario SÍ está autenticado
     else {
@@ -55,14 +55,11 @@ function NavigationGuard({ children }: { children: React.ReactNode }) {
         console.log('✅ Redirigiendo a Home (autenticado)');
         router.replace('/(tabs)/HomeScreen');
       }
-      // Si está autenticado y NO está en una pantalla de auth (ej. en 'HomeScreen'),
-      // no hace nada y lo deja donde está.
     }
     // --- FIN DE LA CORRECCIÓN ---
 
   }, [isAuthenticated, segments, isLoading, router]);
 
-  // Muestra un loader mientras se decide la ruta
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
@@ -71,7 +68,6 @@ function NavigationGuard({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // Muestra los hijos (la app) solo cuando ya no está cargando
   return <>{children}</>;
 }
 

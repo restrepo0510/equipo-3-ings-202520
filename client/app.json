@@ -4,8 +4,8 @@
     "slug": "Yummi",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/img/logo.png", // <-- CORREGIDO (era /images/)
-    "scheme": "Yummi",
+    "icon": "./assets/img/logo.png",
+    "scheme": "yummi", 
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
@@ -14,9 +14,7 @@
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/img/logo.png", // <-- CORREGIDO (era la ruta que daba error)
-        // Borré las otras imágenes (background, monochrome) que también iban a fallar.
-        // Con el logo y el color de fondo es suficiente.
+        "foregroundImage": "./assets/img/logo.png" 
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
@@ -24,14 +22,14 @@
     },
     "web": {
       "output": "static",
-      "favicon": "./assets/img/logo.png" // <-- CORREGIDO (era /images/)
+      "favicon": "./assets/img/logo.png" 
     },
     "plugins": [
       "expo-router",
       [
         "expo-splash-screen",
         {
-          "image": "./assets/img/logo.png", // <-- Esta ya estaba bien
+          "image": "./assets/img/logo.png",
           "imageWidth": 300,
           "resizeMode": "contain",
           "backgroundColor": "#ffffff",
