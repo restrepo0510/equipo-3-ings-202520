@@ -25,21 +25,21 @@ import {
 } from '@/constants/businessProfile.constants';
 
 /**
- * EditBusinessProfileScreen
+ * @component EditBusinessProfileScreen
+ * @description Screen for editing the business or restaurant profile.
+ * Provides the ability to update profile details, working hours, and profile image.
  * 
- * Screen for editing business/restaurant profile information
- * Allows updating business details, hours, and profile image
- * 
- * @responsibilities
- * - Display business profile form
- * - Handle form submission
- * - Manage image upload
+ * @features
+ * - Load and edit business profile
+ * - Update and upload profile image
+ * - Save profile changes
  */
 export default function EditBusinessProfileScreen(): React.ReactElement {
   const router = useRouter();
   const { user } = useAuth();
   const navItems = createBusinessNavItems('profile', router);
 
+  // Custom hooks to manage business profile data and image handling
   const {
     formData,
     isLoading,
@@ -55,7 +55,8 @@ export default function EditBusinessProfileScreen(): React.ReactElement {
   } = useBusinessProfileImage();
 
   /**
-   * Handles form save action
+   * @function handleSave
+   * @description Handles form submission and saves business profile
    */
   const handleSave = async (): Promise<void> => {
     const success = await saveProfile();
@@ -70,46 +71,28 @@ export default function EditBusinessProfileScreen(): React.ReactElement {
   };
 
   /**
-   * Handles image selection
+   * @function handleImageSelect
+   * @description Updates the selected profile image in the form
    */
   const handleImageSelect = (uri: string): void => {
     updateField('imageUrl', uri);
   };
 
   /**
-   * Handles image removal
+   * @function handleRemoveImage
+   * @description Clears the selected profile image
    */
   const handleRemoveImage = (): void => {
     updateField('imageUrl', '');
   };
 
   /**
-   * Renders loading state
+   * @function renderProfileImageSection
+   * @description Renders the section for the business profile picture
    */
-  if (isLoading) {
-    return (
-      <View style={styles.container}>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator 
-            size="large" 
-            color={BUSINESS_PROFILE_ICONS.COLORS.SUCCESS} 
-          />
-          <Text style={styles.loadingText}>
-            {BUSINESS_PROFILE_TEXT.LOADING.TEXT}
-          </Text>
-        </View>
-      </View>
-    );
-  }
-
-  /**
-   * Renders profile image section
-   */
-  const renderProfileImageSection = () => (
+  const renderProfileImageSection = (): React.ReactElement => (
     <View style={styles.profilePictureSection}>
-      <Text style={styles.label}>
-        {BUSINESS_PROFILE_TEXT.FORM.TITLE}
-      </Text>
+      <Text style={styles.label}>{BUSINESS_PROFILE_TEXT.FORM.TITLE}</Text>
       
       <View style={styles.profilePictureContainer}>
         {formData.imageUrl ? (
@@ -122,6 +105,7 @@ export default function EditBusinessProfileScreen(): React.ReactElement {
             <TouchableOpacity
               style={styles.removeProfileImageButton}
               onPress={() => showRemoveImageDialog(handleRemoveImage)}
+              accessibilityLabel="Remove profile image"
             >
               <Ionicons 
                 name={BUSINESS_PROFILE_ICONS.CLOSE} 
@@ -163,7 +147,8 @@ export default function EditBusinessProfileScreen(): React.ReactElement {
   );
 
   /**
-   * Renders text input field
+   * @function renderInputField
+   * @description Utility function to render form text inputs dynamically
    */
   const renderInputField = (
     field: keyof typeof formData,
@@ -174,14 +159,11 @@ export default function EditBusinessProfileScreen(): React.ReactElement {
       numberOfLines?: number;
       keyboardType?: 'default' | 'phone-pad' | 'email-address';
     }
-  ) => (
+  ): React.ReactElement => (
     <View style={styles.inputGroup}>
       <Text style={styles.label}>{label}</Text>
       <TextInput
-        style={[
-          styles.input,
-          options?.multiline && styles.textArea,
-        ]}
+        style={[styles.input, options?.multiline && styles.textArea]}
         value={formData[field] as string}
         onChangeText={(value) => updateField(field, value)}
         placeholder={placeholder}
@@ -194,13 +176,31 @@ export default function EditBusinessProfileScreen(): React.ReactElement {
     </View>
   );
 
+  // Render loading spinner when data is still fetching
+  if (isLoading) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator 
+            size="large" 
+            color={BUSINESS_PROFILE_ICONS.COLORS.SUCCESS} 
+          />
+          <Text style={styles.loadingText}>
+            {BUSINESS_PROFILE_TEXT.LOADING.TEXT}
+          </Text>
+        </View>
+      </View>
+    );
+  }
+
+  // Main render
   return (
     <View style={styles.container}>
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        {/* Header */}
+        {/* Header Section */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.back()}>
             <Ionicons 
@@ -209,6 +209,7 @@ export default function EditBusinessProfileScreen(): React.ReactElement {
               color={BUSINESS_PROFILE_ICONS.COLORS.PRIMARY} 
             />
           </TouchableOpacity>
+
           <View style={styles.headerTitleContainer}>
             <Text style={styles.headerTitle}>
               {BUSINESS_PROFILE_TEXT.HEADER.TITLE}{' '}
@@ -224,7 +225,7 @@ export default function EditBusinessProfileScreen(): React.ReactElement {
 
         <View style={styles.divider} />
 
-        {/* Form */}
+        {/* Form Section */}
         <View style={styles.form}>
           {renderProfileImageSection()}
 
@@ -268,7 +269,7 @@ export default function EditBusinessProfileScreen(): React.ReactElement {
             BUSINESS_PROFILE_TEXT.FORM.PLACEHOLDERS.CATEGORY
           )}
 
-          {/* Opening Hours */}
+          {/* Opening Hours Section */}
           <View style={styles.row}>
             <View style={[styles.inputGroup, styles.halfWidth]}>
               <Text style={styles.label}>
@@ -335,6 +336,7 @@ export default function EditBusinessProfileScreen(): React.ReactElement {
         </View>
       </ScrollView>
 
+      {/* Bottom Navigation */}
       <BottomNavigation items={navItems} />
     </View>
   );
