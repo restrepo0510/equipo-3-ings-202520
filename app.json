@@ -1,0 +1,22 @@
+{
+  "expo": {
+    "name": "Yummi",
+    "slug": "Yummi",
+    "version": "1.0.0",
+    "platforms": [
+      "ios",
+      "android"
+    ],
+    "android": {
+      "package": "com.alexsklx.Yummi"
+    },
+    "ios": {
+      "bundleIdentifier": "com.alexsklx.Yummi"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "50f721ab-2b2e-4d54-aaec-2f061fc10f22"
+      }
+    }
+  }
+}
