@@ -1,313 +1,439 @@
-// app/(tabs)/ProductsScreen.tsx
+// app/(tabs)/AddProductScreen.tsx
 
-import React, { useState, useEffect, useCallback } from 'react';
-import { 
-  View, 
-  Text, 
-  ScrollView, 
-  Image, 
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TextInput,
   TouchableOpacity,
-  ActivityIndicator,
   Alert,
+  ActivityIndicator,
+  Image,
 } from 'react-native';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
 import { BottomNavigation } from '@/components/ui/bottomNavigation';
-import { createNavItems } from '@/utils/navigationHelpers';
-import { productService } from '@/services/productService';
-import { restaurantService } from '@/services/restaurantService';
-import { useFavorites } from '@/context/FavoritesContext';
+import { createBusinessNavItems } from '@/utils/navigationHelpers';
+import { productService, CreateProductDto } from '@/services/productService';
 import { useAuth } from '@/context/AuthContext';
-import { Product } from '@/types/product.types';
-import { styles } from '@/styles/productsScreen.styles';
+import { styles } from '@/styles/addProductScreen.styles';
 
 /**
- * Products Screen
- * Displays the list of products from a selected restaurant.
- * Supports loading states, error handling, and favorite management.
+ * AddProductScreen Component
+ * 
+ * Screen for business users to add new products
+ * Includes image picker functionality
  */
-export default function ProductsScreen() {
-  // ==============================
-  // Hooks & Contexts
-  // ==============================
+export default function AddProductScreen() {
   const router = useRouter();
-  const { restaurantId } = useLocalSearchParams();
-  const { token } = useAuth();
-  const { isFavorite, addFavorite, removeFavorite, loadFavorites } = useFavorites();
-  const navItems = createNavItems('map', router);
+  const { token, user } = useAuth();
+  const navItems = createBusinessNavItems('add', router);
 
-  // ==============================
-  // Local State
-  // ==============================
-  const [products, setProducts] = useState<Product[]>([]);
-  const [restaurantName, setRestaurantName] = useState<string>('');
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [loadingFavorites, setLoadingFavorites] = useState<Set<string>>(new Set());
+  // Form state
+  const [formData, setFormData] = useState<CreateProductDto>({
+    name: '',
+    description: '',
+    price: 0,
+    originalPrice: undefined,
+    stock: 0,
+    imageUrl: '',
+    category: '',
+    isAvailable: true,
+    restaurantId: user?.id.toString() || '',
+  });
 
-  // ==============================
-  // Data Fetching Functions
-  // ==============================
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
 
-  /** Fetch restaurant info by ID */
-  const loadRestaurantInfo = useCallback(async () => {
-    if (!restaurantId) return;
+  /**
+   * Update form field
+   */
+  const updateField = (field: keyof CreateProductDto, value: any) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  /**
+   * Request camera permissions
+   */
+  const requestCameraPermission = async (): Promise<boolean> => {
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert(
+        'Permiso Requerido',
+        'Se necesita acceso a la cámara para tomar fotos'
+      );
+      return false;
+    }
+    return true;
+  };
+
+  /**
+   * Request media library permissions
+   */
+  const requestMediaLibraryPermission = async (): Promise<boolean> => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert(
+        'Permiso Requerido',
+        'Se necesita acceso a la galería para seleccionar fotos'
+      );
+      return false;
+    }
+    return true;
+  };
+
+  /**
+   * Pick image from gallery
+   */
+  const pickImageFromGallery = async () => {
+    const hasPermission = await requestMediaLibraryPermission();
+    if (!hasPermission) return;
 
     try {
-      const restaurant = await restaurantService.getById(restaurantId as string);
-      setRestaurantName(restaurant.name);
-    } catch (error) {
-      console.error('Error loading restaurant:', error);
-    }
-  }, [restaurantId]);
+      setIsUploadingImage(true);
 
-  /** Fetch product list for a restaurant */
-  const loadProducts = useCallback(async () => {
-    if (!restaurantId) {
-      setError('No se especificó un restaurante');
-      setIsLoading(false);
-      return;
-    }
-
-    if (!token) {
-      setError('No hay token de autenticación');
-      setIsLoading(false);
-      return;
-    }
-
-    try {
-      setIsLoading(true);
-      setError(null);
-      const data = await productService.getByRestaurant(restaurantId as string, token);
-      setProducts(data);
-    } catch (error: any) {
-      console.error('Error loading products:', error);
-      setError(error.message || 'No se pudieron cargar los productos');
-    } finally {
-      setIsLoading(false);
-    }
-  }, [token, restaurantId]);
-
-  // ==============================
-  // Effects
-  // ==============================
-  useEffect(() => {
-    loadRestaurantInfo();
-    loadProducts();
-    loadFavorites();
-  }, [loadRestaurantInfo, loadProducts, loadFavorites]);
-
-  // ==============================
-  // Handlers
-  // ==============================
-
-  /** Toggle favorite status for a given product */
-  const toggleFavorite = async (productId: string) => {
-    if (!token) {
-      Alert.alert('Error', 'Debes iniciar sesión para agregar favoritos');
-      return;
-    }
-
-    if (loadingFavorites.has(productId)) return;
-
-    setLoadingFavorites(prev => new Set(prev).add(productId));
-
-    try {
-      if (isFavorite(productId)) {
-        await removeFavorite(productId);
-      } else {
-        await addFavorite(productId);
-      }
-    } catch (error: any) {
-      Alert.alert('Error', error.message || 'No se pudo actualizar el favorito');
-    } finally {
-      setLoadingFavorites(prev => {
-        const newLoading = new Set(prev);
-        newLoading.delete(productId);
-        return newLoading;
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 0.8,
       });
+
+      if (!result.canceled && result.assets[0]) {
+        updateField('imageUrl', result.assets[0].uri);
+      }
+    } catch (error) {
+      console.error('Error picking image:', error);
+      Alert.alert('Error', 'No se pudo seleccionar la imagen');
+    } finally {
+      setIsUploadingImage(false);
     }
   };
 
-  /** Format product price in Colombian currency */
-  const formatPrice = (price: number) => `$ ${price.toLocaleString('es-CO')}`;
+  /**
+   * Take photo with camera
+   */
+  const takePhoto = async () => {
+    const hasPermission = await requestCameraPermission();
+    if (!hasPermission) return;
 
-  /** Handle press on a product card */
-  const handleProductPress = (product: Product) => {
-    console.log('Product pressed:', product.name);
+    try {
+      setIsUploadingImage(true);
+
+      const result = await ImagePicker.launchCameraAsync({
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets[0]) {
+        updateField('imageUrl', result.assets[0].uri);
+      }
+    } catch (error) {
+      console.error('Error taking photo:', error);
+      Alert.alert('Error', 'No se pudo tomar la foto');
+    } finally {
+      setIsUploadingImage(false);
+    }
   };
 
-  // ==============================
-  // UI Rendering States
-  // ==============================
-
-  // Loading State
-  if (isLoading) {
-    return (
-      <View style={styles.container}>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#27AE60" />
-          <Text style={styles.loadingText}>Cargando productos...</Text>
-        </View>
-        <BottomNavigation items={navItems} />
-      </View>
+  /**
+   * Show image picker options
+   */
+  const showImagePickerOptions = () => {
+    Alert.alert(
+      'Seleccionar Imagen',
+      'Elige una opción',
+      [
+        {
+          text: 'Tomar Foto',
+          onPress: takePhoto,
+        },
+        {
+          text: 'Elegir de Galería',
+          onPress: pickImageFromGallery,
+        },
+        {
+          text: 'Cancelar',
+          style: 'cancel',
+        },
+      ],
+      { cancelable: true }
     );
-  }
+  };
 
-  // Error State
-  if (error) {
-    return (
-      <View style={styles.container}>
-        <View style={styles.errorContainer}>
-          <Ionicons name="alert-circle-outline" size={64} color="#E74C3C" />
-          <Text style={styles.errorText}>{error}</Text>
-          <TouchableOpacity style={styles.retryButton} onPress={loadProducts}>
-            <Text style={styles.retryButtonText}>Reintentar</Text>
-          </TouchableOpacity>
-        </View>
-        <BottomNavigation items={navItems} />
-      </View>
-    );
-  }
+  /**
+   * Remove selected image
+   */
+  const removeImage = () => {
+    updateField('imageUrl', '');
+  };
 
-  // Empty State (no products)
-  if (products.length === 0) {
-    return (
-      <View style={styles.container}>
-        <ScrollView contentContainerStyle={styles.scrollContent}>
-          {/* Header */}
-          <View style={styles.header}>
-            <TouchableOpacity onPress={() => router.back()}>
-              <Ionicons name="arrow-back" size={24} color="#000" />
-            </TouchableOpacity>
-            <View style={styles.headerTitleContainer}>
-              <Text style={styles.headerTitle}>YUMMI</Text>
-            </View>
-            <View style={{ width: 24 }} />
-          </View>
+  /**
+   * Validate form
+   */
+  const validateForm = (): boolean => {
+    if (!formData.name.trim()) {
+      Alert.alert('Error', 'El nombre del producto es requerido');
+      return false;
+    }
 
-          <View style={styles.divider} />
+    if (formData.price <= 0) {
+      Alert.alert('Error', 'El precio debe ser mayor a 0');
+      return false;
+    }
 
-          {restaurantName && <Text style={styles.restaurantName}>{restaurantName}</Text>}
+    if (formData.stock < 0) {
+      Alert.alert('Error', 'El stock no puede ser negativo');
+      return false;
+    }
 
-          {/* Empty message */}
-          <View style={styles.emptyContainer}>
-            <Ionicons name="fast-food-outline" size={80} color="#BDC3C7" />
-            <Text style={styles.emptyText}>No hay productos disponibles</Text>
-            <Text style={styles.emptySubtext}>
-              Este restaurante aún no tiene productos publicados
-            </Text>
-          </View>
-        </ScrollView>
+    return true;
+  };
 
-        <BottomNavigation items={navItems} />
-      </View>
-    );
-  }
+  /**
+   * Handle form submission
+   */
+  const handleSubmit = async () => {
+    if (!validateForm() || !token) return;
 
-  // ==============================
-  // Main Render
-  // ==============================
+    try {
+      setIsSubmitting(true);
+
+      await productService.create(formData, token);
+
+      Alert.alert(
+        'Éxito',
+        'Producto creado correctamente',
+        [
+          {
+            text: 'OK',
+            onPress: () => router.push('/(tabs)/BusinessProfileScreen'),
+          },
+        ]
+      );
+
+      // Reset form
+      setFormData({
+        name: '',
+        description: '',
+        price: 0,
+        originalPrice: undefined,
+        stock: 0,
+        imageUrl: '',
+        category: '',
+        isAvailable: true,
+        restaurantId: user?.id.toString() || '',
+      });
+    } catch (error: any) {
+      console.error('Error creating product:', error);
+      Alert.alert('Error', error.message || 'No se pudo crear el producto');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <View style={styles.container}>
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+      >
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.back()}>
             <Ionicons name="arrow-back" size={24} color="#000" />
           </TouchableOpacity>
           <View style={styles.headerTitleContainer}>
-            <Text style={styles.headerTitle}>YUMMI</Text>
+            <Text style={styles.headerTitle}>Añadir Producto</Text>
           </View>
-          <TouchableOpacity onPress={loadProducts}>
-            <Ionicons name="refresh" size={24} color="#000" />
-          </TouchableOpacity>
+          <View style={{ width: 24 }} />
         </View>
 
+        {/* Divider */}
         <View style={styles.divider} />
 
-        {/* Restaurant Info */}
-        {restaurantName && (
-          <View style={styles.restaurantHeader}>
-            <Ionicons name="restaurant" size={24} color="#27AE60" />
-            <Text style={styles.restaurantName}>{restaurantName}</Text>
-          </View>
-        )}
-
-        {/* Section Header */}
-        <Text style={styles.sectionTitle}>Productos Disponibles</Text>
-        <Text style={styles.sectionSubtitle}>
-          {products.length} {products.length === 1 ? 'producto' : 'productos'}
-        </Text>
-
-        {/* Product List */}
-        <View style={styles.productsList}>
-          {products.map((product) => (
-            <TouchableOpacity
-              key={product.id}
-              style={styles.productCard}
-              onPress={() => handleProductPress(product)}
-              activeOpacity={0.7}
-            >
-              {/* Product Image */}
-              <View style={styles.imageContainer}>
+        {/* Form */}
+        <View style={styles.form}>
+          {/* Image Picker */}
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Imagen del Producto</Text>
+            
+            {formData.imageUrl ? (
+              <View style={styles.imagePreviewContainer}>
                 <Image
-                  source={{ uri: product.imageUrl || 'https://via.placeholder.com/150' }}
-                  style={styles.productImage}
+                  source={{ uri: formData.imageUrl }}
+                  style={styles.imagePreview}
                   resizeMode="cover"
                 />
-                {product.discount && product.discount > 0 && (
-                  <View style={styles.discountBadge}>
-                    <Text style={styles.discountText}>-{product.discount}%</Text>
-                  </View>
-                )}
+                <TouchableOpacity
+                  style={styles.removeImageButton}
+                  onPress={removeImage}
+                >
+                  <Ionicons name="close-circle" size={32} color="#E74C3C" />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.changeImageButton}
+                  onPress={showImagePickerOptions}
+                >
+                  <Ionicons name="camera" size={20} color="#FFF" />
+                  <Text style={styles.changeImageText}>Cambiar</Text>
+                </TouchableOpacity>
               </View>
-
-              {/* Product Info */}
-              <View style={styles.productInfo}>
-                <Text style={styles.productName} numberOfLines={1}>{product.name}</Text>
-                <Text style={styles.productDescription} numberOfLines={2}>
-                  {product.description || 'Sin descripción'}
-                </Text>
-                {product.category && <Text style={styles.productCategory}>{product.category}</Text>}
-                <Text style={styles.stockText}>Stock: {product.stock} unidades</Text>
-              </View>
-
-              {/* Price or Availability */}
-              {product.isAvailable ? (
-                <View style={styles.priceBadge}>
-                  {product.originalPrice && product.originalPrice > product.price && (
-                    <Text style={styles.originalPrice}>{formatPrice(product.originalPrice)}</Text>
-                  )}
-                  <Text style={styles.priceText}>{formatPrice(product.price)}</Text>
-                </View>
-              ) : (
-                <View style={styles.notAvailableBadge}>
-                  <Text style={styles.notAvailableText}>No Disp</Text>
-                </View>
-              )}
-
-              {/* Favorite Button */}
+            ) : (
               <TouchableOpacity
-                style={styles.favoriteButton}
-                onPress={() => toggleFavorite(product.id)}
-                disabled={loadingFavorites.has(product.id)}
+                style={styles.imagePickerButton}
+                onPress={showImagePickerOptions}
+                disabled={isUploadingImage}
               >
-                {loadingFavorites.has(product.id) ? (
-                  <ActivityIndicator size="small" color="#E74C3C" />
+                {isUploadingImage ? (
+                  <ActivityIndicator color="#27AE60" />
                 ) : (
-                  <Ionicons
-                    name={isFavorite(product.id) ? 'heart' : 'heart-outline'}
-                    size={28}
-                    color={isFavorite(product.id) ? '#E74C3C' : '#000'}
-                  />
+                  <>
+                    <Ionicons name="camera" size={48} color="#9CA3AF" />
+                    <Text style={styles.imagePickerText}>
+                      Toca para agregar imagen
+                    </Text>
+                  </>
                 )}
               </TouchableOpacity>
+            )}
+          </View>
+
+          {/* Name */}
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Nombre *</Text>
+            <TextInput
+              style={styles.input}
+              value={formData.name}
+              onChangeText={(value) => updateField('name', value)}
+              placeholder="Ej: Pizza Margarita"
+              placeholderTextColor="#9CA3AF"
+            />
+          </View>
+
+          {/* Description */}
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Descripción</Text>
+            <TextInput
+              style={[styles.input, styles.textArea]}
+              value={formData.description}
+              onChangeText={(value) => updateField('description', value)}
+              placeholder="Describe el producto..."
+              placeholderTextColor="#9CA3AF"
+              multiline
+              numberOfLines={3}
+            />
+          </View>
+
+          {/* Price Row */}
+          <View style={styles.row}>
+            <View style={[styles.inputGroup, styles.halfWidth]}>
+              <Text style={styles.label}>Precio *</Text>
+              <TextInput
+                style={styles.input}
+                value={formData.price.toString()}
+                onChangeText={(value) =>
+                  updateField('price', parseFloat(value) || 0)
+                }
+                placeholder="10000"
+                placeholderTextColor="#9CA3AF"
+                keyboardType="numeric"
+              />
+            </View>
+
+            <View style={[styles.inputGroup, styles.halfWidth]}>
+              <Text style={styles.label}>Precio Original</Text>
+              <TextInput
+                style={styles.input}
+                value={formData.originalPrice?.toString() || ''}
+                onChangeText={(value) =>
+                  updateField('originalPrice', value ? parseFloat(value) : undefined)
+                }
+                placeholder="15000"
+                placeholderTextColor="#9CA3AF"
+                keyboardType="numeric"
+              />
+            </View>
+          </View>
+
+          {/* Stock */}
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Stock Inicial *</Text>
+            <TextInput
+              style={styles.input}
+              value={formData.stock.toString()}
+              onChangeText={(value) =>
+                updateField('stock', parseInt(value) || 0)
+              }
+              placeholder="50"
+              placeholderTextColor="#9CA3AF"
+              keyboardType="numeric"
+            />
+          </View>
+
+          {/* Category */}
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Categoría</Text>
+            <TextInput
+              style={styles.input}
+              value={formData.category}
+              onChangeText={(value) => updateField('category', value)}
+              placeholder="Ej: Pizza, Hamburguesas, Postres"
+              placeholderTextColor="#9CA3AF"
+            />
+          </View>
+
+          {/* Availability Toggle */}
+          <View style={styles.toggleContainer}>
+            <Text style={styles.label}>Disponible inmediatamente</Text>
+            <TouchableOpacity
+              style={[
+                styles.toggle,
+                formData.isAvailable && styles.toggleActive,
+              ]}
+              onPress={() => updateField('isAvailable', !formData.isAvailable)}
+            >
+              <View
+                style={[
+                  styles.toggleThumb,
+                  formData.isAvailable && styles.toggleThumbActive,
+                ]}
+              />
             </TouchableOpacity>
-          ))}
+          </View>
+
+          {/* Submit Button */}
+          <TouchableOpacity
+            style={[styles.submitButton, isSubmitting && styles.submitButtonDisabled]}
+            onPress={handleSubmit}
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? (
+              <ActivityIndicator color="#FFF" />
+            ) : (
+              <>
+                <Ionicons name="checkmark-circle" size={24} color="#FFF" />
+                <Text style={styles.submitButtonText}>Crear Producto</Text>
+              </>
+            )}
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.cancelButton}
+            onPress={() => router.back()}
+            disabled={isSubmitting}
+          >
+            <Text style={styles.cancelButtonText}>Cancelar</Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
 
+      {/* Bottom Navigation */}
       <BottomNavigation items={navItems} />
     </View>
   );

@@ -11,7 +11,7 @@ import { FavoritesProvider } from '../context/FavoritesContext';
 import { AlertProvider } from '@/context/AlertProvider';
 import { LogBox } from 'react-native';
 
-LogBox.ignoreAllLogs(true); 
+LogBox.ignoreAllLogs(false); 
 /**
  * Navigation Guard Component
  * (Sin cambios en esta función)
