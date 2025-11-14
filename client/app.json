@@ -4,34 +4,29 @@
     "slug": "Yummi",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/img/logo.png", // <-- CORREGIDO (era /images/)
-    "scheme": "Yummi",
+    "icon": "./assets/img/logo.png",
+    "scheme": "yummi",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "platforms": [
+      "ios",
+      "android"
+    ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.alexsklx.Yummi"
     },
     "android": {
-      "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/img/logo.png", // <-- CORREGIDO (era la ruta que daba error)
-        // Borré las otras imágenes (background, monochrome) que también iban a fallar.
-        // Con el logo y el color de fondo es suficiente.
-      },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
       "package": "com.alexsklx.Yummi"
-    },
-    "web": {
-      "output": "static",
-      "favicon": "./assets/img/logo.png" // <-- CORREGIDO (era /images/)
     },
     "plugins": [
       "expo-router",
       [
         "expo-splash-screen",
         {
-          "image": "./assets/img/logo.png", // <-- Esta ya estaba bien
+          "image": "./assets/img/logo.png",
           "imageWidth": 300,
           "resizeMode": "contain",
           "backgroundColor": "#ffffff",
@@ -50,8 +45,15 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "a1d3d469-8f61-4fcd-9567-8f3b70fe0c3c"
+        "projectId": "50f721ab-2b2e-4d54-aaec-2f061fc10f22"
       }
-    }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/50f721ab-2b2e-4d54-aaec-2f061fc10f22"
+    },
+    "owner": "alex-sklx"
   }
 }
